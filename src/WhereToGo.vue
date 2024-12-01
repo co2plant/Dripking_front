@@ -12,7 +12,7 @@ import Footer from "@/components/Footer.vue";
 import LocationLists from "@/components/LocationLists.vue";
 
 onMounted(() => {
-  axios.get("/api/items").then((response) => {
+  axios.get("http://localhost:8080/api/distilleries").then((response) => {
     console.log(response);
   });
 });
