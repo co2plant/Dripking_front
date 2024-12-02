@@ -33,11 +33,16 @@ export default {
   setup() {
     const distilleries = ref([]);
 
-    axios.get('https://localhost:8080/api/distilleries')
+    axios.get('http://localhost:8080/api/distilleries')
         .then(response => {
           distilleries.value = response.data;
         })
         .catch(error => {
+          if(error.response){
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.header);
+          }
           console.error('Error fetching distilleries:', error);
         });
 
