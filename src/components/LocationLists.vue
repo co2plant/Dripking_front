@@ -14,9 +14,9 @@
                   {{ distillery.name }}
                 </a>
               </h3>
-              <p class="mt-1 text-sm text-gray-500">{{ distillery.location }}</p>
+              <p class="mt-1 text-sm text-gray-500">{{ distillery.address }}</p>
             </div>
-            <p class="text-sm font-medium text-gray-900">{{ distillery.price }}</p>
+            <!--<p class="text-sm font-medium text-gray-900">{{ distillery.price }}</p>-->
           </div>
         </div>
       </div>
