@@ -5,17 +5,9 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
-import axios from 'axios';
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
-import LocationLists from "@/components/LocationLists.vue";
-
-onMounted(() => {
-  axios.get("http://localhost:8080/api/distilleries").then((response) => {
-    console.log(response);
-  });
-});
+import LocationLists from "@/components/Distilleries.vue";
 </script>
 
 <style>

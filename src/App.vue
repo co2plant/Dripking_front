@@ -1,6 +1,6 @@
 <template>
   <Header/>
-  <Landing/>
+  <Destination/>
   <Footer/>
 </template>
 
@@ -15,8 +15,8 @@ export default {
 
 <script setup>
 import Header from "@/components/Header.vue";
-import Landing from "@/pages/Landing.vue";
 import Footer from "@/components/Footer.vue";
+import Destination from "@/components/Destination.vue";
 </script>
 
 <style>
