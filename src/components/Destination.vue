@@ -2,17 +2,17 @@
   <div class="bg-white">
     <div class="container mx-auto px-4 py-8">
       <div class="mb-12">
-        <h1 class="text-4xl font-bold mb-6 text-gray-800">{{ location.name }}</h1>
+        <h1 class="text-4xl font-bold mb-6 text-gray-800">{{ destination.name }}</h1>
         <div class="relative h-96 mb-6">
           <img
-              :src="location.image"
-              :alt="location.name"
+              :src="destination.image"
+              :alt="destination.name"
               class="rounded-lg object-cover w-full h-full shadow-lg"
           />
         </div>
-        <p class="text-xl mb-6 text-gray-600 leading-relaxed">{{ location.description }}</p>
+        <p class="text-xl mb-6 text-gray-600 leading-relaxed">{{ destination.description }}</p>
         <h2 class="text-2xl font-semibold mb-4 text-gray-800">상세 내용</h2>
-        <p class="text-gray-600 leading-relaxed">{{ location.details }}</p>
+        <p class="text-gray-600 leading-relaxed">{{ destination.details }}</p>
       </div>
 
       <div>
@@ -26,21 +26,21 @@
               ref="scrollContainer"
           >
             <router-link
-                v-for="attraction in displayedAttractions"
-                :key="attraction.id"
-                :to="{ name: 'AttractionDetail', params: { id: attraction.id }}"
+                v-for="distillery in distilleries"
+                :key="distillery.id"
+                :to="{ name: 'DistilleryDetail', params: { id: distillery.id }}"
                 class="flex-shrink-0 w-72 bg-white rounded-lg overflow-hidden shadow-lg transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
             >
               <div class="relative h-48">
                 <img
-                    :src="attraction.image"
-                    :alt="attraction.name"
+                    :src="distillery.image"
+                    :alt="distillery.name"
                     class="w-full h-full object-cover"
                 />
               </div>
               <div class="p-6">
-                <h3 class="font-bold text-xl mb-2 text-gray-800">{{ attraction.name }}</h3>
-                <p class="text-gray-600">{{ attraction.description }}</p>
+                <h3 class="font-bold text-xl mb-2 text-gray-800">{{ distillery.name }}</h3>
+                <p class="text-gray-600">{{ distillery.description }}</p>
               </div>
             </router-link>
           </div>
@@ -53,23 +53,7 @@
 
 
 <script setup>
-  import { computed, onMounted } from 'vue'
-
-  const location = ref({
-    name: "서울 (Seoul)",
-    description: "서울은 대한민국의 수도이자 최대 도시입니다. 현대적인 고층 빌딩과 고궁, 불교 사찰이 공존하는 독특한 도시입니다.",
-    details: "서울은 600년 이상의 역사를 자랑하며, 조선왕조의 수도였습니다. 오늘날 서울은 세계적인 기술 혁신의 중심지이자 K-pop과 한류의 발상지로 알려져 있습니다. 고궁, 현대적인 쇼핑몰, 한강 공원 등 다양한 명소가 있어 관광객들에게 인기가 높습니다.",
-    image: "/placeholder.svg?height=400&width=800"
-  })
-
-  const nearbyAttractions = ref(Array.from({ length: 100 }, (_, i) => ({
-    id: i + 1,
-    name: `관광지 ${i + 1}`,
-    description: `서울의 아름다운 관광지 ${i + 1}번째 입니다. 이곳에서 서울의 매력을 느껴보세요.`,
-    image: `/placeholder.svg?height=200&width=300&text=Attraction${i + 1}`
-  })))
-
-  const displayedAttractions = computed(() => nearbyAttractions.value.slice(0, 100))
+  import { onMounted } from 'vue'
 
   const scrollContainer = ref(null)
   let isScrolling = false
@@ -110,8 +94,9 @@ export default {
   name: 'Destination',
   setup() {
     const destination = ref([]);
+    const distilleries = ref([]);
 
-    axios.get('http://localhost:8080/api/destination')
+    axios.get('http://localhost:8080/api/destination/1')
         .then(response => {
           destination.value = response.data;
         })
@@ -121,11 +106,25 @@ export default {
             console.log(error.response.status);
             console.log(error.response.header);
           }
-          console.error('Error fetching distilleries:', error);
+          console.error('Error fetching destination:', error);
         });
 
+    axios.get('http://localhost:8080/api/distilleries')
+        .then(response => {
+          distilleries.value = response.data;
+        })
+        .catch(error => {
+          if(error.response){
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.header);
+          }
+          console.error('Error fetching distilleries:', error);
+        })
+
     return {
-      destination
+      destination,
+      distilleries
     };
   }
 };
