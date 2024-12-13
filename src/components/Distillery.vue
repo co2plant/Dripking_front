@@ -27,15 +27,19 @@
 <script>
 import { ref } from 'vue';
 import axios from 'axios';
+import {useRoute} from "vue-router";
 
 export default {
-  name: 'Distilleries',
+  name: 'Distillery',
   setup() {
-    const distilleries = ref([]);
+    const distillery = ref(null);
+    const route = useRoute();
 
-    axios.get('http://localhost:8080/api/distilleries')
+    const urlStr = 'http://localhost:8080/api/destination/' + route.params.id;
+
+    axios.get(urlStr)
         .then(response => {
-          distilleries.value = response.data;
+          distillery.value = response.data;
         })
         .catch(error => {
           if(error.response){
@@ -47,7 +51,7 @@ export default {
         });
 
     return {
-      distilleries
+      distillery
     };
   }
 };

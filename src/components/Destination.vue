@@ -12,7 +12,7 @@
         </div>
         <p class="text-xl mb-6 text-gray-600 leading-relaxed">{{ destination.description }}</p>
         <h2 class="text-2xl font-semibold mb-4 text-gray-800">상세 내용</h2>
-        <p class="text-gray-600 leading-relaxed">{{ destination.details }}</p>
+        <p class="text-gray-600 leading-relaxed">{{ destination.description }}</p>
       </div>
 
       <div>
@@ -50,11 +50,12 @@
   </div>
 </template>
 
-
-
 <script setup>
-  import { onMounted } from 'vue'
+  import {onMounted, ref} from "vue";
+  import axios from "axios";
+  import {useRoute} from "vue-router";
 
+  const route = useRoute();
   const scrollContainer = ref(null)
   let isScrolling = false
   let startX
@@ -84,50 +85,35 @@
       scrollContainer.value.style.webkitOverflowScrolling = 'touch'
     }
   })
-</script>
 
-<script>
-import { ref } from 'vue';
-import axios from 'axios';
+  const destination = ref({
+    name: '',
+    image: '',
+    description: ''
+  });
+  const distilleries = ref([])
 
-export default {
-  name: 'Destination',
-  setup() {
-    const destination = ref([]);
-    const distilleries = ref([]);
+  const urlStr = 'http://localhost:8080/api/destination/' + route.params.id;
 
-    axios.get('http://localhost:8080/api/destination/1')
-        .then(response => {
+  axios.get(urlStr)
+      .then(response => {
           destination.value = response.data;
-        })
-        .catch(error => {
-          if(error.response){
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.header);
+      })
+      .catch(
+          error => {
+              console.error('Error fetching destination get function:', error);
           }
-          console.error('Error fetching destination:', error);
-        });
+      )
 
-    axios.get('http://localhost:8080/api/distilleries')
-        .then(response => {
+  axios.get('http://localhost:8080/api/distilleries')
+      .then(response => {
           distilleries.value = response.data;
-        })
-        .catch(error => {
-          if(error.response){
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.header);
+      })
+      .catch(
+          error =>{
+            console.error('Error fetching distilleries get function :', error);
           }
-          console.error('Error fetching distilleries:', error);
-        })
-
-    return {
-      destination,
-      distilleries
-    };
-  }
-};
+      )
 </script>
 
 <style scoped>

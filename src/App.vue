@@ -1,22 +1,20 @@
 <template>
-  <Header/>
-  <Destination/>
-  <Footer/>
+  <div id="app">
+    <Header/>
+    <router-view></router-view>
+    <Footer/>
+  </div>
 </template>
-
-<script>
-export default {
-  name: 'App',
-  props: {
-    msg: String
-  }
-}
-</script>
 
 <script setup>
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
-import Destination from "@/components/Destination.vue";
+</script>
+
+<script>
+export default {
+  name: 'App'
+}
 </script>
 
 <style>
