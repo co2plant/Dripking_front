@@ -4,13 +4,17 @@ import DestinationList from "@/views/DestinationList.vue";
 import DistilleryList from "@/views/DistilleryList.vue";
 import DistilleryDetail from "@/views/DistilleryDetail.vue";
 import DestinationDetail from "@/views/DestinationDetail.vue";
+import AlcoholList from "@/views/AlcoholList.vue";
+import AlcoholDetail from "@/views/AlcoholDetail.vue";
 
 const routes = [
-    { path: '/', name: 'Landing', component: Landing },
+    { path: '/', name: 'Home', component: Landing },
     { path: '/destinationList', name: 'DestinationList', component: DestinationList },
     { path: '/destination/:id', name: 'DestinationDetail', component: DestinationDetail },
-    { path: '/distilleryList', name: 'distilleryList', component : DistilleryList },
-    { path: '/distillery/:id', name: 'DistilleryDetail', component: DistilleryDetail }
+    { path: '/distilleryList', name: 'DistilleryList', component : DistilleryList },
+    { path: '/distillery/:id', name: 'DistilleryDetail', component: DistilleryDetail },
+    { path: '/alcoholList', name: 'AlcoholList', component : AlcoholList },
+    { path: '/alcohol/:id', name: 'AlcoholDetail', component: AlcoholDetail },
 ]
 
 const router = createRouter({

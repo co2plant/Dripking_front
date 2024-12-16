@@ -4,6 +4,7 @@
   import {defineProps, onMounted, ref} from "vue";
 
   const props = defineProps(['title', 'toName', 'urlStr']);
+  const propsRef = ref(props);
   /*
   title :
   toName : (default : null)
@@ -57,7 +58,7 @@
 
 <template>
   <div>
-    <h2 class="text-3xl font-semibold mb-6 text-gray-800">주변 양조장</h2>
+    <h2 class="text-3xl font-semibold mb-6 text-gray-800">{{propsRef.title}}</h2>
     <div class="relative">
       <div
           class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide scroll-smooth"

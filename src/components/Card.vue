@@ -17,11 +17,8 @@
 <script setup>
 import {defineProps, ref} from "vue";
 import axios from "axios";
-import {useRoute} from "vue-router";
 
-const route = useRoute();
-
-const props = defineProps(['title', 'urlStr']);
+const props = defineProps(['toName', 'urlStr']);
 
 const item = ref({
   name: '',
@@ -29,8 +26,7 @@ const item = ref({
   description: ''
 });
 
-const urlStr = 'http://localhost:8080/api/destination/' + route.params.id;
-
+const urlStr = 'http://localhost:8080/api/'+ props.urlStr
 axios.get(urlStr)
     .then(response => {
       item.value = response.data;
