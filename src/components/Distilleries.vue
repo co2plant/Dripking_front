@@ -5,7 +5,7 @@
 
       <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
         <div v-for="distillery in distilleries" :key="distillery.id" class="group relative">
-          <img :src="distillery.imageSrc" :alt="distillery.imageAlt" class="aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/e5/ENIAC-changing_a_tube.jpg" :alt="distillery.imageAlt" class="aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80" />
           <div class="mt-4 flex justify-between">
             <div>
               <h3 class="text-sm text-gray-700">

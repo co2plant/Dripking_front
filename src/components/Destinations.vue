@@ -5,16 +5,14 @@
       <div v-for="destination in destinations" :key="destination.id" class="bg-white rounded-lg shadow-md overflow-hidden transition duration-300 ease-in-out hover:shadow-lg">
         <div class="flex flex-col md:flex-row">
           <div class="md:w-1/4">
-
-
-            <img :src="destination.image" :alt="destination.name" class="w-full h-32 md:h-40 object-cover" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e5/ENIAC-changing_a_tube.jpg" :alt="destination.name" class="w-full h-32 md:h-40 object-cover" />
           </div>
           <div class="md:w-3/4 p-4">
             <h2 class="text-xl font-semibold mb-2 text-gray-800">{{ destination.name }}</h2>
             <p class="text-gray-600 mb-4 line-clamp-3">{{ destination.description }}</p>
             <div class="flex justify-between items-center">
               <span class="text-sm text-gray-500">{{ destination.date }}</span>
-              <router-link :to="{ name: 'LocationDetail', params: { id: destination.id }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">
+              <router-link :to="{ name: 'DestinationDetail', params: { id: destination.id }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">
                 자세히 보기
               </router-link>
             </div>
