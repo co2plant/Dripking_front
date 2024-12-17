@@ -24,31 +24,14 @@
   </div>
 </template>
 
-<script>
-import { ref } from 'vue';
-import axios from 'axios';
-
-export default {
-  name: 'Distilleries',
-  setup() {
-    const distilleries = ref([]);
-
-    axios.get('http://localhost:8080/api/distilleries')
-        .then(response => {
-          distilleries.value = response.data;
-        })
-        .catch(error => {
-          if(error.response){
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.header);
-          }
-          console.error('Error fetching distilleries:', error);
-        });
-
-    return {
-      distilleries
-    };
-  }
-};
+<script setup>
 </script>
+
+<style scoped>
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
