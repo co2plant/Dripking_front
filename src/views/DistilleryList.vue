@@ -1,16 +1,15 @@
 <script setup>
-import Distilleries from "@/components/Distilleries.vue";
+import VerticalScrollCardList from "@/components/VerticalScrollCardList.vue";
 </script>
 
 <template>
-  <Distilleries/>
+  <VerticalScrollCardList
+      :title="'지역 정보 리스트'"
+      :toName="'DistilleryDetail'"
+      :urlStr="'distilleries'">
+    >
+  </VerticalScrollCardList>
 </template>
-
-<script>
-  export default{
-    name: "DistilleryList"
-  }
-</script>
 
 <style scoped>
 </style>

@@ -1,17 +1,15 @@
 <script setup>
-import Destinations from "@/components/Destinations.vue";
+import VerticalScrollCardList from "@/components/VerticalScrollCardList.vue";
 </script>
 
 <template>
-  <Destinations/>
+  <VerticalScrollCardList
+    :title="'지역 정보 리스트'"
+    :toName="'DestinationDetail'"
+    :urlStr="'destinations'">
+  >
+  </VerticalScrollCardList>
 </template>
-
-<script>
-  export default{
-    name: "DestinationList"
-  }
-</script>
-
 
 <style scoped>
 </style>
