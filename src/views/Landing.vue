@@ -18,11 +18,6 @@
   </div>
 </template>
 
-<script>
+<script setup>
   import SearchBar from "@/components/SearchBar.vue";
-
-  export default{
-    name: "Landing",
-    components: {SearchBar}
-  }
 </script>
