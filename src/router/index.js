@@ -10,13 +10,13 @@ import SearchedList from "@/views/SearchedList.vue";
 
 const routes = [
     { path: '/', name: 'Home', component: Landing },
-    { path: '/destinationList', name: 'DestinationList', component: DestinationList },
-    { path: '/destination/:id', name: 'DestinationDetail', component: DestinationDetail },
-    { path: '/distilleryList', name: 'DistilleryList', component : DistilleryList },
-    { path: '/distillery/:id', name: 'DistilleryDetail', component: DistilleryDetail },
-    { path: '/alcoholList', name: 'AlcoholList', component : AlcoholList },
-    { path: '/alcohol/:id', name: 'AlcoholDetail', component: AlcoholDetail },
-    { path: "/search/:dtype/:name", name: 'SearchList', component: SearchedList}
+    { path: '/destinationList', name: 'destinationList', component: DestinationList },
+    { path: '/destination/:id', name: 'destinationDetail', component: DestinationDetail },
+    { path: '/distilleryList', name: 'distilleryList', component : DistilleryList },
+    { path: '/distillery/:id', name: 'distilleryDetail', component: DistilleryDetail },
+    { path: '/alcoholList', name: 'alcoholList', component : AlcoholList },
+    { path: '/alcohol/:id', name: 'alcoholDetail', component: AlcoholDetail },
+    { path: "/search/:dtype", name: 'searchList', component: SearchedList}
 ]
 
 const router = createRouter({

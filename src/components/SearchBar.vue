@@ -82,7 +82,7 @@ const updateUrlParams = () => {
 }
 
 const updateUrlStr = () => {
-  urlStr = "http://localhost:3000/api/" + Array.from(selectedItem.value) + "/search/"
+  urlStr = "http://localhost:3000/search/" + Array.from(selectedItem.value) + "/"
 }
 
 </script>

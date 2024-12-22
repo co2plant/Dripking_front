@@ -9,7 +9,7 @@
 
       <Horizontal-scroll-card-list
         :title="'주변 양조장'"
-        :toName="'DistilleryDetail'"
+        :toName="'distilleryDetail'"
         :urlStr="'api/distilleries'">
       </Horizontal-scroll-card-list>
     </div>
