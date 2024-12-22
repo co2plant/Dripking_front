@@ -16,7 +16,7 @@ const routes = [
     { path: '/distillery/:id', name: 'DistilleryDetail', component: DistilleryDetail },
     { path: '/alcoholList', name: 'AlcoholList', component : AlcoholList },
     { path: '/alcohol/:id', name: 'AlcoholDetail', component: AlcoholDetail },
-    { path: '/search/:name', name: 'SearchedList', component: SearchedList},
+    { path: "/search/:dtype/:name", name: 'SearchList', component: SearchedList}
 ]
 
 const router = createRouter({
