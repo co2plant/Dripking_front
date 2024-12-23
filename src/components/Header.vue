@@ -18,8 +18,17 @@
           <a v-for="item in navigation" :key="item.name" :href="item.href" class="text-sm/6 font-semibold text-gray-900">{{ item.name }}</a>
         </div>
         <div class="hidden lg:flex lg:flex-1 lg:justify-end">
-          <a href="#" class="text-sm/6 font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+          <button
+              @click="showAuthModal = true"
+              class="justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            로그인 / 회원가입
+          </button>
         </div>
+
+        <Modal :show="showAuthModal" @close="showAuthModal = false">
+          <AuthenticationForm />
+        </Modal>
       </nav>
       <Dialog class="lg:hidden" @close="mobileMenuOpen = false" :open="mobileMenuOpen">
         <div class="fixed inset-0 z-50" />
@@ -57,16 +66,20 @@ export default {
 </script>
 
 <script setup>
-import { ref } from 'vue'
-import { Dialog, DialogPanel } from '@headlessui/vue'
-import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline'
+import {ref} from 'vue'
+import {Dialog, DialogPanel} from '@headlessui/vue'
+import {Bars3Icon, XMarkIcon} from '@heroicons/vue/24/outline'
+import Modal from './Modal.vue'
+import AuthenticationForm from './AuthenticationForm.vue'
 
 const navigation = [
-  { name: 'Discover', href: '/destinationList' },
-  { name: 'Trips', href: '#' },
-  { name: 'Review', href: '#' },
-  { name: 'More', href: '#' },
-]
+      {name: 'Discover', href: '/destinationList'},
+      {name: 'Trips', href: '#'},
+      {name: 'Review', href: '#'},
+      {name: 'More', href: '#'},
+    ]
 
+
+const showAuthModal = ref(false)
 const mobileMenuOpen = ref(false)
 </script>
