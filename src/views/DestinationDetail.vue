@@ -22,7 +22,7 @@ import Card from "@/components/Card.vue";
 import {useRoute} from "vue-router";
 
 const route = useRoute();
-const urlStr = 'destination/'+route.params.id;
+const urlStr = 'destinations/'+route.params.id;
 </script>
 
 <style scoped>

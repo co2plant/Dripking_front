@@ -46,7 +46,7 @@
 
   axios.get(urlStr)
     .then(response => {
-      items.value = response.data;
+      items.value = response.data.content;
     })
     .catch(
         error =>{

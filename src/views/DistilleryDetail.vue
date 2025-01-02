@@ -22,7 +22,7 @@ import Card from "@/components/Card.vue";
 import {useRoute} from "vue-router";
 
 const route = useRoute();
-const urlStr = 'distillery/'+route.params.id;
+const urlStr = 'distilleries/'+route.params.id;
 </script>
 
 <style scoped>

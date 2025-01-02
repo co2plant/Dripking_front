@@ -20,11 +20,7 @@ import axios from "axios";
 
 const props = defineProps(['toName', 'urlStr']);
 
-const item = ref({
-  name: '',
-  image: '',
-  description: ''
-});
+const item = ref([]);
 
 const urlStr = 'http://localhost:8080/api/'+ props.urlStr
 axios.get(urlStr)

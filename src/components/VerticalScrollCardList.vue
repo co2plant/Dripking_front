@@ -1,6 +1,7 @@
 <script setup>
   import {defineProps, onMounted, onUnmounted, ref} from 'vue';
   import axios from 'axios';
+  import Pagenation from "@/components/Pagenation.vue";
 
   const loading = ref(false)
   const infiniteScrollTrigger = ref(null)
@@ -9,6 +10,7 @@
   const propsRef = ref(props);
 
   const items = ref([]);
+  const pages = ref([]);
 
   const fetchLocations = async () => {
     if (loading.value) return
@@ -19,7 +21,8 @@
 
   axios.get(urlStr)
       .then(response => {
-        items.value = response.data;
+        items.value = response.data.content;
+        pages.value = response.data.pageable;
       })
       .catch(error => {
         if (error.response) {
@@ -80,6 +83,8 @@
         </div>
       </div>
     </div>
+    <pagenation :total-pages="pages.pageSize" :current-page="pages.pageNumber">
+    </pagenation>
     <div v-if="loading" class="flex justify-center items-center mt-4">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
     </div>
