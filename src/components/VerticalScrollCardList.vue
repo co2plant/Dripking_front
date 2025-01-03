@@ -1,7 +1,7 @@
 <script setup>
   import {defineProps, onMounted, onUnmounted, ref} from 'vue';
   import axios from 'axios';
-  import Pagenation from "@/components/Pagenation.vue";
+  import Pagenation from "@/components/Pagination.vue";
 
   const loading = ref(false)
   const infiniteScrollTrigger = ref(null)
