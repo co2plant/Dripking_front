@@ -6,7 +6,7 @@
           :urlStr ="urlStrAlcohol"
       >
       </Card>
-      <VerticalReviewList :total-pages="item.totalPages" :current-page="item.pageable.pageNumber" :reviews="item"></VerticalReviewList>
+      <VerticalReviewList :reviews="item" :total-pages="item.totalPages" :current-page="item.pageable.pageNumber"></VerticalReviewList>
       <pagenation :total-pages="item.totalPages" :current-page="item.pageable.pageNumber"></pagenation>
     </div>
   </div>
@@ -16,20 +16,47 @@
 import Card from "@/components/Card.vue";
 import {useRoute} from "vue-router";
 import VerticalReviewList from "@/components/VerticalReviewList.vue";
-import Pagenation from "@/components/Pagenation.vue";
+import Pagenation from "@/components/Pagination.vue";
 import axios from "axios";
 import {ref} from "vue";
 
 const route = useRoute();
 const urlStrAlcohol = 'alcohols/'+route.params.id;
 
-const item = ref([]);
+const item = ref({
+  content: [],
+  pageable: {
+    pageNumber: 0,
+    pageSize: 10,
+    sort: {
+      empty: false,
+      sorted: true,
+      unsorted: false
+    },
+    offset: 0,
+    paged: true,
+    unpaged: false
+  },
+  last: false,
+  totalElements: 0,
+  totalPages: 0,
+  first: true,
+  size: 10,
+  number: 0,
+  sort: {
+    empty: false,
+    sorted: true,
+    unsorted: false
+  },
+  numberOfElements: 0,
+  empty: true
+});
 
 const urlStrReview = 'http://localhost:8080/api/reviews?target_id='+ route.params.id+"&reviewType=alcohol";
+
 axios.get(urlStrReview)
     .then(response => {
       item.value = response.data;
-      console.log("this si alcoholDetail", item.value);
     })
     .catch(
         error => {

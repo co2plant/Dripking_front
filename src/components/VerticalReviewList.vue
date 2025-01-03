@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ReviewCard v-for="review in reviews" :key="review.id" :review="review"/>
+    <ReviewCard v-for="review in reviews.content" :key="review.id" :review="review"/>
     <Pagination
         :currentPage="currentPage"
         :totalPages="totalPages"
@@ -12,10 +12,11 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue'
 import ReviewCard from './ReviewCard.vue'
+import Pagination from "@/components/Pagination.vue";
 
 defineProps({
   reviews: {
-    type: JSON,
+    type: Object,
     required: true
   },
   currentPage: {

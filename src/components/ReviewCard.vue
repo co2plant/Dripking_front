@@ -25,7 +25,7 @@ import { defineProps } from 'vue'
 
 const props = defineProps({
   review: {
-    type: JSON,
+    type: Object,
     required: true
   }
 })
