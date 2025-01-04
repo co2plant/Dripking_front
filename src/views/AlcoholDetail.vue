@@ -52,7 +52,7 @@ const item = ref({
   empty: true
 });
 
-const urlStrReview = 'http://localhost:8080/api/reviews?target_id='+ route.params.id+"&reviewType=alcohol";
+const urlStrReview = 'http://localhost:8080/api/reviews?target_id='+ route.params.id+"&reviewType=alcohol&page=1";
 
 axios.get(urlStrReview)
     .then(response => {

@@ -17,8 +17,7 @@
 </template>
 
 <script setup>
-import { computed, defineProps, defineEmits} from 'vue'
-
+import { computed, defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   currentPage: {
@@ -34,7 +33,7 @@ const props = defineProps({
 const emit = defineEmits(['pageChanged'])
 
 const displayedPages = computed(() => {
-  const pages = props.totalPages
+  const pages = []
   const maxDisplayed = 5
   let start = Math.max(1, props.currentPage - Math.floor(maxDisplayed / 2))
   let end = Math.min(props.totalPages, start + maxDisplayed - 1)
