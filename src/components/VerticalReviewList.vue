@@ -1,12 +1,18 @@
 <template>
   <div>
     <ReviewCard v-for="review in reviews.content" :key="review.id" :review="review"/>
+    <Pagination
+        :currentPage="currentPage"
+        :totalPages="totalPages"
+        @pageChanged="$emit('pageChanged', $event)"
+    />
   </div>
 </template>
 
 <script setup>
 import { defineProps, defineEmits } from 'vue'
 import ReviewCard from './ReviewCard.vue'
+import Pagination from './Pagination.vue'
 
 defineProps({
   reviews: {
@@ -22,6 +28,7 @@ defineProps({
     required: true
   }
 })
+
 
 defineEmits(['pageChanged'])
 </script>

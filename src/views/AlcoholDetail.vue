@@ -6,8 +6,7 @@
           :urlStr ="urlStrAlcohol"
       >
       </Card>
-      <VerticalReviewList :reviews="item" :total-pages="item.totalPages" :current-page="item.pageable.pageNumber"></VerticalReviewList>
-      <pagenation :total-pages="item.totalPages" :current-page="item.pageable.pageNumber"></pagenation>
+      <VerticalReviewList></VerticalReviewList>
     </div>
   </div>
 </template>
@@ -16,7 +15,6 @@
 import Card from "@/components/Card.vue";
 import {useRoute} from "vue-router";
 import VerticalReviewList from "@/components/VerticalReviewList.vue";
-import Pagenation from "@/components/Pagination.vue";
 import axios from "axios";
 import {ref} from "vue";
 
