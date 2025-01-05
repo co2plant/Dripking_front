@@ -28,6 +28,7 @@ const fetchReviews = async (page = 1) => {
     totalReviews.value = data.totalPages
     currentPage.value = page
     console.log(reviews.value)
+    console.log(totalReviews.value)
   } catch (error) {
     console.error('리뷰를 불러오는 중 오류가 발생했습니다:', error)
   }
@@ -42,6 +43,6 @@ const paginatedReviews = computed(() => {
 })
 
 onMounted(() => {
-  fetchReviews()
+  fetchReviews(1)
 })
 </script>
