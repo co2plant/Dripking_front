@@ -18,11 +18,17 @@
 import {defineProps, ref} from "vue";
 import axios from "axios";
 
-const props = defineProps(['toName', 'urlStr']);
+const ItemTypes = {
+  DESTINATION: 'destinations',
+  ALCOHOL: 'alcohols',
+  DISTILLERY: 'distilleries'
+}
+
+const props = defineProps(['itemType', 'targetId']);
 
 const item = ref([]);
 
-const urlStr = 'http://localhost:8080/api/'+ props.urlStr
+const urlStr = 'http://localhost:8080/api/' + ItemTypes[props.itemType] + '/' + props.targetId;
 axios.get(urlStr)
     .then(response => {
       item.value = response.data;
@@ -40,6 +46,7 @@ axios.get(urlStr)
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
