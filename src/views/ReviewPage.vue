@@ -37,9 +37,10 @@ const fetchReviews = async (page = 1) => {
 const totalPages = computed(() => Math.ceil(totalReviews.value / pageSize))
 
 const paginatedReviews = computed(() => {
-  //const start = (currentPage.value - 1) * pageSize
-  //const end = start + pageSize
-  return reviews
+  const start = (currentPage.value - 1) * pageSize
+  const end = start + pageSize
+  console.log(reviews.value.slice(start, end))
+  return reviews.value.slice(start, end)
 })
 
 onMounted(() => {

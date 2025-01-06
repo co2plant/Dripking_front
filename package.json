@@ -13,6 +13,7 @@
     "axios": "^1.7.7",
     "core-js": "^3.8.3",
     "https-browserify": "^1.0.0",
+    "lucide-vue-next": "^0.469.0",
     "vue": "^3.2.13",
     "vue-router": "^4.5.0"
   },

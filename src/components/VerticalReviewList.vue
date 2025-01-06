@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ReviewCard v-for="review in reviews.content" :key="review.id" :review="review"/>
+    <ReviewCard v-for="review in reviews" :key="review.id" :review="review"/>
     <Pagination
         :currentPage="currentPage"
         :totalPages="totalPages"
@@ -16,7 +16,7 @@ import Pagination from './Pagination.vue'
 
 defineProps({
   reviews: {
-    type: Object,
+    type: Array,
     required: true
   },
   currentPage: {

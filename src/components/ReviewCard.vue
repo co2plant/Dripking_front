@@ -9,28 +9,28 @@
               class="w-full h-full object-cover"
           />
         </div>
-        <div class="text-lg font-semibold mr-2">{{ props.review.nickname }}</div>
+        <div class="text-lg font-semibold mr-2">{{ review.nickname }}</div>
         <div class="text-yellow-400">
           <span v-for="i in 5" :key="i">
-            <i :class="i <= props.review.rating ? 'fas fa-star' : 'far fa-star'"></i>
+            <i :class="i <= review.rating ? 'fas fa-star' : 'far fa-star'"></i>
           </span>
         </div>
       </div>
       <div class="text-sm text-gray-500">
-        {{ formatDate(props.review.createdTime) }}
-        <span v-if="props.review.modifiedAt && props.review.modifiedTime !== props.review.createdTime">
-          (수정됨: {{ formatDate(props.review.modifiedTime) }})
+        {{ formatDate(review.createdTime) }}
+        <span v-if="review.modifiedAt && review.modifiedTime !== review.createdTime">
+          (수정됨: {{ formatDate(review.modifiedTime) }})
         </span>
       </div>
     </div>
-    <p class="text-gray-700">{{ props.review.contents }}</p>
+    <p class="text-gray-700">{{ review.contents }}</p>
   </div>
 </template>
 
 <script setup>
 import { defineProps } from 'vue'
 
-const props = defineProps({
+defineProps({
   review: {
     type: Object,
     required: true
