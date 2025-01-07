@@ -7,25 +7,19 @@
     <div v-else-if="error" class="text-center py-4">
       <p class="text-red-600">{{ error }}</p>
     </div>
-    <template v-else>
-      <ReviewList
-          :reviews="reviews"
+    <div v-else class="flex flex-col items-center w-full max-w-3xl mx-auto">
+      <ReviewCard v-for="review in reviews" :key="review.id" :review="review"/>
+      <Pagination
           :currentPage="currentPage"
           :totalPages="totalPages"
-          @pageChanged="fetchReviews"
+          @pageChanged="$emit('pageChanged', $event)"
       />
-    </template>
-    <ReviewCard v-for="review in reviews" :key="review.id" :review="review"/>
-    <Pagination
-        :currentPage="currentPage"
-        :totalPages="totalPages"
-        @pageChanged="$emit('pageChanged', $event)"
-    />
+    </div>
   </div>
 </template>
 
 <script setup>
-import {defineProps, defineEmits, ref} from 'vue'
+import {defineProps, defineEmits, ref, onMounted} from 'vue'
 import ReviewCard from './ReviewCard.vue'
 import Pagination from './Pagination.vue'
 
@@ -69,20 +63,18 @@ const reviews = ref({
   empty: true
 });
 
-const currentPage = 1
-const totalPages = 0
-const pageSize = 5
-const totalElements = ref(0)
+let currentPage = 0
+let totalPages = 0
+let pageSize = 5
 const isLoading = ref(false)
 const error = ref(null)
 
-const fetchReviews = async (page = 1) => {
+const fetchReviews = async (page = 0) => {
   isLoading.value = true
   error.value = null
   try {
     // 실제 API 호출로 대체해야 합니다
     const response = await fetch(`http://localhost:8080/api/reviews?reviewType=${props.reviewType}&target_id=${props.targetId}&page=${page}&size=${pageSize}`)
-
     if (!response.ok) {
       throw new Error('서버에서 리뷰를 가져오는데 실패했습니다.')
     }
@@ -91,11 +83,10 @@ const fetchReviews = async (page = 1) => {
     reviews.value = data.content.map(review => ({
       ...review,
       createdAt: new Date(review.createdAt),
-      updatedAt: review.updatedAt ? new Date(review.updatedAt) : null
+      modifiedAt: review.modifiedAt ? new Date(review.modifiedAt) : null
     }))
-
-    currentPage.value = data.pageable.pageNumber
-    totalElements.value = data.totalElements
+    totalPages = data.totalPages
+    currentPage = data.pageable.pageNumber
 
   } catch (err) {
     console.error('리뷰를 불러오는 중 오류가 발생했습니다:', err)
@@ -105,7 +96,8 @@ const fetchReviews = async (page = 1) => {
   }
 }
 
-
-
 defineEmits(['pageChanged'])
+onMounted(() => {
+  fetchReviews()
+})
 </script>

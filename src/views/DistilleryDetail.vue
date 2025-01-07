@@ -2,11 +2,9 @@
   <div class="bg-white">
     <div class="container mx-auto px-4 py-8">
       <Card
-          :toName = "'DistilleryDetail'"
-          :urlStr ="urlStr"
-      >
-      </Card>
-
+          :itemType="itemType"
+          :target-id="targetId"
+      />
       <Horizontal-scroll-card-list
           :title="'생산하는 술'"
           :toName="'alcoholDetail'"
@@ -22,7 +20,8 @@ import Card from "@/components/Card.vue";
 import {useRoute} from "vue-router";
 
 const route = useRoute();
-const urlStr = 'distilleries/'+route.params.id;
+const targetId = route.params.id;
+const itemType = 'ALCOHOL';
 </script>
 
 <style scoped>
@@ -31,6 +30,7 @@ const urlStr = 'distilleries/'+route.params.id;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

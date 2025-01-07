@@ -1,7 +1,10 @@
 <template>
   <div class="bg-white">
     <div class="container mx-auto px-4 py-8">
-      <Card :targetId="targetId" :itemType="itemType"/>
+      <Card
+          :targetId="targetId"
+          :itemType="itemType"
+      />
       <Horizontal-scroll-card-list
           :title="'주변 양조장'"
           :toName="'distilleryDetail'"

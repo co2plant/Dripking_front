@@ -1,8 +1,14 @@
 <template>
   <div class="bg-white">
     <div class="container mx-auto px-4 py-8">
-      <Card :targetId="targetId" :itemType="itemType"/>
-      <VerticalReviewList :targetId="targetId" :reviewType="itemType"></VerticalReviewList>
+      <Card
+          :targetId="targetId"
+          :itemType="itemType"
+      />
+        <VerticalReviewList
+            :targetId="targetId"
+            :reviewType="itemType"
+        ></VerticalReviewList>
     </div>
   </div>
 </template>
