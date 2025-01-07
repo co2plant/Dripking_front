@@ -6,12 +6,12 @@
         @click="changePage(page)"
         :class="[
         'mx-1 px-3 py-2 rounded',
-        page === currentPage
-          ? 'bg-blue-500 text-white'
+        page === (currentPage)
+          ? 'bg-blue-500 text-white disabled cursor-default'
           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
       ]"
     >
-      {{ page }}
+      {{ page+1 }}
     </button>
   </div>
 </template>
@@ -35,14 +35,14 @@ const emit = defineEmits(['pageChanged'])
 const displayedPages = computed(() => {
   const pages = []
   const maxDisplayed = 5
-  let start = Math.max(1, props.currentPage - Math.floor(maxDisplayed / 2))
+  let start = Math.max(0, props.currentPage - Math.floor(maxDisplayed / 2))
   let end = Math.min(props.totalPages, start + maxDisplayed - 1)
 
-  if (end - start + 1 < maxDisplayed) {
-    start = Math.max(1, end - maxDisplayed + 1)
+  if (end - start < maxDisplayed) {
+    start = Math.max(0, end - maxDisplayed + 1)
   }
 
-  for (let i = start; i <= end; i++) {
+  for (let i = start; i < end; i++) {
     pages.push(i)
   }
 

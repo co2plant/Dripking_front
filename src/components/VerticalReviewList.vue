@@ -12,7 +12,7 @@
       <Pagination
           :currentPage="currentPage"
           :totalPages="totalPages"
-          @pageChanged="$emit('pageChanged', $event)"
+          @pageChanged="fetchReviews"
       />
     </div>
   </div>
@@ -79,12 +79,7 @@ const fetchReviews = async (page = 0) => {
       throw new Error('서버에서 리뷰를 가져오는데 실패했습니다.')
     }
     const data = await response.json()
-    console.log(data)
-    reviews.value = data.content.map(review => ({
-      ...review,
-      createdAt: new Date(review.createdAt),
-      modifiedAt: review.modifiedAt ? new Date(review.modifiedAt) : null
-    }))
+    reviews.value = data.content
     totalPages = data.totalPages
     currentPage = data.pageable.pageNumber
 
@@ -95,7 +90,6 @@ const fetchReviews = async (page = 0) => {
     isLoading.value = false
   }
 }
-
 defineEmits(['pageChanged'])
 onMounted(() => {
   fetchReviews()
