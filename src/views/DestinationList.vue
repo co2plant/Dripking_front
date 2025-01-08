@@ -6,7 +6,7 @@ import VerticalScrollCardList from "@/components/VerticalScrollCardList.vue";
   <VerticalScrollCardList
     :title="'지역 정보 리스트'"
     :toName="'destinationDetail'"
-    :urlStr="'destinations'">
+    :itemType="'destinations'">
   >
   </VerticalScrollCardList>
 </template>

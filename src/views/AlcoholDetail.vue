@@ -4,11 +4,12 @@
       <Card
           :targetId="targetId"
           :itemType="itemType"
-      />
-        <VerticalReviewList
-            :targetId="targetId"
-            :reviewType="itemType"
-        ></VerticalReviewList>
+      >
+      </Card>
+      <VerticalReviewList
+          :targetId="targetId"
+          :reviewType="itemType">
+      </VerticalReviewList>
     </div>
   </div>
 </template>
