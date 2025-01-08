@@ -1,5 +1,4 @@
 <template>
-  <button @click=" prints()">asdfasdfasdf</button>
   <div class="container mx-auto px-4 py-6">
     <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">{{ props.title }}</h1>
     <div class="space-y-4">
@@ -56,40 +55,7 @@ const isLoading = ref(false);
 const error = ref(null);
 const infiniteScrollTrigger = ref(null);
 
-const items = ref({
-  content: [],
-  pageable: {
-    pageNumber: 0,
-    pageSize: 10,
-    sort: {
-      empty: false,
-      sorted: true,
-      unsorted: false
-    },
-    offset: 0,
-    paged: true,
-    unpaged: false
-  },
-  last: false,
-  totalElements: 0,
-  totalPages: 0,
-  first: true,
-  size: 10,
-  number: 0,
-  sort: {
-    empty: false,
-    sorted: true,
-    unsorted: false
-  },
-  numberOfElements: 0,
-  empty: true
-});
-
-const prints = () => {
-  console.log(items.value);
-  console.log(items.value.id);
-  console.log(`http://localhost:8080/api/${props.itemType}?page=${0}&size=${pageSize}`);
-}
+const items = ref({});
 
 const fetchItems = async (page = 0) => {
   isLoading.value = true
