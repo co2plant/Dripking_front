@@ -71,16 +71,31 @@
         (수정됨)
       </span>
     </div>
+
+    <!-- 수정 버튼 추가 -->
+    <div v-if="canEdit" class="mt-4 self-end">
+      <button
+          @click="$emit('editReview', review.id)"
+          class="text-sm text-blue-600 hover:text-blue-800"
+      >
+        수정
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import {defineProps, ref} from 'vue'
+import {defineProps, defineEmits, ref} from 'vue'
 import { ThumbsUp } from 'lucide-vue-next'
 
 defineProps({
   review: {
+    type: Object,
     required: true,
+  },
+  canEdit: {
+    type: Boolean,
+    default: false,
   }
 })
 
@@ -106,6 +121,8 @@ const getContent = (content) => {
   }
   return String(content);
 }
+
+defineEmits(['editReview'])
 </script>
 
 <style scoped>
