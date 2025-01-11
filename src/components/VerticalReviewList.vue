@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="max-w-3xl mx-auto">
     <h1 class="text-3xl font-bold mb-8">리뷰</h1>
     <div v-if="isLoggedIn">
       <ReviewForm
@@ -14,7 +14,7 @@
     <div v-else-if="error" class="text-center py-4">
       <p class="text-red-600">{{ error }}</p>
     </div>
-    <div v-else class="flex flex-col items-center w-full max-w-3xl mx-auto">
+    <div v-else class="flex flex-col items-center w-full">
       <ReviewCard
           v-for="review in reviews"
           :key="review.id"
