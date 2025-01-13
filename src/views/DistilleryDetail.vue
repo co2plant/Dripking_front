@@ -10,6 +10,10 @@
           :toName="'alcoholDetail'"
           :urlStr="'api/alcohols'">
       </Horizontal-scroll-card-list>
+      <VerticalReviewList
+          :targetId="targetId"
+          :reviewType="itemType">
+      </VerticalReviewList>
     </div>
   </div>
 </template>
@@ -18,6 +22,7 @@
 import HorizontalScrollCardList from "@/components/HorizontalScrollCardList.vue";
 import Card from "@/components/Card.vue";
 import {useRoute} from "vue-router";
+import VerticalReviewList from "@/components/VerticalReviewList.vue";
 
 const route = useRoute();
 const targetId = route.params.id;

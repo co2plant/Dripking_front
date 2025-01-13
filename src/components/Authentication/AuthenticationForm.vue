@@ -14,10 +14,10 @@
         로그인
       </button>
       <button
-          @click="currentForm = 'register'"
+          @click="currentForm = 'signup'"
           :class="[
           'flex-1 py-2 px-4 rounded-md font-medium transition-colors',
-          currentForm === 'register'
+          currentForm === 'signup'
             ? 'bg-blue-600 text-white'
             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
         ]"
@@ -76,13 +76,13 @@
         </button>
       </form>
 
-      <!-- Register Form -->
-      <form v-else @submit.prevent="handleRegister" class="space-y-6" key="register">
+      <!-- signup Form -->
+      <form v-else @submit.prevent="handleSignUp" class="space-y-6" key="signup">
         <div>
-          <label for="register-email" class="block text-sm font-medium text-gray-700">이메일</label>
+          <label for="signup-email" class="block text-sm font-medium text-gray-700">이메일</label>
           <input
-              id="register-email"
-              v-model="registerForm.email"
+              id="signup-email"
+              v-model="signupForm.email"
               type="email"
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -91,10 +91,10 @@
         </div>
 
         <div>
-          <label for="register-password" class="block text-sm font-medium text-gray-700">비밀번호</label>
+          <label for="signup-password" class="block text-sm font-medium text-gray-700">비밀번호</label>
           <input
-              id="register-password"
-              v-model="registerForm.password"
+              id="signup-password"
+              v-model="signupForm.password"
               type="password"
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -103,10 +103,10 @@
         </div>
 
         <div>
-          <label for="register-confirm-password" class="block text-sm font-medium text-gray-700">비밀번호 확인</label>
+          <label for="signup-confirm-password" class="block text-sm font-medium text-gray-700">비밀번호 확인</label>
           <input
-              id="register-confirm-password"
-              v-model="registerForm.confirmPassword"
+              id="signup-confirm-password"
+              v-model="signupForm.confirmPassword"
               type="password"
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -115,21 +115,21 @@
         </div>
 
         <div>
-          <label for="register-name" class="block text-sm font-medium text-gray-700">이름</label>
+          <label for="signup-nickname" class="block text-sm font-medium text-gray-700">닉네임</label>
           <input
-              id="register-name"
-              v-model="registerForm.name"
+              id="signup-nickname"
+              v-model="signupForm.nickname"
               type="text"
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
-          <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</p>
+          <p v-if="errors.nickname" class="mt-1 text-sm text-red-600">{{ errors.nickname }}</p>
         </div>
 
         <div class="flex items-center">
           <input
               id="agree-terms"
-              v-model="registerForm.agreeToTerms"
+              v-model="signupForm.agreeToTerms"
               type="checkbox"
               required
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -171,11 +171,11 @@ const loginForm = reactive({
 })
 
 // 회원가입 폼 상태
-const registerForm = reactive({
+const signupForm = reactive({
   email: '',
   password: '',
   confirmPassword: '',
-  name: '',
+  nickname: '',
   agreeToTerms: false
 })
 
@@ -184,7 +184,7 @@ const errors = reactive({
   email: '',
   password: '',
   confirmPassword: '',
-  name: ''
+  nickname: ''
 })
 
 // 이메일 유효성 검사
@@ -199,30 +199,30 @@ const validatePassword = (password) => {
 }
 
 // 회원가입 폼 유효성 검사
-const validateRegisterForm = () => {
+const validatesignupForm = () => {
   let isValid = true
   errors.email = ''
   errors.password = ''
   errors.confirmPassword = ''
-  errors.name = ''
+  errors.nickname = ''
 
-  if (!validateEmail(registerForm.email)) {
+  if (!validateEmail(signupForm.email)) {
     errors.email = '유효한 이메일 주소를 입력해주세요.'
     isValid = false
   }
 
-  if (!validatePassword(registerForm.password)) {
-    errors.password = '비밀번호는 8자 이상이어야 합니다.'
+  if (!validatePassword(signupForm.password)) {
+    errors.password = '비밀번호는 16자 이상이어야 합니다.'
     isValid = false
   }
 
-  if (registerForm.password !== registerForm.confirmPassword) {
+  if (signupForm.password !== signupForm.confirmPassword) {
     errors.confirmPassword = '비밀번호가 일치하지 않습니다.'
     isValid = false
   }
 
-  if (!registerForm.name.trim()) {
-    errors.name = '이름을 입력해주세요.'
+  if (!signupForm.nickname.trim()) {
+    errors.nickname = '닉네임을 입력해주세요.'
     isValid = false
   }
 
@@ -249,19 +249,27 @@ const handleLogin = async () => {
 }
 
 // 회원가입 처리
-const handleRegister = async () => {
+const handleSignUp = async () => {
   try {
-    if (!validateRegisterForm()) {
+    if (!validatesignupForm()) {
       return
     }
 
     isLoading.value = true
     globalError.value = ''
 
-    // 여기에 실제 회원가입 API 호출 로직을 구현합니다
-    await new Promise(resolve => setTimeout(resolve, 1000)) // 임시 지연
+    const response = await fetch('http://localhost:8080/api/users/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(signupForm)
+    })
 
-    console.log('회원가입 시도:', registerForm)
+    console.log('회원가입 시도:', signupForm)
+    if(!response.ok){
+      throw new Error('회원가입에 실패했습니다.')
+    }
 
     // 성공 시 로그인 폼으로 전환
     currentForm.value = 'login'

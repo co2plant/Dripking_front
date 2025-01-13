@@ -57,7 +57,7 @@
 </script>
 
 <template>
-  <div>
+  <div class="mb-6">
     <h2 class="text-3xl font-semibold mb-6 text-gray-800">{{propsRef.title}}</h2>
     <div class="relative">
       <div

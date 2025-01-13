@@ -70,7 +70,7 @@ import {ref} from 'vue'
 import {Dialog, DialogPanel} from '@headlessui/vue'
 import {Bars3Icon, XMarkIcon} from '@heroicons/vue/24/outline'
 import Modal from './Modal.vue'
-import AuthenticationForm from './AuthenticationForm.vue'
+import AuthenticationForm from './Authentication/AuthenticationForm.vue'
 
 const navigation = [
       {name: 'Discover', href: '/destinationList'},
