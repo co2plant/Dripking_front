@@ -1,32 +1,34 @@
 <template>
   <div class="relative max-w-5xl mx-auto px-4" ref="listContainer">
     <!-- List Container -->
-    <div class="space-y-4">
+    <div class="space-y-6">
       <div
           v-for="item in items"
           :key="item.id"
           class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 flex items-center gap-4"
       >
-        <div class="w-48 h-32 flex-shrink-0">
+        <div class="flex-shrink-0 w-1/4" @click="emit('view-details', item)">
           <img
-              :src="item.imageUrl || '/placeholder.svg?height=128&width=192'"
+              :src="'https://upload.wikimedia.org/wikipedia/commons/6/68/Pepsi_2023.svg' || '/placeholder.svg?height=128&width=192'"
               :alt="item.title"
               class="w-full h-full object-cover rounded-lg"
           />
         </div>
 
-        <div class="md:w-3/4 p-4">
-          <h2 class="text-xl font-semibold mb-2 text-gray-800">{{ item.name }}</h2>
-          <p class="text-gray-600 mb-4 line-clamp-3">{{ item.description }}</p>
-          <div class="flex justify-between items-center">
-            <span class="text-sm text-gray-500">{{ item.date }}</span>
+        <div class="w-3/4 px-4 flex flex-col">
+          <div class="flex-grow ml-6">
+            <h2 class="text-2xl font-semibold text-left mb-2 h-1/4" @click="emit('view-details', item)">{{ item.name }}</h2>
+            <p class="text-gray-600 text-left mb-4 line-clamp-3 h-2/4" @click="emit('view-details', item)">{{ item.description }}</p>
+            <div class="flex justify-between items-center h-1/4">
+              <p class="text-gray-500 text-left text-sm">date</p>
+              <button
+                  class="bottom-4 right-4 w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center transition-colors duration-200"
+                  @click="addToPlan(item)"
+              >
+                <span class="text-xl">+</span>
+              </button>
+            </div>
 
-            <button
-                class="flex-shrink-0 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                @click="emit('view-details', item)"
-            >
-              자세히 보기
-            </button>
           </div>
         </div>
       </div>
@@ -146,6 +148,16 @@ const retryLoading = () => {
   error.value = null
   canFetchMore.value = true
   fetchItems()
+}
+const addToPlan = (item) => {
+  let plan = JSON.parse(localStorage.getItem('plan')) || [];
+
+  
+
+  plan.push(item);
+  localStorage.setItem('plan', JSON.stringify(plan));
+
+  console.log(JSON.parse(localStorage.getItem('plan')));
 }
 
 // Intersection Observer setup

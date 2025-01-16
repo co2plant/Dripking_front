@@ -3,10 +3,10 @@
     <!-- Toggle Buttons -->
     <div class="flex space-x-4 mb-8">
       <button
-          @click="currentForm = 'login'"
+          @click="currentForm = 'signin'"
           :class="[
           'flex-1 py-2 px-4 rounded-md font-medium transition-colors',
-          currentForm === 'login'
+          currentForm === 'signin'
             ? 'bg-blue-600 text-white'
             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
         ]"
@@ -27,13 +27,13 @@
     </div>
 
     <transition name="fade" mode="out-in">
-      <!-- Login Form -->
-      <form v-if="currentForm === 'login'" @submit.prevent="handleLogin" class="space-y-6" key="login">
+      <!-- signin Form -->
+      <form v-if="currentForm === 'signin'" @submit.prevent="handleSignIn" class="space-y-6" key="signin">
         <div>
-          <label for="login-email" class="block text-sm font-medium text-gray-700">이메일</label>
+          <label for="signin-email" class="block text-sm font-medium text-gray-700">이메일</label>
           <input
-              id="login-email"
-              v-model="loginForm.email"
+              id="signin-email"
+              v-model="signinForm.email"
               type="email"
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -41,10 +41,10 @@
         </div>
 
         <div>
-          <label for="login-password" class="block text-sm font-medium text-gray-700">비밀번호</label>
+          <label for="signin-password" class="block text-sm font-medium text-gray-700">비밀번호</label>
           <input
-              id="login-password"
-              v-model="loginForm.password"
+              id="signin-password"
+              v-model="signinForm.password"
               type="password"
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -55,7 +55,7 @@
           <div class="flex items-center">
             <input
                 id="remember-me"
-                v-model="loginForm.rememberMe"
+                v-model="signinForm.rememberMe"
                 type="checkbox"
                 class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
@@ -82,7 +82,7 @@
           <label for="signup-email" class="block text-sm font-medium text-gray-700">이메일</label>
           <input
               id="signup-email"
-              v-model="signupForm.email"
+              v-model="SignUpForm.email"
               type="email"
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -94,7 +94,7 @@
           <label for="signup-password" class="block text-sm font-medium text-gray-700">비밀번호</label>
           <input
               id="signup-password"
-              v-model="signupForm.password"
+              v-model="SignUpForm.password"
               type="password"
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -106,7 +106,7 @@
           <label for="signup-confirm-password" class="block text-sm font-medium text-gray-700">비밀번호 확인</label>
           <input
               id="signup-confirm-password"
-              v-model="signupForm.confirmPassword"
+              v-model="SignUpForm.confirmPassword"
               type="password"
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -118,7 +118,7 @@
           <label for="signup-nickname" class="block text-sm font-medium text-gray-700">닉네임</label>
           <input
               id="signup-nickname"
-              v-model="signupForm.nickname"
+              v-model="SignUpForm.nickname"
               type="text"
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -129,7 +129,7 @@
         <div class="flex items-center">
           <input
               id="agree-terms"
-              v-model="signupForm.agreeToTerms"
+              v-model="SignUpForm.agreeToTerms"
               type="checkbox"
               required
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -159,19 +159,19 @@
 <script setup>
 import { ref, reactive } from 'vue'
 
-const currentForm = ref('login')
+const currentForm = ref('signin')
 const isLoading = ref(false)
 const globalError = ref('')
 
 // 로그인 폼 상태
-const loginForm = reactive({
+const signinForm = reactive({
   email: '',
   password: '',
   rememberMe: false
 })
 
 // 회원가입 폼 상태
-const signupForm = reactive({
+const SignUpForm = reactive({
   email: '',
   password: '',
   confirmPassword: '',
@@ -199,29 +199,29 @@ const validatePassword = (password) => {
 }
 
 // 회원가입 폼 유효성 검사
-const validatesignupForm = () => {
+const validateSignUpForm = () => {
   let isValid = true
   errors.email = ''
   errors.password = ''
   errors.confirmPassword = ''
   errors.nickname = ''
 
-  if (!validateEmail(signupForm.email)) {
+  if (!validateEmail(SignUpForm.email)) {
     errors.email = '유효한 이메일 주소를 입력해주세요.'
     isValid = false
   }
 
-  if (!validatePassword(signupForm.password)) {
+  if (!validatePassword(SignUpForm.password)) {
     errors.password = '비밀번호는 16자 이상이어야 합니다.'
     isValid = false
   }
 
-  if (signupForm.password !== signupForm.confirmPassword) {
+  if (SignUpForm.password !== SignUpForm.confirmPassword) {
     errors.confirmPassword = '비밀번호가 일치하지 않습니다.'
     isValid = false
   }
 
-  if (!signupForm.nickname.trim()) {
+  if (!SignUpForm.nickname.trim()) {
     errors.nickname = '닉네임을 입력해주세요.'
     isValid = false
   }
@@ -230,15 +230,24 @@ const validatesignupForm = () => {
 }
 
 // 로그인 처리
-const handleLogin = async () => {
+const handleSignIn = async () => {
   try {
     isLoading.value = true
     globalError.value = ''
 
     // 여기에 실제 로그인 API 호출 로직을 구현합니다
-    await new Promise(resolve => setTimeout(resolve, 1000)) // 임시 지연
+    const response = await fetch('http://localhost:8080/api/user/signin', {
+      method: 'POST',
+          headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(signinForm)
+    })
 
-    console.log('로그인 시도:', loginForm)
+    console.log('로그인 시도:', signinForm)
+    if(!response.ok){
+      throw new Error('로그인에 실패했습니다.')
+    }
 
   } catch (error) {
     globalError.value = '로그인에 실패했습니다. 다시 시도해주세요.'
@@ -251,28 +260,28 @@ const handleLogin = async () => {
 // 회원가입 처리
 const handleSignUp = async () => {
   try {
-    if (!validatesignupForm()) {
+    if (!validateSignUpForm()) {
       return
     }
 
     isLoading.value = true
     globalError.value = ''
 
-    const response = await fetch('http://localhost:8080/api/users/signup', {
+    const response = await fetch('http://localhost:8080/api/user/signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(signupForm)
+      body: JSON.stringify(SignUpForm)
     })
 
-    console.log('회원가입 시도:', signupForm)
+    console.log('회원가입 시도:', SignUpForm)
     if(!response.ok){
       throw new Error('회원가입에 실패했습니다.')
     }
 
     // 성공 시 로그인 폼으로 전환
-    currentForm.value = 'login'
+    currentForm.value = 'signin'
 
   } catch (error) {
     globalError.value = '회원가입에 실패했습니다. 다시 시도해주세요.'
