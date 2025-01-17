@@ -7,8 +7,8 @@
           :class="[
           'flex-1 py-2 px-4 rounded-md font-medium transition-colors',
           currentForm === 'signin'
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            ? 'bg-amber-400 text-white'
+            : 'bg-zinc-200 hover:bg-zinc-300 focus:ring-zinc-600 text-zinc-700'
         ]"
       >
         로그인
@@ -18,8 +18,8 @@
           :class="[
           'flex-1 py-2 px-4 rounded-md font-medium transition-colors',
           currentForm === 'signup'
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            ? 'bg-amber-400 text-white'
+            : 'bg-zinc-200 hover:bg-zinc-300 focus:ring-zinc-600 text-zinc-700'
         ]"
       >
         회원가입
@@ -30,24 +30,24 @@
       <!-- signin Form -->
       <form v-if="currentForm === 'signin'" @submit.prevent="handleSignIn" class="space-y-6" key="signin">
         <div>
-          <label for="signin-email" class="block text-sm font-medium text-gray-700">이메일</label>
+          <label for="signin-email" class="block text-sm font-medium text-zinc-700">이메일</label>
           <input
               id="signin-email"
               v-model="signinForm.email"
               type="email"
               required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
           />
         </div>
 
         <div>
-          <label for="signin-password" class="block text-sm font-medium text-gray-700">비밀번호</label>
+          <label for="signin-password" class="block text-sm font-medium text-zinc-700">비밀번호</label>
           <input
               id="signin-password"
               v-model="signinForm.password"
               type="password"
               required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
           />
         </div>
 
@@ -57,20 +57,20 @@
                 id="remember-me"
                 v-model="signinForm.rememberMe"
                 type="checkbox"
-                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                class="h-4 w-4 text-amber-600 focus:ring-amber-500 border-zinc-300 rounded"
             />
-            <label for="remember-me" class="ml-2 block text-sm text-gray-900">로그인 상태 유지</label>
+            <label for="remember-me" class="ml-2 block text-sm text-zinc-900">로그인 상태 유지</label>
           </div>
 
           <div class="text-sm">
-            <a href="#" class="font-medium text-blue-600 hover:text-blue-500">비밀번호 찾기</a>
+            <a href="#" class="font-medium text-amber-600 hover:text-amber-500">비밀번호 찾기</a>
           </div>
         </div>
 
         <button
             type="submit"
             :disabled="isLoading"
-            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-400 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50"
         >
           {{ isLoading ? '로그인 중...' : '로그인' }}
         </button>
@@ -79,49 +79,49 @@
       <!-- signup Form -->
       <form v-else @submit.prevent="handleSignUp" class="space-y-6" key="signup">
         <div>
-          <label for="signup-email" class="block text-sm font-medium text-gray-700">이메일</label>
+          <label for="signup-email" class="block text-sm font-medium text-zinc-700">이메일</label>
           <input
               id="signup-email"
               v-model="SignUpForm.email"
               type="email"
               required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
           />
           <p v-if="errors.email" class="mt-1 text-sm text-red-600">{{ errors.email }}</p>
         </div>
 
         <div>
-          <label for="signup-password" class="block text-sm font-medium text-gray-700">비밀번호</label>
+          <label for="signup-password" class="block text-sm font-medium text-zinc-700">비밀번호</label>
           <input
               id="signup-password"
               v-model="SignUpForm.password"
               type="password"
               required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
           />
           <p v-if="errors.password" class="mt-1 text-sm text-red-600">{{ errors.password }}</p>
         </div>
 
         <div>
-          <label for="signup-confirm-password" class="block text-sm font-medium text-gray-700">비밀번호 확인</label>
+          <label for="signup-confirm-password" class="block text-sm font-medium text-zinc-700">비밀번호 확인</label>
           <input
               id="signup-confirm-password"
               v-model="SignUpForm.confirmPassword"
               type="password"
               required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
           />
           <p v-if="errors.confirmPassword" class="mt-1 text-sm text-red-600">{{ errors.confirmPassword }}</p>
         </div>
 
         <div>
-          <label for="signup-nickname" class="block text-sm font-medium text-gray-700">닉네임</label>
+          <label for="signup-nickname" class="block text-sm font-medium text-zinc-700">닉네임</label>
           <input
               id="signup-nickname"
               v-model="SignUpForm.nickname"
               type="text"
               required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
           />
           <p v-if="errors.nickname" class="mt-1 text-sm text-red-600">{{ errors.nickname }}</p>
         </div>
@@ -132,9 +132,9 @@
               v-model="SignUpForm.agreeToTerms"
               type="checkbox"
               required
-              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              class="h-4 w-4 text-amber-600 focus:ring-amber-500 border-zinc-300 rounded"
           />
-          <label for="agree-terms" class="ml-2 block text-sm text-gray-900">
+          <label for="agree-terms" class="ml-2 block text-sm text-zinc-900">
             <span>이용약관 및 개인정보 처리방침에 동의합니다</span>
           </label>
         </div>
@@ -142,7 +142,7 @@
         <button
             type="submit"
             :disabled="isLoading"
-            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-400 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50"
         >
           {{ isLoading ? '가입 중...' : '회원가입' }}
         </button>

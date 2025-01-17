@@ -73,9 +73,9 @@
             :to="{name: toName, params: { id: item.id }}"
             class="flex-shrink-0 w-72 bg-white rounded-lg overflow-hidden shadow-lg transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
         >
-          <div class="relative h-48">
+          <div class="relative h-48 overflow-hidden">
             <img
-                src="https://upload.wikimedia.org/wikipedia/commons/e/e5/ENIAC-changing_a_tube.jpg"
+                :src="item.img_url"
                 :alt="item.name"
                 class="w-full h-full object-cover"
             />

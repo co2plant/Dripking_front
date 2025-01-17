@@ -26,7 +26,7 @@ import VerticalReviewList from "@/components/VerticalReviewList.vue";
 
 const route = useRoute();
 const targetId = route.params.id;
-const itemType = 'ALCOHOL';
+const itemType = 'DISTILLERY';
 </script>
 
 <style scoped>

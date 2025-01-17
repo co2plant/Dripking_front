@@ -7,25 +7,34 @@
           :key="item.id"
           class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 flex items-center gap-4"
       >
-        <div class="flex-shrink-0 w-1/4" @click="emit('view-details', item)">
+        <div class="flex-shrink-0 w-1/4 overflow-hidden" @click="emit('view-details', item)">
           <img
-              :src="'https://upload.wikimedia.org/wikipedia/commons/6/68/Pepsi_2023.svg' || '/placeholder.svg?height=128&width=192'"
+              :src="item.img_url || '/placeholder.svg?height=128&width=192'"
               :alt="item.title"
-              class="w-full h-full object-cover rounded-lg"
+              class="w-full h-full rounded-lg object-cover"
           />
         </div>
 
         <div class="w-3/4 px-4 flex flex-col">
           <div class="flex-grow ml-6">
-            <h2 class="text-2xl font-semibold text-left mb-2 h-1/4" @click="emit('view-details', item)">{{ item.name }}</h2>
-            <p class="text-gray-600 text-left mb-4 line-clamp-3 h-2/4" @click="emit('view-details', item)">{{ item.description }}</p>
+            <h2 class="text-2xl font-semibold text-left mb-2 h-1/4" @click="emit('view-details', item)">{{
+                item.name
+              }}</h2>
+            <p class="text-zinc-600 text-left mb-4 line-clamp-3 h-2/4" @click="emit('view-details', item)">
+              {{ item.description }}</p>
             <div class="flex justify-between items-center h-1/4">
-              <p class="text-gray-500 text-left text-sm">date</p>
+              <p class="text-zinc-500 text-left text-sm">date</p>
               <button
-                  class="bottom-4 right-4 w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center transition-colors duration-200"
+                  :class="[
+                      'bottom-4 right-4 w-10 h-10  rounded-lg flex items-center text-white justify-center transition-colors duration-200',
+                      isDuplicatePlan(item)
+                      ?'bg-amber-400 hover:bg-amber-600'
+                      :'bg-zinc-600 hover:bg-zinc-700 focus:ring-zinc-600'
+                  ]"
                   @click="addToPlan(item)"
               >
-                <span class="text-xl">+</span>
+                <CheckIcon v-if="isDuplicatePlan(item)" class="w-5 h-5"/>
+                <PlusIcon v-else class="w-5 h-5"/>
               </button>
             </div>
 
@@ -39,13 +48,13 @@
 
     <!-- Next Page Indicator -->
     <div
-        v-if="hasMore && !isLoading && showNextPageIndicator"
-        class="py-6 text-center border-t border-gray-100 mt-4"
+        v-if="hasMore && !isLoading && showNextPageIndicator && !error"
+        class="py-6 text-center border-t border-zinc-100 mt-4"
         ref="nextPageIndicator"
     >
-      <div class="text-gray-500 mb-2">아래로 스크롤하여 더 보기</div>
+      <div class="text-zinc-500 mb-2">아래로 스크롤하여 더 보기</div>
       <svg
-          class="w-6 h-6 mx-auto text-gray-400 animate-bounce"
+          class="w-6 h-6 mx-auto text-zinc-400 animate-bounce"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -62,16 +71,16 @@
     <!-- Loading Indicator -->
     <div
         v-if="isLoading"
-        class="py-6 text-center border-t border-gray-100 mt-4"
+        class="py-6 text-center border-t border-zinc-100 mt-4"
     >
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-blue-500"></div>
-      <div class="mt-2 text-gray-600">로딩 중...</div>
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-zinc-200 border-t-blue-500"></div>
+      <div class="mt-2 text-zinc-600">로딩 중...</div>
     </div>
 
     <!-- Error Message -->
     <div
         v-if="error"
-        class="py-6 text-center border-t border-gray-100 mt-4 text-red-600"
+        class="py-6 text-center border-t border-zinc-100 mt-4 text-red-600"
     >
       {{ error }}
       <button
@@ -86,13 +95,20 @@
 
 <script setup>
 import {defineProps, defineEmits, ref, onMounted, onUnmounted} from 'vue'
+import {PlusIcon, CheckIcon} from 'lucide-vue-next'
 
 const props = defineProps({
-  fetchUrl: {
+  itemType: {
     type: String,
     required: true
   }
 })
+
+const itemTypeEnum = {
+  DISTILLERY: 'distilleries',
+  DESTINATION: 'destinations',
+  ALCOHOL: 'alcohols'
+}
 
 const emit = defineEmits(['view-details'])
 
@@ -116,7 +132,7 @@ const fetchItems = async () => {
   canFetchMore.value = false
 
   try {
-    const response = await fetch(`${props.fetchUrl}?page=${currentPage.value}&size=10&sort=id,desc`)
+    const response = await fetch(`api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&size=10&sort=id,desc`)
     if (!response.ok) throw new Error('데이터를 불러오는데 실패했습니다.')
 
     const data = await response.json()
@@ -149,16 +165,54 @@ const retryLoading = () => {
   canFetchMore.value = true
   fetchItems()
 }
+
+const clearExpiredPlan = (plan) => {
+  for (let i in plan) {
+    if (plan[i].expire < Date.now()) {
+      plan.splice(i, 1);
+    }
+  }
+}
+//중복 확인 부 추가
+const isDuplicatePlan = (item) => {
+  let plan = JSON.parse(localStorage.getItem('plan')) || [];
+  for (let i in plan) {
+    if (plan[i].value.itemType == props.itemType && plan[i].value.id === item.id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+//중복을 모두 삭제하는 것
+const clearDuplicatePlan = (plan, item) => {
+  for (let i in plan) {
+    if (plan[i].value.itemType == props.itemType && plan[i].value.id === item.id) {
+      plan.splice(i, 1);
+      i = 0
+    }
+  }
+}
+
 const addToPlan = (item) => {
+
+  //만료일자 확인 부
   let plan = JSON.parse(localStorage.getItem('plan')) || [];
 
-  
+  clearExpiredPlan(plan);
+  clearDuplicatePlan(plan, item);
 
-  plan.push(item);
+  // 일단 장바구니 처럼 전부다 담는 기능으로.
+  const obj = {
+    value: item,
+    expire: Date.now() + 1000 * 60 * 60 * 24
+  }
+  plan.push(obj);
   localStorage.setItem('plan', JSON.stringify(plan));
 
   console.log(JSON.parse(localStorage.getItem('plan')));
 }
+
 
 // Intersection Observer setup
 let observer
