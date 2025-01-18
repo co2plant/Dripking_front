@@ -1,5 +1,97 @@
 <template>
   <div class="relative max-w-5xl mx-auto px-4" ref="listContainer">
+    <section class="py-16 bg-white">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-8">
+          <span class="inline-block w-20 h-1 ml-2"></span>
+          <!-- Wishlist Icon with Counter -->
+          <div class="relative">
+            <ShoppingCartIcon
+                class="h-6 w-6 text-zinc-900 cursor-pointer"
+                @click="isWishlistOpen = true"
+            />
+            <span v-if="WishlistItems.length"
+                  class="absolute -top-2 -right-2 bg-amber-400 text-zinc-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+            {{ WishlistItems.length }}
+          </span>
+          </div>
+        </div>
+
+
+        <div class="gap-8">
+          <div v-for="item in items" :key="item.id"
+               class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 flex items-center gap-4">
+            <div class="relative overflow-hidden w-1/4">
+              <img :src="item.img_url" :alt="item.name"
+                   class="w-full h-80 object-cover transform group-hover:scale-105 transition duration-500">
+              <div class="absolute inset-0 bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 transition">
+                <div class="absolute bottom-4 left-4 right-4">
+                  <button
+                      @click="toggleWishlist(item)"
+                      class="w-full py-2 rounded-full font-medium transition-colors"
+                      :class="isInWishlist(item.id)
+                    ? 'bg-zinc-900 text-white'
+                    : 'bg-amber-400 text-zinc-900'"
+                  >
+                    {{ isInWishlist(item.id) ? 'Remove from WishList' : 'Add to Wishlist' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="p-4 w-3/4 px-4 flex flex-col">
+              <h4 class="text-xl font-bold text-zinc-900">{{ item.name }}</h4>
+              <p class="text-zinc-600">{{ item.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wishlist Sidebar -->
+      <div v-if="isWishlistOpen"
+           class="fixed inset-0 bg-black bg-opacity-50 z-50"
+           @click="isWishlistOpen = false">
+        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white p-6"
+             @click.stop>
+          <div class="flex justify-between items-center mb-6">
+            <h4 class="text-xl font-bold text-zinc-900">Wishlist</h4>
+            <XIcon
+                class="h-6 w-6 text-zinc-900 cursor-pointer"
+                @click="isWishlistOpen = false"
+            />
+          </div>
+
+          <div v-if="WishlistItems.length" class="space-y-4">
+            <div v-for="item in WishlistItems"
+                 :key="item.id"
+                 class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+              <img :src="item.image" :alt="item.name" class="w-20 h-20 object-cover rounded">
+              <div class="flex-1">
+                <h5 class="font-bold text-zinc-900">{{ item.name }}</h5>
+                <p class="text-zinc-600">{{ item.price }}</p>
+              </div>
+              <button
+                  @click="toggleWishlist(item)"
+                  class="text-zinc-900 hover:text-red-500 transition-colors"
+              >
+                <TrashIcon class="h-5 w-5" />
+              </button>
+            </div>
+
+            <div class="border-t pt-4 mt-4">
+              <div class="flex justify-between text-xl font-bold text-zinc-900">
+                <span>Total:</span>
+                <span>${{ calculateTotal() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="text-center py-8 text-zinc-600">
+            Your wishlist is empty
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- List Container -->
     <div class="space-y-6">
       <div
@@ -11,7 +103,7 @@
           <img
               :src="item.img_url || '/placeholder.svg?height=128&width=192'"
               :alt="item.title"
-              class="w-full h-full rounded-lg object-cover"
+              class="w-full h-full rounded-lg object-cover transform group-hover:scale-105 transition duration-500"
           />
         </div>
 
@@ -31,10 +123,9 @@
                       ?'bg-amber-400 hover:bg-amber-600'
                       :'bg-zinc-600 hover:bg-zinc-700 focus:ring-zinc-600'
                   ]"
-                  @click="addToPlan(item)"
+                  @click="toggleWishlist(item)"
               >
-                <CheckIcon v-if="isDuplicatePlan(item)" class="w-5 h-5"/>
-                <PlusIcon v-else class="w-5 h-5"/>
+                {{ isInWishlist(item.id) ? 'Remove from WishList' : 'Add to Wishlist' }}
               </button>
             </div>
 
@@ -94,8 +185,8 @@
 </template>
 
 <script setup>
-import {defineProps, defineEmits, ref, onMounted, onUnmounted} from 'vue'
-import {PlusIcon, CheckIcon} from 'lucide-vue-next'
+import {defineProps, defineEmits, ref, onMounted, onUnmounted, watch} from 'vue'
+import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next'
 
 const props = defineProps({
   itemType: {
@@ -185,33 +276,33 @@ const isDuplicatePlan = (item) => {
 }
 
 //중복을 모두 삭제하는 것
-const clearDuplicatePlan = (plan, item) => {
-  for (let i in plan) {
-    if (plan[i].value.itemType == props.itemType && plan[i].value.id === item.id) {
-      plan.splice(i, 1);
-      i = 0
-    }
-  }
-}
+// const deleteDuplicatePlan = (plan, item) => {
+//   for (let i in plan) {
+//     if (plan[i].value.itemType == props.itemType && plan[i].value.id === item.id) {
+//       plan.splice(i, 1);
+//       i = 0
+//     }
+//   }
+// }
 
-const addToPlan = (item) => {
-
-  //만료일자 확인 부
-  let plan = JSON.parse(localStorage.getItem('plan')) || [];
-
-  clearExpiredPlan(plan);
-  clearDuplicatePlan(plan, item);
-
-  // 일단 장바구니 처럼 전부다 담는 기능으로.
-  const obj = {
-    value: item,
-    expire: Date.now() + 1000 * 60 * 60 * 24
-  }
-  plan.push(obj);
-  localStorage.setItem('plan', JSON.stringify(plan));
-
-  console.log(JSON.parse(localStorage.getItem('plan')));
-}
+// const addToPlan = (item) => {
+//   //만료일자 확인 부
+//   let plan = JSON.parse(localStorage.getItem('plan')) || [];
+//
+//   clearExpiredPlan(plan);
+//
+//   if(isDuplicatePlan(item)){
+//     deleteDuplicatePlan(plan, item);
+//   }else{
+//     // 일단 장바구니 처럼 전부다 담는 기능으로.
+//     const obj = {
+//       value: item,
+//       expire: Date.now() + 1000 * 60 * 60 * 24
+//     }
+//     plan.push(obj);
+//   }
+//   localStorage.setItem('plan', JSON.stringify(plan));
+// }
 
 
 // Intersection Observer setup
@@ -245,6 +336,7 @@ const setupIntersectionObserver = () => {
 // Lifecycle hooks
 onMounted(() => {
   fetchItems()
+  clearExpiredPlan(JSON.parse(localStorage.getItem('plan')) || []);
   setupIntersectionObserver()
 })
 
@@ -253,6 +345,43 @@ onUnmounted(() => {
     observer.disconnect()
   }
 })
+
+///
+const isWishlistOpen = ref(false)
+const WishlistItems = ref([])
+
+// Load Wishlist items from localStorage on mount
+onMounted(() => {
+  const savedWishlist = localStorage.getItem('Wishlist')
+  if (savedWishlist) {
+    WishlistItems.value = JSON.parse(savedWishlist)
+  }
+})
+
+// Watch for changes in Wishlist items and update localStorage
+watch(WishlistItems, (newItems) => {
+  localStorage.setItem('Wishlist', JSON.stringify(newItems))
+}, { deep: true })
+
+const toggleWishlist = (product) => {
+  const index = WishlistItems.value.findIndex(item => item.id === product.id)
+  if (index === -1) {
+    WishlistItems.value.push(product)
+  } else {
+    WishlistItems.value.splice(index, 1)
+  }
+}
+
+const isInWishlist = (productId) => {
+  return WishlistItems.value.some(item => item.id === productId)
+}
+
+const calculateTotal = () => {
+  return WishlistItems.value
+      .reduce((total, item) => total + parseFloat(item.price.replace('$', '')), 0)
+      .toFixed(2)
+}
+
 </script>
 
 <style>
