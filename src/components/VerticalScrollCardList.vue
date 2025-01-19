@@ -1,6 +1,6 @@
 <template>
   <div class="relative max-w-5xl mx-auto px-4" ref="listContainer">
-    <section class="py-16 bg-white">
+    <section class="py-4 bg-white">
       <div class="container mx-auto px-4">
         <div class="flex justify-between items-center mb-8">
           <span class="inline-block w-20 h-1 ml-2"></span>
@@ -14,34 +14,6 @@
                   class="absolute -top-2 -right-2 bg-amber-400 text-zinc-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
             {{ WishlistItems.length }}
           </span>
-          </div>
-        </div>
-
-
-        <div class="gap-8">
-          <div v-for="item in items" :key="item.id"
-               class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 flex items-center gap-4">
-            <div class="relative overflow-hidden w-1/4">
-              <img :src="item.img_url" :alt="item.name"
-                   class="w-full h-80 object-cover transform group-hover:scale-105 transition duration-500">
-              <div class="absolute inset-0 bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 transition">
-                <div class="absolute bottom-4 left-4 right-4">
-                  <button
-                      @click="toggleWishlist(item)"
-                      class="w-full py-2 rounded-full font-medium transition-colors"
-                      :class="isInWishlist(item.id)
-                    ? 'bg-zinc-900 text-white'
-                    : 'bg-amber-400 text-zinc-900'"
-                  >
-                    {{ isInWishlist(item.id) ? 'Remove from WishList' : 'Add to Wishlist' }}
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="p-4 w-3/4 px-4 flex flex-col">
-              <h4 class="text-xl font-bold text-zinc-900">{{ item.name }}</h4>
-              <p class="text-zinc-600">{{ item.description }}</p>
-            </div>
           </div>
         </div>
       </div>
@@ -64,7 +36,7 @@
             <div v-for="item in WishlistItems"
                  :key="item.id"
                  class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <img :src="item.image" :alt="item.name" class="w-20 h-20 object-cover rounded">
+              <img :src="item.img_url" :alt="item.name" class="w-20 h-20 object-cover rounded">
               <div class="flex-1">
                 <h5 class="font-bold text-zinc-900">{{ item.name }}</h5>
                 <p class="text-zinc-600">{{ item.price }}</p>
@@ -79,8 +51,8 @@
 
             <div class="border-t pt-4 mt-4">
               <div class="flex justify-between text-xl font-bold text-zinc-900">
-                <span>Total:</span>
-                <span>${{ calculateTotal() }}</span>
+<!--                <span>Total:</span>-->
+<!--                <span>${{ calculateTotal() }}</span>-->
               </div>
             </div>
           </div>
@@ -92,47 +64,37 @@
       </div>
     </section>
 
-    <!-- List Container -->
-    <div class="space-y-6">
-      <div
-          v-for="item in items"
-          :key="item.id"
-          class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 flex items-center gap-4"
-      >
-        <div class="flex-shrink-0 w-1/4 overflow-hidden" @click="emit('view-details', item)">
-          <img
-              :src="item.img_url || '/placeholder.svg?height=128&width=192'"
-              :alt="item.title"
-              class="w-full h-full rounded-lg object-cover transform group-hover:scale-105 transition duration-500"
-          />
-        </div>
-
-        <div class="w-3/4 px-4 flex flex-col">
-          <div class="flex-grow ml-6">
-            <h2 class="text-2xl font-semibold text-left mb-2 h-1/4" @click="emit('view-details', item)">{{
-                item.name
-              }}</h2>
-            <p class="text-zinc-600 text-left mb-4 line-clamp-3 h-2/4" @click="emit('view-details', item)">
-              {{ item.description }}</p>
-            <div class="flex justify-between items-center h-1/4">
-              <p class="text-zinc-500 text-left text-sm">date</p>
-              <button
-                  :class="[
-                      'bottom-4 right-4 w-10 h-10  rounded-lg flex items-center text-white justify-center transition-colors duration-200',
-                      isDuplicatePlan(item)
-                      ?'bg-amber-400 hover:bg-amber-600'
-                      :'bg-zinc-600 hover:bg-zinc-700 focus:ring-zinc-600'
-                  ]"
-                  @click="toggleWishlist(item)"
-              >
-                {{ isInWishlist(item.id) ? 'Remove from WishList' : 'Add to Wishlist' }}
-              </button>
+    <section class="space-y-8">
+      <div v-for="item in items" :key="item.id"
+           class="bg-white rounded-lg shadow-sm overflow-hidden transition-transform duration-300 hover:shadow-lg">
+        <div class="flex flex-col md:flex-row">
+          <div class="md:w-1/3 relative overflow-hidden group">
+            <img
+                :src="item.img_url"
+                :alt="item.name"
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
+            >
+            <div class="absolute inset-0 bg-zinc-900 bg-opacity-0 transition-all duration-300 group-hover:bg-opacity-20"></div>
+          </div>
+          <div class="md:w-2/3 p-6 flex flex-col justify-between group">
+            <div @click="emit('view-details', item)" class="cursor-pointer">
+              <h4 class="text-2xl font-bold text-zinc-900 transform transition-transform duration-300">{{ item.name }}</h4>
+              <p class="text-zinc-900 transition-all">{{ item.description }}</p>
+              <p class="text-xl font-bold text-zinc-900">{{ item.date }}</p>
             </div>
-
+            <button
+                @click="toggleWishlist(item)"
+                class="w-full py-2 rounded-full font-medium transition-colors"
+                :class="isInWishlist(item)
+                    ? 'bg-zinc-900 text-white'
+                    : 'bg-amber-400 text-zinc-900'"
+            >
+              {{ isInWishlist(item) ? 'Remove from Wishlist' : 'Add to Wishlist' }}
+            </button>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- List End Marker -->
     <div ref="listEndMarker" class="h-1 w-full"></div>
@@ -257,54 +219,6 @@ const retryLoading = () => {
   fetchItems()
 }
 
-const clearExpiredPlan = (plan) => {
-  for (let i in plan) {
-    if (plan[i].expire < Date.now()) {
-      plan.splice(i, 1);
-    }
-  }
-}
-//중복 확인 부 추가
-const isDuplicatePlan = (item) => {
-  let plan = JSON.parse(localStorage.getItem('plan')) || [];
-  for (let i in plan) {
-    if (plan[i].value.itemType == props.itemType && plan[i].value.id === item.id) {
-      return true;
-    }
-  }
-  return false;
-}
-
-//중복을 모두 삭제하는 것
-// const deleteDuplicatePlan = (plan, item) => {
-//   for (let i in plan) {
-//     if (plan[i].value.itemType == props.itemType && plan[i].value.id === item.id) {
-//       plan.splice(i, 1);
-//       i = 0
-//     }
-//   }
-// }
-
-// const addToPlan = (item) => {
-//   //만료일자 확인 부
-//   let plan = JSON.parse(localStorage.getItem('plan')) || [];
-//
-//   clearExpiredPlan(plan);
-//
-//   if(isDuplicatePlan(item)){
-//     deleteDuplicatePlan(plan, item);
-//   }else{
-//     // 일단 장바구니 처럼 전부다 담는 기능으로.
-//     const obj = {
-//       value: item,
-//       expire: Date.now() + 1000 * 60 * 60 * 24
-//     }
-//     plan.push(obj);
-//   }
-//   localStorage.setItem('plan', JSON.stringify(plan));
-// }
-
-
 // Intersection Observer setup
 let observer
 const setupIntersectionObserver = () => {
@@ -336,7 +250,6 @@ const setupIntersectionObserver = () => {
 // Lifecycle hooks
 onMounted(() => {
   fetchItems()
-  clearExpiredPlan(JSON.parse(localStorage.getItem('plan')) || []);
   setupIntersectionObserver()
 })
 
@@ -363,24 +276,24 @@ watch(WishlistItems, (newItems) => {
   localStorage.setItem('Wishlist', JSON.stringify(newItems))
 }, { deep: true })
 
-const toggleWishlist = (product) => {
-  const index = WishlistItems.value.findIndex(item => item.id === product.id)
+const toggleWishlist = (item) => {
+  const index = WishlistItems.value.findIndex(wishItem => wishItem.id === item.id && wishItem.itemType === item.itemType)
   if (index === -1) {
-    WishlistItems.value.push(product)
+    WishlistItems.value.push(item)
   } else {
     WishlistItems.value.splice(index, 1)
   }
 }
 
-const isInWishlist = (productId) => {
-  return WishlistItems.value.some(item => item.id === productId)
+const isInWishlist = (item) => {
+  return WishlistItems.value.some(wishItem => wishItem.id === item.id && wishItem.itemType === item.itemType)
 }
 
-const calculateTotal = () => {
-  return WishlistItems.value
-      .reduce((total, item) => total + parseFloat(item.price.replace('$', '')), 0)
-      .toFixed(2)
-}
+// const calculateTotal = () => {
+//   return WishlistItems.value
+//       .reduce((total, item) => total + parseFloat(item.price.replace('$', '')), 0)
+//       .toFixed(2)
+//}
 
 </script>
 

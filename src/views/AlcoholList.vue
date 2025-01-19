@@ -8,11 +8,13 @@ const handleViewDetails = (item) => {
 
 <template>
   <div class="container mx-auto px-4 py-8">
-    <span class="inline-block bg-amber-400 w-20 h-1 ml-2"></span>
-    주류 목록
-    <span class="inline-block bg-amber-400 w-20 h-1 ml-2"></span>
+    <h1 class="text-3xl font-bold text-zinc-900 mb-8">
+      <span class="inline-block bg-amber-400 w-20 h-1 ml-2"></span>
+      주류 목록
+      <span class="inline-block bg-amber-400 w-20 h-1 ml-2"></span>
+    </h1>
     <VerticalScrollCardList
-        fetch-url="/api/alcohols"
+        itemType="ALCOHOL"
         @view-details="handleViewDetails"
     />
   </div>
