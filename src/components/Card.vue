@@ -38,6 +38,8 @@ axios.get(urlStr)
           console.error('Error fetching destination get function:', error);
         }
     )
+
+console.log(item);
 </script>
 
 <style scoped>

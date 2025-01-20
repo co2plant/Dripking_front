@@ -1,5 +1,4 @@
 <script setup>
-  //const urlStr = 'http://localhost:8080/api/distilleries' + route.params.id; 해당지역의 양조장들을 정리해서 보여줘야하므로 지역코드에 따른 분류 필요
   import axios from "axios";
   import {defineProps, onMounted, ref} from "vue";
 
