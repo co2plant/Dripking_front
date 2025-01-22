@@ -11,9 +11,10 @@
                 @click="isWishlistOpen = true"
             />
             <span v-if="WishlistItems.length"
-                  class="absolute -top-2 -right-2 bg-amber-400 text-zinc-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-            {{ WishlistItems.length }}
-          </span>
+                  class="absolute -top-2 -right-2 bg-amber-400 text-zinc-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold cursor-pointer"
+                  @click="isWishlistOpen = true">
+                      {{ WishlistItems.length }}
+                  </span>
           </div>
         </div>
       </div>
@@ -45,14 +46,14 @@
                   @click="toggleWishlist(item)"
                   class="text-zinc-900 hover:text-red-500 transition-colors"
               >
-                <TrashIcon class="h-5 w-5" />
+                <TrashIcon class="h-5 w-5"/>
               </button>
             </div>
 
             <div class="border-t pt-4 mt-4">
               <div class="flex justify-between text-xl font-bold text-zinc-900">
-<!--                <span>Total:</span>-->
-<!--                <span>${{ calculateTotal() }}</span>-->
+                <!--                <span>Total:</span>-->
+                <!--                <span>${{ calculateTotal() }}</span>-->
               </div>
             </div>
           </div>
@@ -74,11 +75,14 @@
                 :alt="item.name"
                 class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
             >
-            <div class="absolute inset-0 bg-zinc-900 bg-opacity-0 transition-all duration-300 group-hover:bg-opacity-20"></div>
+            <div
+                class="absolute inset-0 bg-zinc-900 bg-opacity-0 transition-all duration-300 group-hover:bg-opacity-20"></div>
           </div>
           <div class="md:w-2/3 p-6 flex flex-col justify-between group">
             <div @click="emit('view-details', item)" class="cursor-pointer">
-              <h4 class="text-2xl font-bold text-zinc-900 transform transition-transform duration-300">{{ item.name }}</h4>
+              <h4 class="text-2xl font-bold text-zinc-900 transform transition-transform duration-300">{{
+                  item.name
+                }}</h4>
               <p class="text-zinc-900 transition-all">{{ item.description }}</p>
               <p class="text-xl font-bold text-zinc-900">{{ item.date }}</p>
             </div>
@@ -86,8 +90,8 @@
                 @click="toggleWishlist(item)"
                 class="w-full py-2 rounded-full font-medium transition-colors"
                 :class="isInWishlist(item)
-                    ? 'bg-zinc-900 text-white'
-                    : 'bg-amber-400 text-zinc-900'"
+                    ? 'bg-zinc-900 text-white duration-600 hover:bg-amber-400 hover:text-zinc-900 hover:scale-102'
+                    : 'bg-amber-400 text-zinc-900 duration-600 hover:bg-zinc-900 hover:text-white hover:scale-102'"
             >
               {{ isInWishlist(item) ? 'Remove from Wishlist' : 'Add to Wishlist' }}
             </button>
@@ -151,6 +155,10 @@ import {defineProps, defineEmits, ref, onMounted, onUnmounted, watch} from 'vue'
 import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next'
 
 const props = defineProps({
+  selectedCategory: {
+    type: Number,
+    required: true
+  },
   itemType: {
     type: String,
     required: true
@@ -185,7 +193,13 @@ const fetchItems = async () => {
   canFetchMore.value = false
 
   try {
-    const response = await fetch(`api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&size=10&sort=id,desc`)
+    let response
+    if(itemTypeEnum[props.itemType] === 'alcohols') {
+      response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&categoryId=${props.selectedCategory}&size=10&sort=id,desc`)
+    }
+    else{
+      response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&size=10&sort=id,desc`)
+    }
     if (!response.ok) throw new Error('데이터를 불러오는데 실패했습니다.')
 
     const data = await response.json()
@@ -212,6 +226,12 @@ const fetchItems = async () => {
   }
 }
 
+const consoles = () => {
+  console.log(props.selectedCategory)
+}
+
+watch(()=> props.selectedCategory, consoles, { immediate: true })
+
 // Retry loading when error occurs
 const retryLoading = () => {
   error.value = null
@@ -220,7 +240,7 @@ const retryLoading = () => {
 }
 
 // Intersection Observer setup
-let observer
+let observer;
 const setupIntersectionObserver = () => {
   observer = new IntersectionObserver(
       (entries) => {
@@ -274,7 +294,8 @@ onMounted(() => {
 // Watch for changes in Wishlist items and update localStorage
 watch(WishlistItems, (newItems) => {
   localStorage.setItem('Wishlist', JSON.stringify(newItems))
-}, { deep: true })
+}, {deep: true})
+
 
 const toggleWishlist = (item) => {
   const index = WishlistItems.value.findIndex(wishItem => wishItem.id === item.id && wishItem.itemType === item.itemType)
@@ -288,13 +309,6 @@ const toggleWishlist = (item) => {
 const isInWishlist = (item) => {
   return WishlistItems.value.some(wishItem => wishItem.id === item.id && wishItem.itemType === item.itemType)
 }
-
-// const calculateTotal = () => {
-//   return WishlistItems.value
-//       .reduce((total, item) => total + parseFloat(item.price.replace('$', '')), 0)
-//       .toFixed(2)
-//}
-
 </script>
 
 <style>
@@ -320,4 +334,3 @@ const isInWishlist = (item) => {
   animation: bounce 1s infinite;
 }
 </style>
-

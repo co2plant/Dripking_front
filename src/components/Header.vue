@@ -75,7 +75,7 @@ import AuthenticationForm from './Authentication/AuthenticationForm.vue'
 const navigation = [
       {name: 'Discover', href: '/destinationList'},
       {name: 'Trips', href: '#'},
-      {name: 'Review', href: '#'},
+      {name: 'Alcohol', href: '/alcoholList'},
       {name: 'More', href: '#'},
     ]
 
