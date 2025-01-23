@@ -151,17 +151,17 @@
 </template>
 
 <script setup>
-import {defineProps, defineEmits, ref, onMounted, onUnmounted, watch} from 'vue'
+import  {defineProps, defineEmits, ref, onMounted, onUnmounted, watch} from 'vue'
 import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next'
 
 const props = defineProps({
-  selectedCategory: {
-    type: Number,
-    required: true
-  },
   itemType: {
     type: String,
     required: true
+  },
+  selectedCategory: {
+    type: Number,
+    required: false
   }
 })
 
@@ -195,10 +195,12 @@ const fetchItems = async () => {
   try {
     let response
     if(itemTypeEnum[props.itemType] === 'alcohols') {
-      response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&categoryId=${props.selectedCategory}&size=10&sort=id,desc`)
+      response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&category_id=${props.selectedCategory}&size=10&sort=id,desc`)
+      console.log(response.url, hasMore.value, currentPage.value, canFetchMore.value, isLoading.value)
     }
     else{
       response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&size=10&sort=id,desc`)
+      console.log(response.url)
     }
     if (!response.ok) throw new Error('데이터를 불러오는데 실패했습니다.')
 
@@ -226,11 +228,22 @@ const fetchItems = async () => {
   }
 }
 
-const consoles = () => {
-  console.log(props.selectedCategory)
+const resetItems = (updatedCategory) => {
+  hasMore.value=true
+  canFetchMore.value = true
+
+  currentPage.value = 0
+  console.log('resetItem',  hasMore.value, currentPage.value, canFetchMore.value, isLoading.value)
+  console.log('resetItems', updatedCategory)
+  items.value = []
+  fetchItems()
 }
 
-watch(()=> props.selectedCategory, consoles, { immediate: true })
+watch(() => props.selectedCategory, (newValue) => {
+  resetItems(newValue);
+})
+
+
 
 // Retry loading when error occurs
 const retryLoading = () => {
