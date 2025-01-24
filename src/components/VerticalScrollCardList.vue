@@ -159,7 +159,7 @@ const props = defineProps({
     type: String,
     required: true
   },
-  selectedCategory: {
+  selectedItem: {
     type: Number,
     required: false
   }
@@ -195,12 +195,14 @@ const fetchItems = async () => {
   try {
     let response
     if(itemTypeEnum[props.itemType] === 'alcohols') {
-      response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&category_id=${props.selectedCategory}&size=10&sort=id,desc`)
-      console.log(response.url, hasMore.value, currentPage.value, canFetchMore.value, isLoading.value)
+      response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&category_id=${props.selectedItem}&size=10&sort=id,desc`)
+    }
+    else if(itemTypeEnum[props.itemType] === 'destinations') {
+      response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&country_id=${props.selectedItem}&size=10&sort=id,desc`)
+      console.log(response.value)
     }
     else{
       response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&size=10&sort=id,desc`)
-      console.log(response.url)
     }
     if (!response.ok) throw new Error('데이터를 불러오는데 실패했습니다.')
 
@@ -228,22 +230,17 @@ const fetchItems = async () => {
   }
 }
 
-const resetItems = (updatedCategory) => {
+const resetItems = () => {
   hasMore.value=true
   canFetchMore.value = true
-
   currentPage.value = 0
-  console.log('resetItem',  hasMore.value, currentPage.value, canFetchMore.value, isLoading.value)
-  console.log('resetItems', updatedCategory)
   items.value = []
   fetchItems()
 }
 
-watch(() => props.selectedCategory, (newValue) => {
+watch(() => props.selectedItem, (newValue) => {
   resetItems(newValue);
 })
-
-
 
 // Retry loading when error occurs
 const retryLoading = () => {

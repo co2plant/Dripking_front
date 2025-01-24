@@ -20,7 +20,6 @@ const selectCategory = (categoryId) => {
   selectedCategory.value = categoryId
 }
 
-
 onMounted(async () => {
   categories.value = await fetchItems();
 })
@@ -40,7 +39,7 @@ onMounted(async () => {
     />
     <VerticalScrollCardList
         itemType="ALCOHOL"
-        :selectedCategory="selectedCategory"
+        :selectedItem="selectedCategory"
         @view-details="handleViewDetails"
     />
   </div>
