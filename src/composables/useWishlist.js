@@ -30,6 +30,7 @@ export function useWishlist() {
         } else {
             WishlistItems.value.splice(index, 1)
         }
+        WishlistItems.value.sort((a, b) => a.trip_id - b.trip_id);
     };
 
     const isInWishlist = (item) => {

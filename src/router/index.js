@@ -7,6 +7,7 @@ import DestinationDetail from "@/views/DestinationDetail.vue";
 import AlcoholList from "@/views/AlcoholList.vue";
 import AlcoholDetail from "@/views/AlcoholDetail.vue";
 import SearchedList from "@/views/SearchedList.vue";
+import TestPage from "@/views/TestPage.vue";
 
 const routes = [
     { path: '/', name: 'Home', component: Landing },
@@ -17,6 +18,7 @@ const routes = [
     { path: '/alcoholList', name: 'alcoholList', component : AlcoholList },
     { path: '/alcohol/:id', name: 'alcoholDetail', component: AlcoholDetail },
     { path: "/search/:dtype", name: 'searchList', component: SearchedList},
+    { path: '/test', name:'test', component:TestPage}
 ]
 
 const router = createRouter({
