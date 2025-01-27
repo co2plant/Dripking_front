@@ -36,13 +36,13 @@
           <div v-for="item_trip in WishlistItems.filter((i) => i.itemType === 'TRIP')"
                :key="item_trip.id"
                :id="'item_trip' + item_trip.id"
-               class = "grid grid-cols-1 items-center gap-4 p-4 bg-gray-50 rounded-lg">
+               class = "grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg">
             <span class="font-bold text-zinc-900">{{ item_trip.name }}</span>
             <span class="text-zinc-600">{{ item_trip.start_date }} ~ {{ item_trip.end_date }}</span>
-            <div class="dragula-container h-24">
+            <div class="dragula-container container min-h-24">
               <div v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  item_trip.id === i.trip_id)"
                    :key="item.id"
-                   class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                   class="flex items-center my-3 p-4 bg-amber-100 rounded-lg">
                 <img :src="item.img_url" :alt="item.name" class="w-20 h-20 object-cover rounded">
                 <div class="flex-1">
                   <h5 class="font-bold text-zinc-900 line-clamp-1">{{ item.name }}</h5>
@@ -58,12 +58,12 @@
             </div>
           </div>
           <div id="item_trip-1"
-               class="grid grid-cols-1 items-center gap-4 p-4 bg-gray-50 rounded-lg">
+               class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg">
             <span class="font-bold text-zinc-900"> 미배정상태 </span>
-            <div class="dragula-container">
+            <div class="dragula-container min-h-24">
               <div v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  -1 === i.trip_id)"
                    :key="item.id"
-                   class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                   class="flex items-center my-3 p-4 bg-amber-100 rounded-lg">
                 <img :src="item.img_url" :alt="item.name" class="w-20 h-20 object-cover rounded">
                 <div class="flex-1">
                   <h5 class="font-bold text-zinc-900 line-clamp-1">{{ item.name }}</h5>
