@@ -3,6 +3,7 @@ import VerticalScrollCardList from "@/components/VerticalScrollCardList.vue";
 import router from "@/router";
 import DateCountrySelection from "@/components/DateCountrySelection.vue";
 import {onMounted, ref} from "vue";
+import WishListSideBar from "@/components/WishListSideBar.vue";
 
 const countries = ref([]);
 const selectedCountry = ref(0);
@@ -39,6 +40,7 @@ onMounted(async () => {
         @select-country="selectCountry"
     >
     </DateCountrySelection>
+    <WishListSideBar />
     <VerticalScrollCardList
         itemType="DESTINATION"
         :selectedItem="selectedCountry"

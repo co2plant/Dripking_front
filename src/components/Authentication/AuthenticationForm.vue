@@ -238,7 +238,7 @@ const handleSignIn = async () => {
     // 여기에 실제 로그인 API 호출 로직을 구현합니다
     const response = await fetch('http://localhost:8080/api/user/signin', {
       method: 'POST',
-          headers: {
+      headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(signinForm)
