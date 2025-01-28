@@ -17,7 +17,7 @@ const routes = [
     { path: '/distillery/:id', name: 'distilleryDetail', component: DistilleryDetail },
     { path: '/alcoholList', name: 'alcoholList', component : AlcoholList },
     { path: '/alcohol/:id', name: 'alcoholDetail', component: AlcoholDetail },
-    { path: "/search/:dtype", name: 'searchList', component: SearchedList},
+    { path: '/search/:dtype', name: 'searchList', component: SearchedList},
     { path: '/test', name:'test', component:TestPage}
 ]
 
