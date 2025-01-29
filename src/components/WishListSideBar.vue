@@ -129,9 +129,6 @@ drake.on('drop', (el, target) => {
   const itemId = el.getAttribute('data-item-id')
   const itemTripId = el.getAttribute('data-item-trip_id');
 
-  console.log('Trip ID:', tripId);
-  console.log('Item Trip ID:', itemTripId);
-
   if (tripId !== null && itemTripId !== null) {
     toggleWishlistUpdatePlanID(itemTripId, itemId, tripId);
   } else {

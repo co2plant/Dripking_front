@@ -39,7 +39,7 @@ export function useWishlist() {
 
         const newItem = {
             id: item.id,
-            trip_id: update_trip_id,
+            trip_id: Number(update_trip_id),
             plan_id: -1,
             itemType: item.itemType,
             name: item.name,
