@@ -33,11 +33,13 @@ export function useWishlist() {
         WishlistItems.value.sort((a, b) => a.trip_id - b.trip_id);
     };
 
-    const toggleWishlistUpdatePlanID = (item, update_id) => {
-        const index = WishlistItems.value.findIndex(wishItem => wishItem.id === item.id && wishItem.itemType === item.itemType)
+    const toggleWishlistUpdatePlanID = (item_trip_id, item_id, update_trip_id) => {
+        const index = WishlistItems.value.findIndex(wishItem => wishItem.id === Number(item_id) && wishItem.trip_id === Number(item_trip_id))
+        const item = WishlistItems.value[index]
+
         const newItem = {
             id: item.id,
-            trip_id: update_id,
+            trip_id: update_trip_id,
             plan_id: -1,
             itemType: item.itemType,
             name: item.name,
@@ -45,7 +47,7 @@ export function useWishlist() {
             img_url: item.img_url
         }
         if (index === -1) {
-            WishlistItems.value.push(newItem)
+            return
         } else {
             WishlistItems.value.splice(index, 1)
             WishlistItems.value.push(newItem)
