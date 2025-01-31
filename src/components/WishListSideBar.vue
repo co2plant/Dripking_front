@@ -82,6 +82,13 @@
               </div>
             </div>
           </div>
+          <div class="mt-4 md:mt-6 text-center">
+            <button
+                class="bg-amber-400 text-zinc-900 px-6 md:px-8 py-2 rounded-full hover:bg-amber-500 transition-colors duration-300 text-sm md:text-base"
+            >
+              저장
+            </button>
+          </div>
           <div class="border-t pt-4 mt-4">
             <div class="flex justify-between text-xl font-bold text-zinc-900">
               <!--                <span>Total:</span>-->
@@ -104,6 +111,7 @@ import {useWishlist} from '@/composables/useWishlist';
 import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next';
 import dragula from "dragula";
 import 'dragula/dist/dragula.min.css';
+import {onBeforeRouteLeave} from "vue-router";
 
 const {WishlistItems, toggleWishlist, toggleWishlistUpdatePlanID} = useWishlist();
 
@@ -135,7 +143,6 @@ drake.on('drop', (el, target) => {
     console.error('Failed to get tripId or itemTripId');
   }
 })
-
 </script>
 
 <style scoped>

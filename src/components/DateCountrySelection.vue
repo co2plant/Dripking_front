@@ -48,6 +48,8 @@ import { useWishlist } from '@/composables/useWishlist';
   }
   console.log(tripSynchronization())
 
+
+
   const createTrip = () => {
     let localLastId = 0
 
@@ -76,7 +78,7 @@ import { useWishlist } from '@/composables/useWishlist';
       start_date: start_date.value,
       end_date: end_date.value,
     }
-
+    console.log(start_date.value, end_date.value, typeof(start_date.value), typeof(end_date.value))
     WishlistItems.value.push(newItem)
 
     console.log(WishlistItems.value)
