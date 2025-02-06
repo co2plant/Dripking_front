@@ -111,7 +111,6 @@ import {useWishlist} from '@/composables/useWishlist';
 import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next';
 import dragula from "dragula";
 import 'dragula/dist/dragula.min.css';
-import {onBeforeRouteLeave} from "vue-router";
 
 const {WishlistItems, toggleWishlist, toggleWishlistUpdatePlanID} = useWishlist();
 

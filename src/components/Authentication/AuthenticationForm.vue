@@ -3,10 +3,10 @@
     <!-- Toggle Buttons -->
     <div class="flex space-x-4 mb-8">
       <button
-          @click="currentForm = 'signin'"
+          @click="currentForm = 'signIn'"
           :class="[
           'flex-1 py-2 px-4 rounded-md font-medium transition-colors',
-          currentForm === 'signin'
+          currentForm === 'signIn'
             ? 'bg-amber-400 text-white'
             : 'bg-zinc-200 hover:bg-zinc-300 focus:ring-zinc-600 text-zinc-700'
         ]"
@@ -27,13 +27,13 @@
     </div>
 
     <transition name="fade" mode="out-in">
-      <!-- signin Form -->
-      <form v-if="currentForm === 'signin'" @submit.prevent="handleSignIn" class="space-y-6" key="signin">
+      <!-- signIn Form -->
+      <form v-if="currentForm === 'signIn'" @submit.prevent="handleSignIn" class="space-y-6" key="signIn">
         <div>
-          <label for="signin-email" class="block text-sm font-medium text-zinc-700">이메일</label>
+          <label for="signIn-email" class="block text-sm font-medium text-zinc-700">이메일</label>
           <input
-              id="signin-email"
-              v-model="signinForm.email"
+              id="signIn-email"
+              v-model="signInForm.email"
               type="email"
               required
               class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
@@ -41,10 +41,10 @@
         </div>
 
         <div>
-          <label for="signin-password" class="block text-sm font-medium text-zinc-700">비밀번호</label>
+          <label for="signIn-password" class="block text-sm font-medium text-zinc-700">비밀번호</label>
           <input
-              id="signin-password"
-              v-model="signinForm.password"
+              id="signIn-password"
+              v-model="signInForm.password"
               type="password"
               required
               class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
@@ -55,7 +55,7 @@
           <div class="flex items-center">
             <input
                 id="remember-me"
-                v-model="signinForm.rememberMe"
+                v-model="signInForm.rememberMe"
                 type="checkbox"
                 class="h-4 w-4 text-amber-600 focus:ring-amber-500 border-zinc-300 rounded"
             />
@@ -158,13 +158,14 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import router from "@/router";
 
-const currentForm = ref('signin')
+const currentForm = ref('signIn')
 const isLoading = ref(false)
 const globalError = ref('')
 
 // 로그인 폼 상태
-const signinForm = reactive({
+const signInForm = reactive({
   email: '',
   password: '',
   rememberMe: false
@@ -195,7 +196,7 @@ const validateEmail = (email) => {
 
 // 비밀번호 유효성 검사
 const validatePassword = (password) => {
-  return password.length >= 8
+  return password.length >= 16
 }
 
 // 회원가입 폼 유효성 검사
@@ -241,17 +242,17 @@ const handleSignIn = async () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(signinForm)
+      body: JSON.stringify(signInForm)
     })
 
-    console.log('로그인 시도:', signinForm)
     if(!response.ok){
       throw new Error('로그인에 실패했습니다.')
     }
 
+    localStorage.setItem('Authorization', response.headers.get('Authorization'))
+    router.go(0)
   } catch (error) {
     globalError.value = '로그인에 실패했습니다. 다시 시도해주세요.'
-    console.error('로그인 에러:', error)
   } finally {
     isLoading.value = false
   }
@@ -275,17 +276,15 @@ const handleSignUp = async () => {
       body: JSON.stringify(SignUpForm)
     })
 
-    console.log('회원가입 시도:', SignUpForm)
     if(!response.ok){
       throw new Error('회원가입에 실패했습니다.')
     }
 
     // 성공 시 로그인 폼으로 전환
-    currentForm.value = 'signin'
+    currentForm.value = 'signIn'
 
   } catch (error) {
     globalError.value = '회원가입에 실패했습니다. 다시 시도해주세요.'
-    console.error('회원가입 에러:', error)
   } finally {
     isLoading.value = false
   }
