@@ -13,7 +13,7 @@
                 class="absolute -top-2 -right-2 bg-amber-400 text-zinc-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold cursor-pointer"
                 @click="isWishlistOpen = true">
                       {{ WishlistItems.filter((i) => i.itemType !== 'TRIP' && i.itemType !== 'Plan').length }}
-                  </span>
+          </span>
         </div>
       </div>
     </div>
@@ -62,7 +62,7 @@
           <div id="item_trip-1"
                class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg">
             <span class="font-bold text-zinc-900"> 미배정상태 </span>
-            <div class="dragula-container min-h-24"  :data-trip-id="-1">
+            <div class="dragula-container min-h-24" :data-trip-id="-1">
               <div v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  -1 === i.trip_id)"
                    :key="item.id"
                    :data-item-id="item.id"
@@ -83,11 +83,14 @@
             </div>
           </div>
           <div class="mt-4 md:mt-6 text-center">
-            <button
-                class="bg-amber-400 text-zinc-900 px-6 md:px-8 py-2 rounded-full hover:bg-amber-500 transition-colors duration-300 text-sm md:text-base"
-            >
-              저장
-            </button>
+            <router-link :to="{ path : 'triptest' }">
+              <button
+                  class="bg-amber-400 text-zinc-900 px-6 md:px-8 py-2 rounded-full hover:bg-amber-500 transition-colors duration-300 text-sm md:text-base"
+              >
+                다음
+              </button>
+            </router-link>
+
           </div>
           <div class="border-t pt-4 mt-4">
             <div class="flex justify-between text-xl font-bold text-zinc-900">
@@ -109,7 +112,7 @@
 import {ref} from 'vue';
 import {useWishlist} from '@/composables/useWishlist';
 import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next';
-import dragula from "dragula";
+import dragula from 'dragula';
 import 'dragula/dist/dragula.min.css';
 
 const {WishlistItems, toggleWishlist, toggleWishlistUpdatePlanID} = useWishlist();

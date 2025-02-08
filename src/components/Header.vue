@@ -80,12 +80,6 @@
   </div>
 </template>
 
-<script>
-export default {
-  name : 'Header'
-}
-</script>
-
 <script setup>
 import {onMounted, ref} from 'vue'
 import {Dialog, DialogPanel} from '@headlessui/vue'
@@ -95,7 +89,7 @@ import AuthenticationForm from './Authentication/AuthenticationForm.vue'
 
 const navigation = [
       {name: 'Discover', href: '/destinationList'},
-      {name: 'Trips', href: '#'},
+      {name: 'Trips', href: '/triptest'},
       {name: 'Alcohol', href: '/alcoholList'},
       {name: 'More', href: '#'},
     ]
