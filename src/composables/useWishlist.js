@@ -33,6 +33,15 @@ export function useWishlist() {
         WishlistItems.value.sort((a, b) => a.trip_id - b.trip_id);
     };
 
+    const deleteAllFromWishlistByTripId = (item) => {
+        toggleWishlist(item);
+        WishlistItems.value.forEach((wishItem, index) => {
+            if (wishItem.itemType !== 'TRIP' && wishItem.trip_id === item.id) {
+                WishlistItems.value.splice(index, 1)
+            }
+        });
+    }
+
     const toggleWishlistUpdatePlanID = (item_trip_id, item_id, update_trip_id) => {
         const index = WishlistItems.value.findIndex(wishItem => wishItem.id === Number(item_id) && wishItem.trip_id === Number(item_trip_id))
         const item = WishlistItems.value[index]
@@ -67,6 +76,7 @@ export function useWishlist() {
         WishlistItems,
         toggleWishlistUpdatePlanID,
         toggleWishlist,
-        isInWishlist
+        isInWishlist,
+        deleteAllFromWishlistByTripId
     };
 }

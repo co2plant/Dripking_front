@@ -39,7 +39,7 @@
                class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg relative">
             <!-- Delete Trip Button -->
             <button
-                @click="deleteTrip(item_trip)"
+                @click="deleteAllFromWishlistByTripId(item_trip)"
                 class="absolute top-2 right-2 p-2 text-zinc-400 hover:text-red-500 transition-colors"
                 aria-label="Delete trip"
             >
@@ -123,7 +123,7 @@ import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next';
 import dragula from 'dragula';
 import 'dragula/dist/dragula.min.css';
 
-const {WishlistItems, toggleWishlist, toggleWishlistUpdatePlanID} = useWishlist();
+const {WishlistItems, toggleWishlist, toggleWishlistUpdatePlanID, deleteAllFromWishlistByTripId} = useWishlist();
 
 const isWishlistOpen = ref(false);
 
