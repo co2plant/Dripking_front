@@ -58,6 +58,15 @@
                 </button>
               </div>
             </div>
+            <div class="mt-4 md:mt-6 text-center">
+              <router-link :to="{ name : 'triptest', params : {id: item_trip.id}}">
+                <button
+                    class="bg-amber-400 text-zinc-900 px-6 md:px-8 py-2 rounded-full hover:bg-amber-500 transition-colors duration-300 text-sm md:text-base"
+                >
+                  다음
+                </button>
+              </router-link>
+            </div>
           </div>
           <div id="item_trip-1"
                class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg">
@@ -81,16 +90,6 @@
                 </button>
               </div>
             </div>
-          </div>
-          <div class="mt-4 md:mt-6 text-center">
-            <router-link :to="{ path : 'triptest' }">
-              <button
-                  class="bg-amber-400 text-zinc-900 px-6 md:px-8 py-2 rounded-full hover:bg-amber-500 transition-colors duration-300 text-sm md:text-base"
-              >
-                다음
-              </button>
-            </router-link>
-
           </div>
           <div class="border-t pt-4 mt-4">
             <div class="flex justify-between text-xl font-bold text-zinc-900">

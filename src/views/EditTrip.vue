@@ -49,7 +49,7 @@
                 class="trip-container min-h-[100px] space-y-2"
             >
               <div
-                  v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  i.trip_id === '1')"
+                  v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  i.trip_id === route.params.id)"
                   :key="item.id"
                   :data-id="item.id"
                   class="bg-amber-50 rounded-lg p-3 cursor-move hover:shadow-md transition-shadow"
@@ -82,7 +82,7 @@
                 class="trip-container space-y-2 min-h-32"
             >
               <div
-                  v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  i.trip_id === '1')"
+                  v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  i.trip_id === route.params.id)"
                   :key="item.id"
                   :data-id="item.id"
                   class="bg-amber-50 rounded-lg p-4 cursor-move hover:shadow-md transition-shadow"
@@ -124,7 +124,7 @@
               class="bg-amber-50 rounded-lg p-4 cursor-move hover:shadow-md transition-shadow"
           >
             <div class="flex gap-4">
-              <img :src="item.image" :alt="item.name" class="w-20 h-20 rounded object-cover">
+              <img :src="item.img_url" :alt="item.name" class="w-20 h-20 rounded object-cover">
               <div class="flex-1">
                 <h4 class="font-medium text-zinc-900">{{ item.name }}</h4>
                 <p class="text-sm text-zinc-600 line-clamp-2">{{ item.description }}</p>
@@ -141,8 +141,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import {ref, onMounted, onUnmounted} from 'vue'
 import { CalendarIcon, MapPinIcon, ListIcon, TrashIcon, PencilIcon } from 'lucide-vue-next'
+import {useRoute} from 'vue-router'
 //import { dragula } from 'dragula'
 import { useWishlist } from "@/composables/useWishlist";
 
@@ -152,14 +153,15 @@ const currentView = ref('calendar')
 const drake = ref(null)
 const tripItem = ref([])
 const days = ref([])
+const route = useRoute()
 
 const views = [
   { id: 'calendar', icon: CalendarIcon },
   { id: 'list', icon: ListIcon }
 ]
 
-const initTripItem = () => {
-  tripItem.value = WishlistItems.value.find((i) => i.itemType === 'TRIP' && i.id === 1)
+const initTripItem = (item_id) => {
+  tripItem.value = WishlistItems.value.find((i) => i.itemType === 'TRIP' && i.id == item_id)
 }
 
 const initDays = () => {
@@ -173,7 +175,6 @@ const initDays = () => {
         items: []
       })
     }
-    console.log(days.value)
   }catch(e){
     console.error(e)
   }
@@ -182,7 +183,7 @@ const initDays = () => {
 
 onMounted(() => {
   //initDragula()
-  initTripItem()
+  initTripItem(route.params.id)
   initDays()
 })
 
