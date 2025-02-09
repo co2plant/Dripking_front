@@ -36,7 +36,16 @@
           <div v-for="item_trip in WishlistItems.filter((i) => i.itemType === 'TRIP')"
                :key="item_trip.id"
                :id="'item_trip' + item_trip.id"
-               class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg">
+               class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg relative">
+            <!-- Delete Trip Button -->
+            <button
+                @click="deleteTrip(item_trip)"
+                class="absolute top-2 right-2 p-2 text-zinc-400 hover:text-red-500 transition-colors"
+                aria-label="Delete trip"
+            >
+              <XIcon class="h-5 w-5"/>
+            </button>
+
             <span class="font-bold text-zinc-900">{{ item_trip.name }}</span>
             <span class="text-zinc-600">{{ item_trip.start_date }} ~ {{ item_trip.end_date }}</span>
             <div class="dragula-container container min-h-24" :data-trip-id="item_trip.id">
