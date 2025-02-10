@@ -79,7 +79,7 @@
             <h3 class="font-bold text-lg mb-3">{{ item_trip.date }}</h3>
             <div
                 :data-date="item_trip.date"
-                class="trip-container space-y-2 min-h-32"
+                class="trip-container space-y-2 min-h-[100px]"
             >
               <div
                   v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  i.trip_id === route.params.id)"
@@ -144,11 +144,10 @@
 import {ref, onMounted, onUnmounted} from 'vue'
 import { CalendarIcon, MapPinIcon, ListIcon, TrashIcon, PencilIcon } from 'lucide-vue-next'
 import {useRoute} from 'vue-router'
-//import { dragula } from 'dragula'
+import dragula from 'dragula';
 import { useWishlist } from "@/composables/useWishlist";
 
-const { WishlistItems, toggleWishlist } = useWishlist();
-//, toggleWishlistUpdatePlanID
+const { WishlistItems, toggleWishlist, toggleWishlistUpdatePlanID } = useWishlist();
 const currentView = ref('calendar')
 const drake = ref(null)
 const tripItem = ref([])
@@ -166,7 +165,7 @@ const initTripItem = (item_id) => {
 
 const initDays = () => {
   try{
-    const period = (new Date(tripItem.value.end_date) - new Date(tripItem.value.start_date)) / (1000 * 60 * 60 * 24)
+    const period = (new Date(tripItem.value.end_date) - new Date(tripItem.value.start_date)) / (1000 * 60 * 60 * 24) + 1
     for(let i = 0; i <period; i++){
       const date = new Date(tripItem.value.start_date)
       date.setDate(date.getDate() + i)
@@ -182,7 +181,7 @@ const initDays = () => {
 }
 
 onMounted(() => {
-  //initDragula()
+  initDragula()
   initTripItem(route.params.id)
   initDays()
 })
@@ -194,32 +193,31 @@ onUnmounted(() => {
 })
 
 
-// const initDragula = () => {
-//   drake.value = dragula(
-//       Array.from(document.querySelectorAll('.trip-container')),
-//       {
-//           moves: (el, container, handle) => {
-//
-//           return !handle.classList.contains('no-drag')
-//         },
-//         accepts: () => {
-//           return true // 모든 컨테이너 간 이동 허용
-//         }
-//       }
-//   )
-//
-//   drake.value.on('drop', (el, target) => {
-//     const tripId = target.getAttribute('data-trip-id');
-//     const itemId = el.getAttribute('data-item-id')
-//     const itemTripId = el.getAttribute('data-item-trip_id');
-//
-//     if (tripId !== null && itemTripId !== null) {
-//       toggleWishlistUpdatePlanID(itemTripId, itemId, tripId);
-//     } else {
-//       console.error('Failed to get tripId or itemTripId');
-//     }
-//   })
-// }
+const initDragula = () => {
+  drake.value = dragula(
+      Array.from(document.querySelectorAll('.trip-container')),
+      {
+          moves: (el, container, handle) => {
+          return !handle.classList.contains('no-drag')
+        },
+        accepts: () => {
+          return true // 모든 컨테이너 간 이동 허용
+        }
+      }
+  )
+
+  drake.value.on('drop', (el, target) => {
+    const tripId = target.getAttribute('data-trip-id');
+    const itemId = el.getAttribute('data-item-id')
+    const itemTripId = el.getAttribute('data-item-trip_id');
+
+    if (tripId !== null && itemTripId !== null) {
+      toggleWishlistUpdatePlanID(itemTripId, itemId, tripId);
+    } else {
+      console.error('Failed to get tripId or itemTripId');
+    }
+  })
+}
 </script>
 
 <style scoped>
