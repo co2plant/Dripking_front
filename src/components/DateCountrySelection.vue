@@ -1,6 +1,7 @@
 <script setup>
 import {defineEmits, ref, defineProps, onMounted, watch} from 'vue';
 import { useWishlist } from '@/composables/useWishlist';
+import Trip from '@/composables/Trip';
 
   const emit = defineEmits(['select-country']);
 
@@ -52,9 +53,21 @@ import { useWishlist } from '@/composables/useWishlist';
 
   const createTrip = () => {
     let localLastId = 0
-
+    let today = new Date()
     if(start_date.value === '' || end_date.value === ''){
       alert('여행 날짜를 입력해주세요.')
+      return
+    }
+    if(start_date.value > end_date.value){
+      alert('출발 날짜가 도착 날짜보다 늦을 수 없습니다.')
+      return
+    }
+    if(selectedCountry.value === 0){
+      alert('국가를 선택해주세요.')
+      return
+    }
+    if(start_date.value<today || end_date.value<today){
+      alert('오늘 이후의 날짜를 선택해주세요.')
       return
     }
 
@@ -69,19 +82,16 @@ import { useWishlist } from '@/composables/useWishlist';
     // VerticalScrollCardList에서는 DB에서 끌어오는 것을 기본으로 사용하기 때문에 현재 로컬에서 사용하는 trip-id와 db trip-id를 구분해야됨 이것을 넣기 위해서는 trip-id 앞에 들어가는 임시적 구분자가 필요 그게 0과 1 <- 0이면 db 로컬이면 1
     // 임시적 구분자에 의해서 로컬과 서버가 구분이 되면 로컬에서는 로컬 trip을 모두 찾아 id순으로 sort하고 가장 마지막 id를 찾아서 +1씩 추가하도록 onMounted에서 제어해야됨
 
-    const newItem = {
-      isLocal : true,
-      id: ++localLastId,
-      itemType: 'TRIP',
-      name: '여행' + localLastId,
-      description: '설명이 입력되어있지 않습니다.',
-      start_date: start_date.value,
-      end_date: end_date.value,
-    }
-    console.log(start_date.value, end_date.value, typeof(start_date.value), typeof(end_date.value))
-    WishlistItems.value.push(newItem)
+    const newTrip = new Trip(
+        ++localLastId,
+        '여행' + localLastId,
+        '설명이 입력되어있지 않습니다.',
+        start_date.value,
+        end_date.value,
+        true,
+        props.countries.find((country) => country.id ===selectedCountry.value).name)
 
-    console.log(WishlistItems.value)
+    WishlistItems.value.push(newTrip)
   };
 
   onMounted(() => {
