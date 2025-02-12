@@ -10,6 +10,42 @@ export default class Trip {
         this.country = country;
     }
 
+    setId(id) {
+        this.id = id;
+    }
+
+    setItemType(itemType) {
+        this.itemType = itemType;
+    }
+
+    setName(name) {
+        this.name = name;
+    }
+
+    setDescription(description) {
+        this.description = description;
+    }
+
+    setStartDate(start_date) {
+        this.start_date = start_date;
+    }
+
+    setEndDate(end_date) {
+        this.end_date = end_date;
+    }
+
+    setIsLocal(isLocal) {
+        this.isLocal = isLocal;
+    }
+
+    setCountry(country) {
+        this.country = country;
+    }
+
+    build(){
+        return this.Trip;
+    }
+
     getDuration() {
         const start = new Date(this.start_date);
         const end = new Date(this.end_date);
