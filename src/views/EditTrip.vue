@@ -46,7 +46,7 @@
             <h3 class="font-bold text-lg mb-4">{{ day.date }}</h3>
             <div
                 :data-date="day.date"
-                class="trip-container min-h-[100px] space-y-2"
+                class="dragula-container min-h-[100px] space-y-2"
             >
               <div
                   v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  i.trip_id === route.params.id)"
@@ -79,7 +79,7 @@
             <h3 class="font-bold text-lg mb-3">{{ item_trip.date }}</h3>
             <div
                 :data-date="item_trip.date"
-                class="trip-container space-y-2 min-h-[100px]"
+                class="dragula-container space-y-2 min-h-[100px]"
             >
               <div
                   v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  i.trip_id === route.params.id)"
@@ -115,7 +115,7 @@
       <!-- Unassigned Items -->
       <div class="bg-white rounded-lg shadow-lg p-4">
         <h3 class="font-bold text-lg mb-4">미배정 항목</h3>
-        <div class="trip-container grid grid-cols-1 md:grid-cols-2 gap-4 min-h-32" data-date="unassigned">
+        <div class="dragula-container grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[100px]" data-date="unassigned">
           <div
               v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  -1 === i.trip_id)"
               :key="item.id"
@@ -149,7 +149,7 @@ import { useWishlist } from "@/composables/useWishlist";
 
 const { WishlistItems, toggleWishlist, toggleWishlistUpdatePlanID } = useWishlist();
 const currentView = ref('calendar')
-const drake = ref(null)
+const dragulaInstance = ref(null)
 const tripItem = ref([])
 const days = ref([])
 const route = useRoute()
@@ -187,26 +187,29 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (drake.value) {
-    drake.value.destroy()
+  if (dragulaInstance.value) {
+    dragulaInstance.value.destroy()
   }
 })
 
 
 const initDragula = () => {
-  drake.value = dragula(
-      Array.from(document.querySelectorAll('.trip-container')),
-      {
-          moves: (el, container, handle) => {
-          return !handle.classList.contains('no-drag')
-        },
-        accepts: () => {
-          return true // 모든 컨테이너 간 이동 허용
-        }
-      }
-  )
+  dragulaInstance.value = dragula({
+    isContainer: function (el) {
+      return el.classList.contains('dragula-container');
+    },
+    direction: 'vertical',
+    copy: false,
+    copySortSource: false,
+    revertOnSpill: false,
+    removeOnSpill: false,
+    mirrorContainer: document.body,
+    ignoreInputTextSelection: true,
+    slideFactorX: 0,
+    slideFactorY: 0,
+  })
 
-  drake.value.on('drop', (el, target) => {
+  dragulaInstance.value.on('drop', (el, target) => {
     const tripId = target.getAttribute('data-trip-id');
     const itemId = el.getAttribute('data-item-id')
     const itemTripId = el.getAttribute('data-item-trip_id');
@@ -218,6 +221,7 @@ const initDragula = () => {
     }
   })
 }
+
 </script>
 
 <style scoped>
