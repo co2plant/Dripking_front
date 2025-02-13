@@ -212,7 +212,7 @@ const initDragula = () => {
   dragulaInstance.value.on('drop', (el, target) => {
     const tripId = target.getAttribute('data-trip-id');
     const itemId = el.getAttribute('data-item-id')
-    const itemTripId = el.getAttribute('data-item-trip_id');
+    const itemTripId = el.getAttribute('data-item-trip-id');
 
     if (tripId !== null && itemTripId !== null) {
       toggleWishlistUpdatePlanID(itemTripId, itemId, tripId);

@@ -16,7 +16,7 @@ import Trip from '@/composables/Trip';
     }
   });
 
-  const { WishlistItems } = useWishlist();
+  const { WishlistItems, toggleWishlist } = useWishlist();
 
   const selectedCountry = ref(props.selectedCountry);
   const start_date = ref('');
@@ -52,7 +52,7 @@ import Trip from '@/composables/Trip';
 
 
   const createTrip = () => {
-    let localLastId = 0
+    let localLastId = -1
     let today = new Date()
     if(start_date.value === '' || end_date.value === ''){
       alert('여행 날짜를 입력해주세요.')
@@ -71,10 +71,15 @@ import Trip from '@/composables/Trip';
       return
     }
 
+
     for(const item of WishlistItems.value){
       if(item.itemType === 'TRIP' && item.isLocal){
-        if(item.id > localLastId){
-          localLastId = item.id
+        const isConfirm = confirm('이미 여행이 생성되어 있습니다. 작성하던 여행계획을 삭제하고 새로운 여행을 생성하시겠습니까?')
+        if(isConfirm){
+          toggleWishlist(item)
+        }
+        else{
+          return
         }
       }
     }
@@ -83,7 +88,7 @@ import Trip from '@/composables/Trip';
     // 임시적 구분자에 의해서 로컬과 서버가 구분이 되면 로컬에서는 로컬 trip을 모두 찾아 id순으로 sort하고 가장 마지막 id를 찾아서 +1씩 추가하도록 onMounted에서 제어해야됨
 
     const newTrip = new Trip(
-        ++localLastId,
+        localLastId,
         '여행' + localLastId,
         '설명이 입력되어있지 않습니다.',
         start_date.value,

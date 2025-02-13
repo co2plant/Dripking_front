@@ -52,7 +52,7 @@
               <div v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  item_trip.id === i.trip_id)"
                    :key="item.id"
                    :data-item-id="item.id"
-                   :data-item-trip_id="item.trip_id"
+                   :data-item-trip-id="item.trip_id"
                    class="flex items-center my-3 p-4 bg-amber-100 rounded-lg">
                 <img :src="item.img_url" :alt="item.name" class="w-20 h-20 object-cover rounded">
                 <div class="flex-1">
@@ -84,7 +84,7 @@
               <div v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  -1 === i.trip_id)"
                    :key="item.id"
                    :data-item-id="item.id"
-                   :data-item-trip_id="item.trip_id"
+                   :data-item-trip-id="item.trip_id"
                    class="flex items-center my-3 p-4 bg-amber-100 rounded-lg">
                 <img :src="item.img_url" :alt="item.name" class="w-20 h-20 object-cover rounded">
                 <div class="flex-1">
@@ -145,7 +145,7 @@ let drake = dragula({
 drake.on('drop', (el, target) => {
   const tripId = target.getAttribute('data-trip-id');
   const itemId = el.getAttribute('data-item-id')
-  const itemTripId = el.getAttribute('data-item-trip_id');
+  const itemTripId = el.getAttribute('data-item-trip-id');
 
   if (tripId !== null && itemTripId !== null) {
     toggleWishlistUpdatePlanID(itemTripId, itemId, tripId);
