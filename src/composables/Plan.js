@@ -1,11 +1,12 @@
 export default class Plan{
-    constructor(id, name, description, plan_date, plan_time, address, trip_id){
+    constructor(id, name, description, plan_date, start_time, end_time, address, trip_id){
         this.id = id;
         this.itemType = 'PLAN';
         this.name = name;
         this.description = description;
         this.plan_date = plan_date;
-        this.plan_time = plan_time;
+        this.start_time = start_time;
+        this.end_time = end_time;
         this.address = address;
         this.trip_id = trip_id;
     }
@@ -30,8 +31,12 @@ export default class Plan{
         this.plan_date = plan_date
     }
 
-    setPlanTime(plan_time){
-        this.plan_time = plan_time
+    setStartTime(start_time){
+        this.start_time = start_time
+    }
+
+    setEndTime(end_time) {
+        this.end_time = end_time
     }
 
     setAddress(address){
