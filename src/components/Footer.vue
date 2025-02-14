@@ -1,6 +1,6 @@
 <template>
   <footer>
-    <div class="max-w-screen-xl px-4 py-16 mx-auto sm:px-6 lg:px-8">
+    <div class="max-w-screen-xl px-4 pt-16 pb-10 mx-auto sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div>
           <img src="../assets/Dripking_logo.png" class="mr-5 h-6 sm:h-9" alt="logo"/>
