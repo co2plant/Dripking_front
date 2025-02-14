@@ -16,7 +16,7 @@ import Trip from '@/composables/Trip';
     }
   });
 
-  const { WishlistItems, toggleWishlist } = useWishlist();
+  const { WishlistItems, deleteAllFromWishlistByTripId } = useWishlist();
 
   const selectedCountry = ref(props.selectedCountry);
   const start_date = ref('');
@@ -52,7 +52,7 @@ import Trip from '@/composables/Trip';
 
 
   const createTrip = () => {
-    let localLastId = -1
+    let localLastId = 0
     let today = new Date()
     if(start_date.value === '' || end_date.value === ''){
       alert('여행 날짜를 입력해주세요.')
@@ -76,7 +76,7 @@ import Trip from '@/composables/Trip';
       if(item.itemType === 'TRIP' && item.isLocal){
         const isConfirm = confirm('이미 여행이 생성되어 있습니다. 작성하던 여행계획을 삭제하고 새로운 여행을 생성하시겠습니까?')
         if(isConfirm){
-          toggleWishlist(item)
+          deleteAllFromWishlistByTripId(item)
         }
         else{
           return
@@ -97,6 +97,7 @@ import Trip from '@/composables/Trip';
         props.countries.find((country) => country.id ===selectedCountry.value).name)
 
     WishlistItems.value.push(newTrip)
+    alert('여행이 생성되었습니다.')
   };
 
   onMounted(() => {
