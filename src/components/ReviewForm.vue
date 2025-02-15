@@ -45,20 +45,12 @@
     </div>
     <!-- Blur Overlay for Non-logged in Users -->
     <div
-        v-if="!isLoggedIn"
+        v-if="!isAuthenticated"
         class="absolute inset-0 backdrop-blur-md bg-white/30 rounded-lg flex flex-col items-center justify-center gap-4 z-10"
     >
       <p class="text-lg font-medium text-zinc-900">리뷰를 작성하려면 로그인이 필요합니다</p>
       <div class="flex gap-4">
-        <div v-if="isAuthenticated" class="hidden lg:flex lg:flex-1 lg:justify-end">
-          <button
-              @click="logout"
-              class="justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-400 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            로그아웃
-          </button>
-        </div>
-        <div v-else class="hidden lg:flex lg:flex-1 lg:justify-end">
+        <div v-if="!isAuthenticated" class="hidden lg:flex lg:flex-1 lg:justify-end">
           <button
               @click="showAuthModal = true"
               class="justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-400 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -146,11 +138,6 @@ const submitReview = async () => {
 }
 
 const isAuthenticated = ref(false);
-
-const logout = () => {
-  localStorage.removeItem('Authorization');
-  isAuthenticated.value = false;
-}
 
 const checkAuth = async () => {
   try{
