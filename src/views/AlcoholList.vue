@@ -3,6 +3,7 @@ import VerticalScrollCardList from "@/components/VerticalScrollCardList.vue";
 import CategoryNavigation from "@/components/CategoryNavigation.vue";
 import router from "@/router";
 import {onMounted, ref} from "vue";
+import WishListSideBar from "@/components/WishListSideBar.vue";
 
 const categories = ref([]);
 const selectedCategory = ref(0)
@@ -37,6 +38,7 @@ onMounted(async () => {
         :selectedCategory="selectedCategory"
         @select-category="selectCategory"
     />
+    <WishListSideBar />
     <VerticalScrollCardList
         itemType="ALCOHOL"
         :selectedItem="selectedCategory"
