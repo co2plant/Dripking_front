@@ -1,57 +1,72 @@
-<template>
-  <div class="h-screen flex flex-col">
-    <div class="p-4 bg-amber-100">
-      <h2 class="text-2xl font-bold mb-4">술 관련 명소 지도</h2>
-      <div class="flex space-x-4 mb-4">
-        <button
-            v-for="category in categories"
-            :key="category"
-            @click="toggleCategory(category)"
-            :class="[
-            'px-4 py-2 rounded-full',
-            selectedCategories.includes(category)
-              ? 'bg-amber-500 text-white'
-              : 'bg-white text-amber-500 border border-amber-500'
-          ]"
-        >
-          {{ category }}
-        </button>
-      </div>
-    </div>
-    <iframe
-        width="600"
-        height="450"
-        style="border:0"
-        loading="lazy"
-        allowfullscreen
-        referrerpolicy="no-referrer-when-downgrade"
-        src="https://www.google.com/maps/embed/v1/place?key=
-    &q=Space+Needle,Seattle+WA">
-    </iframe>
-  </div>
-</template>
-
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { GoogleMap, Marker } from 'vue3-google-map'
 
-// State
-const selectedCategories = ref(['distillery', 'bar', 'brewery'])
-const categories = ['distillery', 'bar', 'brewery']
+const center = ref({ lat: 33.499, lng: 126.531 }) // 제주도 중심 좌표
+const zoom = ref(10)
+const activeDestination = ref(null)
+const destinations = ref([])
 
-const toggleCategory = (category) => {
-  const index = selectedCategories.value.indexOf(category)
-  if (index > -1) {
-    selectedCategories.value.splice(index, 1)
-  } else {
-    selectedCategories.value.push(category)
+// API에서 목적지 데이터를 가져오는 함수
+const fetchDestinations = async () => {
+  try {
+    // API 엔드포인트를 실제 URL로 변경해야 합니다
+    const response = await fetch('/api/destinations')
+    const data = await response.json()
+    destinations.value = data
+  } catch (error) {
+    console.error('목적지 데이터를 불러오는 데 실패했습니다:', error)
   }
 }
 
+const selectDestination = (destination) => {
+  activeDestination.value = destination
+  center.value = { lat: destination.latitude, lng: destination.longitude }
+  zoom.value = 14
+}
+
+onMounted(() => {
+  fetchDestinations()
+})
 </script>
 
-<style scoped>
-.leaflet-container {
-  height: 100%;
-  width: 100%;
-}
-</style>
+<template>
+  <div class="flex h-[600px] max-w-6xl mx-auto border border-gray-200 rounded-lg overflow-hidden">
+    <div class="flex-grow">
+      <GoogleMap
+          api-key=""
+          class="w-full h-full"
+          :center="center"
+          :zoom="zoom"
+      >
+        <Marker
+            v-for="dest in destinations"
+            :key="dest.id"
+            :options="{ position: { lat: dest.latitude, lng: dest.longitude } }"
+            @click="selectDestination(dest)"
+        />
+      </GoogleMap>
+    </div>
+    <div class="w-1/3 p-4 bg-gray-50 overflow-y-auto">
+      <h2 class="text-2xl font-bold mb-4 text-gray-800">목적지 목록</h2>
+      <ul class="space-y-4">
+        <li
+            v-for="dest in destinations"
+            :key="dest.id"
+            @click="selectDestination(dest)"
+            class="bg-white p-4 rounded-lg shadow cursor-pointer transition-colors hover:bg-gray-100"
+            :class="{ 'border-l-4 border-blue-500': activeDestination === dest }"
+        >
+          <div class="flex items-start space-x-3">
+            <img :src="dest.img_url" :alt="dest.name" class="w-20 h-20 object-cover rounded-md">
+            <div>
+              <h3 class="font-semibold text-lg text-blue-600">{{ dest.name }}</h3>
+              <p class="text-sm text-gray-600">{{ dest.description }}</p>
+              <span class="text-xs text-gray-500">{{ dest.itemType }}</span>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</template>
