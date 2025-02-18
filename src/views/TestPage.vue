@@ -5,23 +5,23 @@ import { GoogleMap, Marker } from 'vue3-google-map'
 const center = ref({ lat: 33.499, lng: 126.531 }) // 제주도 중심 좌표
 const zoom = ref(10)
 const activeDestination = ref(null)
-const destinations = ref([])
+const places = ref([])
 
 // API에서 목적지 데이터를 가져오는 함수
 const fetchDestinations = async () => {
   try {
     // API 엔드포인트를 실제 URL로 변경해야 합니다
-    const response = await fetch('/api/destinations')
+    const response = await fetch('http://localhost:8080/api/distilleries')
     const data = await response.json()
-    destinations.value = data
+    places.value = data.content
   } catch (error) {
     console.error('목적지 데이터를 불러오는 데 실패했습니다:', error)
   }
 }
 
-const selectDestination = (destination) => {
-  activeDestination.value = destination
-  center.value = { lat: destination.latitude, lng: destination.longitude }
+const selectDestination = (place) => {
+  activeDestination.value = place
+  center.value = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) }
   zoom.value = 14
 }
 
@@ -31,7 +31,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-[600px] max-w-6xl mx-auto border border-gray-200 rounded-lg overflow-hidden">
+  <div class="flex h-[600px] max-w-6xl mx-auto border border-zinc-200 rounded-lg overflow-hidden">
     <div class="flex-grow">
       <GoogleMap
           api-key=""
@@ -40,29 +40,29 @@ onMounted(() => {
           :zoom="zoom"
       >
         <Marker
-            v-for="dest in destinations"
-            :key="dest.id"
-            :options="{ position: { lat: dest.latitude, lng: dest.longitude } }"
-            @click="selectDestination(dest)"
+            v-for="place in places"
+            :key="place.id"
+            :options="{ position: { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) } }"
+            @click="selectDestination(place)"
         />
       </GoogleMap>
     </div>
-    <div class="w-1/3 p-4 bg-gray-50 overflow-y-auto">
-      <h2 class="text-2xl font-bold mb-4 text-gray-800">목적지 목록</h2>
+    <div class="w-1/3 p-4 bg-zinc-50 overflow-y-auto">
+      <h2 class="text-2xl font-bold mb-4 text-amber-400">목적지 목록</h2>
       <ul class="space-y-4">
         <li
-            v-for="dest in destinations"
-            :key="dest.id"
-            @click="selectDestination(dest)"
-            class="bg-white p-4 rounded-lg shadow cursor-pointer transition-colors hover:bg-gray-100"
-            :class="{ 'border-l-4 border-blue-500': activeDestination === dest }"
+            v-for="place in places"
+            :key="place.id"
+            @click="selectDestination(place)"
+            class="bg-white p-4 rounded-lg shadow cursor-pointer transition-colors hover:bg-zinc-100"
+            :class="{ 'border-l-4 border-amber-500': activeDestination == place }"
         >
           <div class="flex items-start space-x-3">
-            <img :src="dest.img_url" :alt="dest.name" class="w-20 h-20 object-cover rounded-md">
+            <img :src="place.img_url" :alt="place.name" class="w-20 h-20 object-cover rounded-md">
             <div>
-              <h3 class="font-semibold text-lg text-blue-600">{{ dest.name }}</h3>
-              <p class="text-sm text-gray-600">{{ dest.description }}</p>
-              <span class="text-xs text-gray-500">{{ dest.itemType }}</span>
+              <h3 class="font-semibold text-lg text-zinc-900 line-clamp-2">{{ place.name }}</h3>
+              <p class="text-sm text-zinc-600 line-clamp-2">{{ place.description }}</p>
+              <span class="text-xs text-zinc-500 line-clamp-2">{{ place.itemType }}</span>
             </div>
           </div>
         </li>
