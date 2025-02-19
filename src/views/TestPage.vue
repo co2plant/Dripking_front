@@ -2,10 +2,12 @@
 import { ref, onMounted } from 'vue'
 import { GoogleMap, Marker } from 'vue3-google-map'
 
-const center = ref({ lat: 33.499, lng: 126.531 }) // 제주도 중심 좌표
+const center = ref({ lat: 33.499, lng: 126.531 })
 const zoom = ref(10)
 const activeDestination = ref(null)
 const places = ref([])
+
+// destination(city)에서 lat, lng를 받아 표시
 
 // API에서 목적지 데이터를 가져오는 함수
 const fetchDestinations = async () => {
