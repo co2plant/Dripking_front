@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { GoogleMap, Marker } from 'vue3-google-map'
 
-const center = ref({ lat: 33.499, lng: 126.531 })
+//제주 선택시 우상단 끝 33.560472, 126.881906
+//좌하단 끝 33.202208, 126.209170
+const center = ref({ lat: 34.9023747484815, lng: 135.68551060039104 })
 const zoom = ref(10)
 const activeDestination = ref(null)
 const places = ref([])
@@ -13,9 +15,10 @@ const places = ref([])
 const fetchDestinations = async () => {
   try {
     // API 엔드포인트를 실제 URL로 변경해야 합니다
-    const response = await fetch('http://localhost:8080/api/distilleries')
+    const response = await fetch('http://localhost:8080/api/distilleries/latlng?minLatitude=34&maxLatitude=35&minLongitude=135&maxLongitude=136')
     const data = await response.json()
     places.value = data.content
+    console.log(places.value)
   } catch (error) {
     console.error('목적지 데이터를 불러오는 데 실패했습니다:', error)
   }
