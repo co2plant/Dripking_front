@@ -117,13 +117,13 @@
 </template>
 
 <script setup>
-import {ref} from 'vue';
+import {ref, watch} from 'vue';
 import {useWishlist} from '@/composables/useWishlist';
 import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next';
 import dragula from 'dragula';
 import 'dragula/dist/dragula.min.css';
 
-const {WishlistItems, toggleWishlist, toggleWishlistUpdatePlanID, deleteAllFromWishlistByTripId} = useWishlist();
+const {WishlistItems, saveWishlist, toggleWishlist, toggleWishlistUpdatePlanID, deleteAllFromWishlistByTripId} = useWishlist();
 
 const isWishlistOpen = ref(false);
 
@@ -153,6 +153,8 @@ drake.on('drop', (el, target) => {
     console.error('Failed to get tripId or itemTripId');
   }
 })
+
+watch(WishlistItems, saveWishlist)
 </script>
 
 <style scoped>
