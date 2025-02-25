@@ -1,10 +1,8 @@
-export default class Destination{
+export default class Alcohol{
     constructor(){
         this.id = null;
-        this.itemType = 'DESTINATION';
+        this.itemType = 'ALCOHOL';
         this.name = null;
-        this.latitude = null;
-        this.longitude = null;
         this.description = null;
         this.img_url = null;
         this.plan_id = -1;
@@ -23,16 +21,7 @@ export default class Destination{
     setName(name){
         this.name = name;
         return this;
-    }
 
-    setLatitude(latitude){
-        this.latitude = latitude;
-        return this;
-    }
-
-    setLongitude(longitude){
-        this.longitude = longitude;
-        return this;
     }
 
     setDescription(description){
@@ -45,12 +34,22 @@ export default class Destination{
         return this;
     }
 
-    setPlanID(plan_id){
+    setPlanId(plan_id){
         this.plan_id = plan_id;
         return this;
     }
 
     build(){
-        return this.Destination;
+        return this.Alcohol;
+    }
+
+    toObject(jsonAlcohol){
+        return new Alcohol()
+            .setId(jsonAlcohol.id)
+            .setDescription(jsonAlcohol.description)
+            .setName(jsonAlcohol.name)
+            .setImgUrl(jsonAlcohol.img_url)
+            .setPlanId(jsonAlcohol.plan_id)
+            .build();
     }
 }

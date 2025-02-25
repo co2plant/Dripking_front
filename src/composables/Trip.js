@@ -1,45 +1,53 @@
 export default class Trip {
-    constructor(id, name, description, start_date, end_date, isLocal, country) {
-        this.id = id;
+    constructor(){
+        this.id = 1;
         this.itemType = 'TRIP';
-        this.name = name;
-        this.description = description;
-        this.start_date = start_date;
-        this.end_date = end_date;
-        this.isLocal = isLocal;
-        this.country = country;
+        this.name = null;
+        this.description = null;
+        this.start_date = null;
+        this.end_date = null;
+        this.isLocal = true;
+        this.country = null;
     }
 
     setId(id) {
         this.id = id;
+        return this;
     }
 
     setItemType(itemType) {
         this.itemType = itemType;
+        return this;
     }
 
     setName(name) {
         this.name = name;
+        return this;
     }
 
     setDescription(description) {
         this.description = description;
+        return this;
     }
 
     setStartDate(start_date) {
         this.start_date = start_date;
+        return this;
     }
 
     setEndDate(end_date) {
         this.end_date = end_date;
+        return this;
     }
 
     setIsLocal(isLocal) {
         this.isLocal = isLocal;
+        return this;
     }
 
     setCountry(country) {
         this.country = country;
+        return this;
     }
 
     build(){
