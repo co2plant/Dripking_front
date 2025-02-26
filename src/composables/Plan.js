@@ -7,7 +7,7 @@ export default class Plan{
         this.plan_date = null;
         this.start_time = null;
         this.end_time = null;
-        this.address = null;
+        this.place_id = null;
         this.trip_id = -1;
     }
 
@@ -46,8 +46,8 @@ export default class Plan{
         return this;
     }
 
-    setAddress(address){
-        this.address = address;
+    setPlaceId(place_id){
+        this.place_id = place_id;
         return this;
     }
 

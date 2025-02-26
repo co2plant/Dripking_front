@@ -1,12 +1,12 @@
-export default class Distillery{
+export default class Place{
     constructor(){
         this.id = null;
-        this.itemType = 'DISTILLERY';
+        this.itemType = 'PLACE';
         this.name = null;
         this.latitude = null;
         this.longitude = null;
-        this.address = null;
         this.description = null;
+        this.address = null;
         this.img_url = null
         this.plan_id = -1;
     }
@@ -58,6 +58,6 @@ export default class Distillery{
     }
 
     build(){
-        return this.Distillery
+        return this.Place
     }
 }
