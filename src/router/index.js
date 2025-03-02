@@ -21,6 +21,7 @@ const routes = [
     { path: '/search/:dtype', name: 'searchList', component: SearchedList},
     { path: '/test', name:'test', component:TestPage},
     { path: '/triptest/:id', name:'triptest', component: EditTrip},
+    { path: '/triptestversion2', name:'triptestversion2', component: () => import('@/views/EditTripTestVersion2.vue')},
     { path: '/map', name:'map', component: () => import('@/components/map.vue')},
 ]
 
