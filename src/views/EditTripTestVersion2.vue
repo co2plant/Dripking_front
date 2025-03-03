@@ -16,9 +16,10 @@
           </div>
 
           <!-- 일정 목록 -->
-          <div class="space-y-4  min-h-[300px]" ref="planContainer">
+          <div
+              class="space-y-4  min-h-[300px]" ref="planContainer">
             <div
-                v-for="plan in sortedPlans"
+                v-for="plan in planStore.Plans"
                 :key="plan.id"
                 class="plan-item bg-zinc-50 rounded-lg p-4"
             >
@@ -83,7 +84,7 @@
             <div class="flex items-center justify-between">
               <span class="text-zinc-900">{{ item.name }}</span>
               <button
-                  @click="addToPlan(item)"
+                  @click="addWishItemToPlan(item)"
                   class="text-amber-400 hover:text-amber-500"
               >
                 <plus-icon class="w-5 h-5" />
@@ -173,8 +174,7 @@
                   </option>
                 </select>
                 <clock-icon class="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400 pointer-events-none" />
-                <chevron-down-icon class="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400 pointer-events-none" />
-              </div>
+                </div>
             </div>
             <div class="space-y-2">
               <label class="text-base font-medium text-zinc-900">
@@ -192,8 +192,7 @@
                   </option>
                 </select>
                 <clock-icon class="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400 pointer-events-none" />
-                <chevron-down-icon class="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400 pointer-events-none" />
-              </div>
+                </div>
             </div>
           </div>
 
@@ -236,11 +235,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import {ref, onMounted, computed, onUnmounted} from 'vue';
 import dragula from 'dragula';
 import {useWishlist} from "@/composables/useWishlist";
+import {usePlanStore} from "@/stores/usePlanStore";
 import 'dragula/dist/dragula.min.css';
-import Plan from "@/composables/Plan";
+import Plan from "@/composables/Entity/Plan";
 import {
   Plus as PlusIcon,
   Calendar as CalendarIcon,
@@ -252,10 +252,10 @@ import {
 } from 'lucide-vue-next'
 
 const { WishlistItems } = useWishlist();
+const planStore = usePlanStore();
 
 // 상태 관리
 const wishlistItems = ref(WishlistItems)
-const plans = ref([])
 const showModal = ref(false)
 const editingPlan = ref(null)
 const currentPlan = ref(new Plan())
@@ -264,17 +264,11 @@ const currentPlan = ref(new Plan())
 const wishlistContainer = ref(null)
 const planContainer = ref(null)
 
-// 정렬된 플랜 computed 속성
-const sortedPlans = computed(() => {
-  return [...plans.value].sort((a, b) => {
-    const dateA = new Date(`${a.plan_date} ${a.start_time}`)
-    const dateB = new Date(`${b.plan_date} ${b.start_time}`)
-    return dateA - dateB
-  })
-})
-
 // Dragula 설정
 onMounted(() => {
+  planStore.sortPlans();
+  planStore.loadPlans();
+  console.log(planStore.Plans)
   dragula([wishlistContainer.value, planContainer.value], {
     copy: (el, source) => source === wishlistContainer.value,
     accepts: (el, target) => target === planContainer.value,
@@ -283,13 +277,17 @@ onMounted(() => {
     if (target === planContainer.value) {
       // 위시리스트에서 플랜으로 아이템 이동 처리
       const wishItem = new Plan()
-          .setId(el.dataset.itemId)
+          .setPlaceId(el.dataset.itemId)
           .setName(el.dataset.itemName)
           .setDescription(el.dataset.itemDescription)
-      addToPlan(wishItem)
+          .build()
+      planStore.addPlan(wishItem)
       el.remove() // 복사된 엘리먼트 제거
     }
   })
+})
+onUnmounted(() => {
+  planStore.savePlans();
 })
 
 // 시간 옵션 생성 (30분 간격)
@@ -350,9 +348,9 @@ const closeModal = () => {
 const savePlan = () => {
   if (editingPlan.value) {
     // 기존 플랜 수정
-    const index = plans.value.findIndex(p => p.id === editingPlan.value.id)
+    const index = planStore.Plans.findIndex(p => p.id === editingPlan.value.id)
     if (index !== -1) {
-      plans.value[index] = { ...currentPlan.value }
+      planStore.Plans[index] = { ...currentPlan.value }
     }
   } else {
     // 새 플랜 추가
@@ -360,7 +358,7 @@ const savePlan = () => {
       ...currentPlan.value,
       id: Date.now().toString()
     }
-    plans.value.push(newPlan)
+    planStore.addPlan(newPlan);
   }
   closeModal()
 }
@@ -375,12 +373,12 @@ const editPlan = (plan) => {
 // 플랜 삭제
 const deletePlan = (id) => {
   if (confirm('이 일정을 삭제하시겠습니까?')) {
-    plans.value = plans.value.filter(p => p.id !== id)
+    planStore.removePlan(id)
   }
 }
 
 // 위시리스트 아이템을 플랜으로 추가
-const addToPlan = (item) => {
+const addWishItemToPlan = (item) => {
   currentPlan.value = new Plan()
       .setName(item.name)
       .setDescription(item.description)
@@ -388,12 +386,10 @@ const addToPlan = (item) => {
       .setStartTime('09:00')
       .setEndTime('18:00')
       .setPlaceId(item.id)
+      .build();
+  planStore.addPlan(currentPlan.value)
   showModal.value = true
 }
-
-// 예시 데이터 로드 (실제로는 API에서 가져올 것)
-onMounted(() => {
-})
 </script>
 
 <style>
@@ -436,11 +432,11 @@ select {
 }
 
 /* 드롭다운 화살표 아이콘 위치 조정 */
-.relative .lucide-chevron-down {
+.relative {
   right: 12px;
 }
 
-.relative .lucide-clock {
+.relative{
   right: 32px;
 }
 

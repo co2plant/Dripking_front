@@ -1,4 +1,3 @@
-// src/stores/useWishStore.js
 import { defineStore } from 'pinia';
 
 export const useWishlistStore = defineStore('wishlist', {
