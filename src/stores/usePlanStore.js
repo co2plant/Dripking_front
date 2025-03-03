@@ -15,8 +15,10 @@ export const usePlanStore = defineStore('plan', {
             localStorage.setItem('Plans', JSON.stringify(this.Plans));
         },
         addPlan(newPlan){
-            this.Plans.push(newPlan);
-            this.savePlans();
+            if(newPlan!==null){
+                this.Plans.push(newPlan);
+                this.savePlans();
+            }
         },
         removePlan(planId){
             this.Plans = this.Plans.filter(plan => plan.id !== planId);

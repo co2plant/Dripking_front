@@ -14,8 +14,10 @@ export const useWishlistStore = defineStore('wishlist', {
             localStorage.setItem('Wishlist', JSON.stringify(this.wishlistItems));
         },
         addWishItem(newWishItem){
-            this.wishlistItems.push(newWishItem);
-            this.saveWishlist();
+            if(newWishItem!==null){
+                this.wishlistItems.push(newWishItem);
+                this.saveWishlist();
+            }
         },
         removeWishItem(wishItemId){
             this.wishlistItems = this.wishlistItems.filter(wishItem => wishItem.id !== wishItemId);

@@ -15,8 +15,10 @@ export const useTripStore = defineStore('trip', {
             localStorage.setItem('Trips', JSON.stringify(this.trips));
         },
         addTrip(newTrip){
-            this.trips.push(newTrip);
-            this.saveTrips();
+            if(newTrip!==null){
+                this.trips.push(newTrip);
+                this.saveTrips();
+            }
         },
         removeTrip(tripId){
             this.trips = this.trips.filter(trip => trip.id !== tripId);
