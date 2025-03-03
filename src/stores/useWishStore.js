@@ -6,12 +6,14 @@ export const useWishlistStore = defineStore('wishlist', {
     actions:{
         loadWishlist(){
             const savedWishlist = localStorage.getItem('Wishlist');
-            if(savedWishlist){
+            if(savedWishlist!==null){
                 this.wishlistItems = JSON.parse(savedWishlist);
             }
         },
         saveWishlist(){
-            localStorage.setItem('Wishlist', JSON.stringify(this.wishlistItems));
+            if(this.wishlistItems.length !== 0){
+                localStorage.setItem('Wishlist', JSON.stringify(this.wishlistItems));
+            }
         },
         addWishItem(newWishItem){
             if(newWishItem!==null){

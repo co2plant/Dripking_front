@@ -7,12 +7,15 @@ export const useTripStore = defineStore('trip', {
     actions:{
         loadTrips(){
             const savedTrips = localStorage.getItem('Trips');
-            if(savedTrips){
+            if(savedTrips!==null){
                 this.trips = JSON.parse(savedTrips);
             }
         },
         saveTrips(){
-            localStorage.setItem('Trips', JSON.stringify(this.trips));
+            if (this.trips.length !== 0){
+                localStorage.setItem('Trips', JSON.stringify(this.trips));
+            }
+
         },
         addTrip(newTrip){
             if(newTrip!==null){

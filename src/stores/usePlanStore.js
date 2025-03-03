@@ -7,12 +7,15 @@ export const usePlanStore = defineStore('plan', {
     actions:{
         loadPlans(){
             const savedPlans = localStorage.getItem('Plans');
-            if(savedPlans){
+            if(savedPlans!==null){
                 this.Plans = JSON.parse(savedPlans);
             }
         },
         savePlans(){
-            localStorage.setItem('Plans', JSON.stringify(this.Plans));
+            if(this.Plans.length !== 0){
+                localStorage.setItem('Plans', JSON.stringify(this.Plans));
+            }
+
         },
         addPlan(newPlan){
             if(newPlan!==null){
@@ -30,5 +33,8 @@ export const usePlanStore = defineStore('plan', {
                 return A - B
             })
         },
+        clearPlans(){
+            this.Plans = [];
+        }
     },
 })
