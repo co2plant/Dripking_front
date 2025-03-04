@@ -20,7 +20,6 @@ export const usePlanStore = defineStore('plan', {
         addPlan(newPlan){
             if(newPlan!==null){
                 this.Plans.push(newPlan);
-                this.savePlans();
             }
         },
         removePlan(planId){

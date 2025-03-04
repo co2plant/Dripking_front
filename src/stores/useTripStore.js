@@ -20,7 +20,6 @@ export const useTripStore = defineStore('trip', {
         addTrip(newTrip){
             if(newTrip!==null){
                 this.trips.push(newTrip);
-                this.saveTrips();
             }
         },
         removeTrip(tripId){

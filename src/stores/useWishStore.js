@@ -18,12 +18,10 @@ export const useWishlistStore = defineStore('wishlist', {
         addWishItem(newWishItem){
             if(newWishItem!==null){
                 this.wishlistItems.push(newWishItem);
-                this.saveWishlist();
             }
         },
         removeWishItem(wishItemId){
             this.wishlistItems = this.wishlistItems.filter(wishItem => wishItem.id !== wishItemId);
-            this.saveWishlist();
         },
         toggleWishlist(item){
             const index = this.wishlistItems.findIndex(wishItem => wishItem.id === item.id && wishItem.itemType === item.itemType);
