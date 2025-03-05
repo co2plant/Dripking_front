@@ -276,12 +276,12 @@ onMounted(() => {
   }).on('drop', (el, target) => {
     if (target === planContainer.value) {
       // 위시리스트에서 플랜으로 아이템 이동 처리
-      const wishItem = new Plan()
-          .setPlaceId(el.dataset.itemId)
-          .setName(el.dataset.itemName)
-          .setDescription(el.dataset.itemDescription)
-          .build()
-      planStore.addPlan(wishItem)
+      addWishItemToPlan({
+        id: el.dataset.itemId,
+        name: el.dataset.itemName,
+        description: el.dataset.itemDescription
+      })
+      editPlan(currentPlan.value)
       el.remove() // 복사된 엘리먼트 제거
     }
   })
@@ -359,6 +359,7 @@ const savePlan = () => {
       id: Date.now().toString()
     }
     planStore.addPlan(newPlan);
+    planStore.savePlans();
   }
   closeModal()
 }
@@ -373,7 +374,8 @@ const editPlan = (plan) => {
 // 플랜 삭제
 const deletePlan = (id) => {
   if (confirm('이 일정을 삭제하시겠습니까?')) {
-    planStore.removePlan(id)
+    planStore.removePlan(id);
+    planStore.savePlans();
   }
 }
 
@@ -388,7 +390,7 @@ const addWishItemToPlan = (item) => {
       .setPlaceId(item.id)
       .build();
   planStore.addPlan(currentPlan.value)
-  showModal.value = true
+  planStore.savePlans();
 }
 </script>
 
@@ -429,15 +431,6 @@ textarea {
 /* 드롭다운 스타일 추가 */
 select {
   background-image: none;
-}
-
-/* 드롭다운 화살표 아이콘 위치 조정 */
-.relative {
-  right: 12px;
-}
-
-.relative{
-  right: 32px;
 }
 
 /* 모바일 최적화를 위한 추가 스타일 */
