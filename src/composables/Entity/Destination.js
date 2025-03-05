@@ -51,6 +51,6 @@ export default class Destination{
     }
 
     build(){
-        return this.Destination;
+        return this;
     }
 }

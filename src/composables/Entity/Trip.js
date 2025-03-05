@@ -51,7 +51,7 @@ export default class Trip {
     }
 
     build(){
-        return this.Trip;
+        return this;
     }
 
     getDuration() {

@@ -58,6 +58,6 @@ export default class Place{
     }
 
     build(){
-        return this.Place
+        return this;
     }
 }

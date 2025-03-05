@@ -1,6 +1,6 @@
 export default class Plan{
     constructor(){
-        this.id = null;
+        this.id = Date.now().toString();
         this.itemType = 'PLAN';
         this.name = null;
         this.description = null;
@@ -57,6 +57,6 @@ export default class Plan{
     }
 
     build(){
-        return this.Plan
+        return this;
     }
 }

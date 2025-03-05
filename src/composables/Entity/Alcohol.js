@@ -40,7 +40,7 @@ export default class Alcohol{
     }
 
     build(){
-        return this.Alcohol;
+        return this;
     }
 
     toObject(jsonAlcohol){

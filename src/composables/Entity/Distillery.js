@@ -58,6 +58,6 @@ export default class Distillery{
     }
 
     build(){
-        return this.Distillery
+        return this;
     }
 }
