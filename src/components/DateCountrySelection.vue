@@ -1,8 +1,9 @@
 <script setup>
-import {defineEmits, ref, defineProps, onMounted, watch} from 'vue';
-import { useWishlist } from '@/composables/useWishlist';
-import Trip from '@/composables/Trip';
+import {defineEmits, ref, defineProps, onMounted, onUnmounted} from 'vue';
+import Trip from '@/composables/Entity/Trip';
+import {useTripStore} from "@/stores/useTripStore";
 
+  const tripStore = useTripStore();
   const emit = defineEmits(['select-country']);
 
   const props = defineProps({
@@ -15,8 +16,6 @@ import Trip from '@/composables/Trip';
       required: true
     }
   });
-
-  const { WishlistItems, deleteAllFromWishlistByTripId } = useWishlist();
 
   const selectedCountry = ref(props.selectedCountry);
   const start_date = ref('');
@@ -72,44 +71,44 @@ import Trip from '@/composables/Trip';
     }
 
 
-    for(const item of WishlistItems.value){
+    for(const item of tripStore.Trips){
       if(item.itemType === 'TRIP' && item.isLocal){
         const isConfirm = confirm('이미 여행이 생성되어 있습니다. 작성하던 여행계획을 삭제하고 새로운 여행을 생성하시겠습니까?')
         if(isConfirm){
-          deleteAllFromWishlistByTripId(item)
+          tripStore.removeTrip(item.id)
         }
         else{
           return
         }
       }
     }
+
     // 로그인이 되어있는 상태라면 db에 저장된 id를 그대로 끌어와서 사용해도됨.
     // VerticalScrollCardList에서는 DB에서 끌어오는 것을 기본으로 사용하기 때문에 현재 로컬에서 사용하는 trip-id와 db trip-id를 구분해야됨 이것을 넣기 위해서는 trip-id 앞에 들어가는 임시적 구분자가 필요 그게 0과 1 <- 0이면 db 로컬이면 1
     // 임시적 구분자에 의해서 로컬과 서버가 구분이 되면 로컬에서는 로컬 trip을 모두 찾아 id순으로 sort하고 가장 마지막 id를 찾아서 +1씩 추가하도록 onMounted에서 제어해야됨
 
-    const newTrip = new Trip(
-        localLastId,
-        '여행' + localLastId,
-        '설명이 입력되어있지 않습니다.',
-        start_date.value,
-        end_date.value,
-        true,
-        props.countries.find((country) => country.id ===selectedCountry.value).name)
+    const newTrip = new Trip()
+        .setName('여행' + localLastId)
+        .setDescription('설명이 입력되어있지 않습니다.')
+        .setStartDate(start_date.value)
+        .setEndDate(end_date.value)
+        .setIsLocal(true)
+        .setCountry(props.countries.find((country) => country.id ===selectedCountry.value).name)
 
-    WishlistItems.value.push(newTrip)
-    alert('여행이 생성되었습니다.')
+    const isPassed = tripStore.addTrip(newTrip);
+    if(isPassed) alert('여행이 생성되었습니다.')
+    else alert('여행 생성에 실패했습니다. 재시도 해주세요.')
+    console.log(tripStore.Trips)
   };
 
   onMounted(() => {
-    const savedWishlist = localStorage.getItem('Wishlist')
-    if (savedWishlist) {
-      WishlistItems.value = JSON.parse(savedWishlist)
-    }
+    tripStore.loadTrips();
+    tripStore.sortTrips();
   });
 
-  watch(WishlistItems, (newItems) => {
-    localStorage.setItem('Wishlist', JSON.stringify(newItems))
-  }, {deep: true});
+  onUnmounted(() => {
+    tripStore.saveTrips();
+  })
 </script>
 
 <template>

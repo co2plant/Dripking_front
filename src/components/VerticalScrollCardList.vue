@@ -22,13 +22,13 @@
               <p class="text-xl font-bold text-zinc-900">{{ item.date }}</p>
             </div>
             <button
-                @click="toggleWishlist(item)"
+                @click="wishStore.toggleWishlist(item)"
                 class="w-full py-2 rounded-full font-medium transition-colors"
-                :class="isInWishlist(item)
+                :class="wishStore.isInWishlist(item)
                     ? 'bg-zinc-900 text-white duration-600 hover:bg-amber-400 hover:text-zinc-900 hover:scale-102'
                     : 'bg-amber-400 text-zinc-900 duration-600 hover:bg-zinc-900 hover:text-white hover:scale-102'"
             >
-              {{ isInWishlist(item) ? 'Remove from Wishlist' : 'Add to Wishlist' }}
+              {{ wishStore.isInWishlist(item) ? 'Remove from Wishlist' : 'Add to Wishlist' }}
             </button>
           </div>
         </div>
@@ -87,9 +87,9 @@
 
 <script setup>
 import  {defineProps, defineEmits, ref, onMounted, onUnmounted, watch} from 'vue'
-import { useWishlist } from '@/composables/useWishlist';
+import {useWishStore} from "@/stores/useWishStore";
 
-const { toggleWishlist, isInWishlist} = useWishlist();
+const wishStore = useWishStore();
 
 const props = defineProps({
   itemType: {
@@ -136,7 +136,6 @@ const fetchItems = async () => {
     }
     else if(itemTypeEnum[props.itemType] === 'destinations') {
       response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&country_id=${props.selectedItem}&size=10&sort=id,desc`)
-      console.log(response.value)
     }
     else{
       response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&size=10&sort=id,desc`)
@@ -211,11 +210,14 @@ const setupIntersectionObserver = () => {
 };
 
 onMounted(() => {
+  wishStore.loadWishlist();
   fetchItems();
   setupIntersectionObserver();
 });
 
 onUnmounted(() => {
+  wishStore.sortWishlist();
+  wishStore.saveWishlist();
   if (observer) {
     observer.disconnect();
   }

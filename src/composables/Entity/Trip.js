@@ -1,7 +1,6 @@
 export default class Trip {
     constructor(){
-        this.id = 1;
-        this.itemType = 'TRIP';
+        this.id = 'T' + Date.now().toString();
         this.name = null;
         this.description = null;
         this.start_date = null;
@@ -12,11 +11,6 @@ export default class Trip {
 
     setId(id) {
         this.id = id;
-        return this;
-    }
-
-    setItemType(itemType) {
-        this.itemType = itemType;
         return this;
     }
 

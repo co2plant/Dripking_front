@@ -1,42 +1,42 @@
 import { defineStore } from 'pinia';
 
-export const useWishlistStore = defineStore('wishlist', {
-    state: () => ({wishlistItems:[]}),
+export const useWishStore = defineStore('wishlist', {
+    state: () => ({WishItems:[]}),
     getters: {},
     actions:{
         loadWishlist(){
             const savedWishlist = localStorage.getItem('Wishlist');
             if(savedWishlist!==null){
-                this.wishlistItems = JSON.parse(savedWishlist);
+                this.WishItems = JSON.parse(savedWishlist);
             }
         },
         saveWishlist(){
-            if(this.wishlistItems.length !== 0){
-                localStorage.setItem('Wishlist', JSON.stringify(this.wishlistItems));
+            if(this.WishItems.length !== 0){
+                localStorage.setItem('Wishlist', JSON.stringify(this.WishItems));
             }
         },
         addWishItem(newWishItem){
             if(newWishItem!==null){
-                this.wishlistItems.push(newWishItem);
+                this.WishItems.push(newWishItem);
             }
         },
         removeWishItem(wishItemId){
-            this.wishlistItems = this.wishlistItems.filter(wishItem => wishItem.id !== wishItemId);
+            this.WishItems = this.WishItems.filter(wishItem => wishItem.id !== wishItemId);
         },
         toggleWishlist(item){
-            const index = this.wishlistItems.findIndex(wishItem => wishItem.id === item.id && wishItem.itemType === item.itemType);
+            const index = this.WishItems.findIndex(wishItem => wishItem.id === item.id && wishItem.itemType === item.itemType);
             if(index === -1){
-                this.wishlistItems.push(item);
+                this.WishItems.push(item);
             }else{
-                this.wishlistItems.splice(index, 1);
+                this.WishItems.splice(index, 1);
             }
             this.saveWishlist();
         },
         isInWishlist(item){
-            return this.wishlistItems.some(wishItem => wishItem.id === item.id && wishItem.itemType === item.itemType);
+            return this.WishItems.some(wishItem => wishItem.id === item.id && wishItem.itemType === item.itemType);
         },
         sortWishlist(){
-            return [...this.wishlistItems].sort((a, b) => {
+            return [...this.WishItems].sort((a, b) => {
                 const A = a.id;
                 const B = b.id;
                 return A - B;

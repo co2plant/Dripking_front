@@ -1,7 +1,6 @@
 export default class Plan{
     constructor(){
-        this.id = Date.now().toString();
-        this.itemType = 'PLAN';
+        this.id = 'P' + Date.now().toString();
         this.name = null;
         this.description = null;
         this.plan_date = null;
@@ -13,11 +12,6 @@ export default class Plan{
 
     setId(id){
         this.id = id;
-        return this;
-    }
-
-    setItemType(itemType){
-        this.itemType = itemType;
         return this;
     }
 

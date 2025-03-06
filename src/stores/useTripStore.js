@@ -1,32 +1,40 @@
 import {defineStore} from 'pinia';
 
 export const useTripStore = defineStore('trip', {
-    state: () => ({trips:[]}),
+    state: () => ({Trips:[]}),
     getters:{
     },
     actions:{
         loadTrips(){
             const savedTrips = localStorage.getItem('Trips');
             if(savedTrips!==null){
-                this.trips = JSON.parse(savedTrips);
+                this.Trips = JSON.parse(savedTrips);
             }
         },
         saveTrips(){
-            if (this.trips.length !== 0){
-                localStorage.setItem('Trips', JSON.stringify(this.trips));
+            if (this.Trips.length !== 0){
+                localStorage.setItem('Trips', JSON.stringify(this.Trips));
             }
 
         },
         addTrip(newTrip){
-            if(newTrip!==null){
-                this.trips.push(newTrip);
+            try{
+                if(newTrip!==null){
+                    this.Trips.push(newTrip);
+                    return true;
+                }
+                return false;
+            }catch(e){
+                console.error(e);
+                return false;
             }
+
         },
         removeTrip(tripId){
-            this.trips = this.trips.filter(trip => trip.id !== tripId);
+            this.Trips = this.Trips.filter(trip => trip.id !== tripId);
         },
         sortTrips(){
-            return [...this.trips].sort((a, b) => {
+            return [...this.Trips].sort((a, b) => {
                 const dateA = new Date(`${a.start_date}`)
                 const dateB = new Date(`${b.start_date}`)
                 return dateA - dateB

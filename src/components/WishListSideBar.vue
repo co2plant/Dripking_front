@@ -9,10 +9,10 @@
               class="h-6 w-6 text-zinc-900 cursor-pointer"
               @click="isWishlistOpen = true"
           />
-          <span v-if="WishlistItems.filter((i) => i.itemType !== 'TRIP' && i.itemType !== 'Plan').length"
+          <span v-if="wishStore.WishItems.length"
                 class="absolute -top-2 -right-2 bg-amber-400 text-zinc-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold cursor-pointer"
                 @click="isWishlistOpen = true">
-                      {{ WishlistItems.filter((i) => i.itemType !== 'TRIP' && i.itemType !== 'Plan').length }}
+                      {{ wishStore.WishItems.length }}
           </span>
         </div>
       </div>
@@ -32,8 +32,8 @@
           />
         </div>
 
-        <div v-if="WishlistItems.length" class="space-y-4 wrapper">
-          <div v-for="item_trip in WishlistItems.filter((i) => i.itemType === 'TRIP')"
+        <div v-if="wishStore.WishItems.length" class="space-y-4 wrapper">
+          <div v-for="item_trip in tripStore.Trips"
                :key="item_trip.id"
                :id="'item_trip' + item_trip.id"
                class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg relative">
@@ -49,7 +49,7 @@
             <span class="font-bold text-zinc-900">{{ item_trip.name }}</span>
             <span class="text-zinc-600">{{ item_trip.start_date }} ~ {{ item_trip.end_date }}</span>
             <div class="dragula-container container min-h-24" :data-trip-id="item_trip.id">
-              <div v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  item_trip.id === i.trip_id)"
+              <div v-for="item in wishStore.WishItems"
                    :key="item.id"
                    :data-item-id="item.id"
                    :data-item-trip-id="item.trip_id"
@@ -60,7 +60,7 @@
                   <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
                 </div>
                 <button
-                    @click="toggleWishlist(item)"
+                    @click="wishStore.toggleWishlist(item)"
                     class="text-zinc-900 hover:text-red-500 transition-colors"
                 >
                   <TrashIcon class="h-5 w-5"/>
@@ -68,7 +68,7 @@
               </div>
             </div>
             <div class="mt-4 md:mt-6 text-center">
-              <router-link :to="{ name : 'triptest', params : {id: item_trip.id}}">
+              <router-link :to="{ name : 'tripModify', params : {id: item_trip.id}}">
                 <button
                     class="bg-amber-400 text-zinc-900 px-6 md:px-8 py-2 rounded-full hover:bg-amber-500 transition-colors duration-300 text-sm md:text-base"
                 >
@@ -79,9 +79,9 @@
           </div>
           <div id="item_trip-1"
                class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg">
-            <span class="font-bold text-zinc-900"> 미배정상태 </span>
+            <span class="font-bold text-zinc-900"> Wish </span>
             <div class="dragula-container min-h-24" :data-trip-id="-1">
-              <div v-for="item in WishlistItems.filter((i) => i.itemType !== 'TRIP' &&  -1 === i.trip_id)"
+              <div v-for="item in wishStore.WishItems"
                    :key="item.id"
                    :data-item-id="item.id"
                    :data-item-trip-id="item.trip_id"
@@ -92,7 +92,7 @@
                   <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
                 </div>
                 <button
-                    @click="toggleWishlist(item)"
+                    @click="wishStore.toggleWishlist(item)"
                     class="text-zinc-900 hover:text-red-500 transition-colors"
                 >
                   <TrashIcon class="h-5 w-5"/>
@@ -117,44 +117,26 @@
 </template>
 
 <script setup>
-import {ref, watch} from 'vue';
-import {useWishlist} from '@/composables/useWishlist';
+import {onMounted, onUnmounted, ref} from 'vue';
 import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next';
-import dragula from 'dragula';
-import 'dragula/dist/dragula.min.css';
+import {useTripStore} from "@/stores/useTripStore";
+import {useWishStore} from "@/stores/useWishStore";
 
-const {WishlistItems, saveWishlist, toggleWishlist, toggleWishlistUpdatePlanID, deleteAllFromWishlistByTripId} = useWishlist();
-
+const tripStore = useTripStore();
+const wishStore = useWishStore();
 const isWishlistOpen = ref(false);
 
-let drake = dragula({
-  isContainer: function (el) {
-    return el.classList.contains('dragula-container');
-  },
-  direction: 'vertical',             // Y axis is considered when determining where an element would be dropped
-  copy: false,                       // elements are moved by default, not copied
-  copySortSource: false,             // elements in copy-source containers can be reordered
-  revertOnSpill: false,              // spilling will put the element back where it was dragged from, if this is true
-  removeOnSpill: false,              // spilling will `.remove` the element, if this is true
-  mirrorContainer: document.body,    // set the element that gets mirror elements appended
-  ignoreInputTextSelection: true,     // allows users to select input text, see details below
-  slideFactorX: 0,               // allows users to select the amount of movement on the X axis before it is considered a drag instead of a click
-  slideFactorY: 0,               // allows users to select the amount of movement on the Y axis before it is considered a drag instead of a click
+onMounted(() => {
+  tripStore.loadTrips();
+  wishStore.loadWishlist();
 });
 
-drake.on('drop', (el, target) => {
-  const tripId = target.getAttribute('data-trip-id');
-  const itemId = el.getAttribute('data-item-id')
-  const itemTripId = el.getAttribute('data-item-trip-id');
-
-  if (tripId !== null && itemTripId !== null) {
-    toggleWishlistUpdatePlanID(itemTripId, itemId, tripId);
-  } else {
-    console.error('Failed to get tripId or itemTripId');
-  }
+onUnmounted(() => {
+  tripStore.sortTrips();
+  tripStore.saveTrips();
+  wishStore.sortWishlist();
+  wishStore.saveWishlist();
 })
-
-watch(WishlistItems, saveWishlist)
 </script>
 
 <style scoped>
