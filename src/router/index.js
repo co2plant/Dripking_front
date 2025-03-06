@@ -8,7 +8,7 @@ import AlcoholList from "@/views/AlcoholList.vue";
 import AlcoholDetail from "@/views/AlcoholDetail.vue";
 import SearchedList from "@/views/SearchedList.vue";
 import TestPage from "@/views/TestPage.vue";
-import EditTrip from "@/views/EditTrip.vue";
+import TripModify from "@/views/TripModify.vue";
 
 const routes = [
     { path: '/', name: 'Home', component: Landing },
@@ -20,8 +20,7 @@ const routes = [
     { path: '/alcohol/:id', name: 'alcoholDetail', component: AlcoholDetail },
     { path: '/search/:dtype', name: 'searchList', component: SearchedList},
     { path: '/test', name:'test', component:TestPage},
-    { path: '/triptest/:id', name:'triptest', component: EditTrip},
-    { path: '/triptestversion2', name:'triptestversion2', component: () => import('@/views/EditTripTestVersion2.vue')},
+    { path: '/trip/:id', name:'tripModify', component: TripModify},
     { path: '/map', name:'map', component: () => import('@/components/map.vue')},
 ]
 

@@ -266,9 +266,7 @@ const planContainer = ref(null)
 
 // Dragula 설정
 onMounted(() => {
-  planStore.sortPlans();
   planStore.loadPlans();
-  console.log(planStore.Plans)
   dragula([wishlistContainer.value, planContainer.value], {
     copy: (el, source) => source === wishlistContainer.value,
     accepts: (el, target) => target === planContainer.value,
@@ -287,6 +285,7 @@ onMounted(() => {
   })
 })
 onUnmounted(() => {
+  planStore.sortPlans();
   planStore.savePlans();
 })
 
