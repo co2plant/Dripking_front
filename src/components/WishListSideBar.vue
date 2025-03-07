@@ -49,7 +49,7 @@
             <span class="font-bold text-zinc-900">{{ item_trip.name }}</span>
             <span class="text-zinc-600">{{ item_trip.start_date }} ~ {{ item_trip.end_date }}</span>
             <div class="dragula-container container min-h-24" :data-trip-id="item_trip.id">
-              <div v-for="item in wishStore.WishItems"
+              <div v-for="item in planStore.Plans"
                    :key="item.id"
                    :data-item-id="item.id"
                    :data-item-trip-id="item.trip_id"
@@ -60,7 +60,7 @@
                   <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
                 </div>
                 <button
-                    @click="wishStore.toggleWishlist(item)"
+                    @click="planStore.removePlan(item.id)"
                     class="text-zinc-900 hover:text-red-500 transition-colors"
                 >
                   <TrashIcon class="h-5 w-5"/>
@@ -121,13 +121,16 @@ import {onMounted, onUnmounted, ref} from 'vue';
 import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next';
 import {useTripStore} from "@/stores/useTripStore";
 import {useWishStore} from "@/stores/useWishStore";
+import {usePlanStore} from "@/stores/usePlanStore";
 
 const tripStore = useTripStore();
 const wishStore = useWishStore();
+const planStore = usePlanStore();
 const isWishlistOpen = ref(false);
 
 onMounted(() => {
   tripStore.loadTrips();
+  planStore.loadPlans();
   wishStore.loadWishlist();
 });
 
