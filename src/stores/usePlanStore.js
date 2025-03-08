@@ -32,8 +32,8 @@ export const usePlanStore = defineStore('plan', {
                 return A - B
             })
         },
-        clearPlans(){
-            this.Plans = [];
+        clearPlansByTripId(tripId){
+            this.Plans = this.Plans.filter(plan => plan.trip_id !== tripId);
         }
     },
 })

@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia';
+import Trip from "@/composables/Entity/Trip";
 
 export const useTripStore = defineStore('trip', {
     state: () => ({Trips:[]}),
@@ -16,6 +17,19 @@ export const useTripStore = defineStore('trip', {
                 localStorage.setItem('Trips', JSON.stringify(this.Trips));
             }
 
+        },
+        findTripById(tripId){
+            const tempTrip = this.Trips.find(trip => trip.id === tripId);
+            const tripObj = new Trip()
+                .setId(tempTrip.id)
+                .setName(tempTrip.name)
+                .setDescription(tempTrip.description)
+                .setCountry(tempTrip.country)
+                .setStartDate(tempTrip.start_date)
+                .setEndDate(tempTrip.end_date)
+                .setIsLocal(tempTrip.isLocal)
+                .build();
+            return tripObj;
         },
         addTrip(newTrip){
             try{
