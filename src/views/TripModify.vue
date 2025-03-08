@@ -295,7 +295,8 @@ import {
   MapPin as MapPinIcon,
   Edit as EditIcon,
   Trash as TrashIcon,
-  GripVertical as GrabIcon
+  GripVertical as GrabIcon,
+  Share as ShareIcon
 } from 'lucide-vue-next'
 import {useRoute} from "vue-router";
 import Trip from "@/composables/Entity/Trip";
