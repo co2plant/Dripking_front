@@ -4,9 +4,9 @@
       :tripId="route.params.id"
     />
     <!-- 메인 컨테이너 -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-full">
       <div class="lg:col-span-9">
-        <div class="bg-white rounded-lg shadow p-4">
+        <div class="bg-white rounded-lg shadow p-4 flex flex-col h-[600px] overflow-auto">
           <div class="flex min-h-[60px] justify-between items-center">
             <h1 class="text-2xl font-bold text-zinc-900">여행 일정</h1>
             <button
@@ -19,8 +19,7 @@
           </div>
 
           <!-- 일정 목록 -->
-          <div
-              class="space-y-4  min-h-[300px]" ref="planContainer">
+          <div class="space-y-4 overflow-y-auto flex-grow min-h-[300px]" ref="planContainer">
             <div
                 v-for="plan in planStore.Plans"
                 :key="plan.id"
@@ -31,7 +30,7 @@
                   <grab-icon class="min-w-5 min-h-5 text-zinc-400 cursor-move" />
                   <div class="mx-4">
                     <h3 class="font-semibold text-zinc-900">{{ plan.name }}</h3>
-                    <p class="text-sm text-zinc-500">{{ plan.description }}</p>
+                    <p class="text-sm text-zinc-500 line-clamp-3">{{ plan.description }}</p>
                     <div class="flex items-center space-x-4 text-sm text-zinc-600">
                       <div class="flex items-center">
                         <calendar-icon class="w-4 h-4 mr-1" />
@@ -46,6 +45,12 @@
                         {{ plan.address }}
                       </div>
                     </div>
+                  </div>
+                  <!-- 일정이 없을 때 표시할 메시지 -->
+                  <div v-if="planStore.Plans.length === 0" class="text-center py-10 text-zinc-500">
+                    <calendar-icon class="w-12 h-12 mx-auto mb-4 text-zinc-300" />
+                    <p>아직 계획된 일정이 없습니다.</p>
+                    <p class="text-sm mt-2">새 일정을 추가하거나 위시리스트에서 드래그하세요.</p>
                   </div>
                 </div>
                 <div class="flex items-center space-x-4 ml-4">
@@ -67,33 +72,32 @@
           </div>
         </div>
       </div>
-      <div class="lg:col-span-3 bg-white rounded-lg shadow p-4">
-        <div class="flex min-h-[60px] items-center content-center">
-          <h2 class="text-lg font-semibold text-zinc-900">위시리스트</h2>
-        </div>
-
-        <div
-            class="wishlist-container space-y-2 min-h-[300px]"
-            ref="wishlistContainer"
-        >
-          <div
-              v-for="item in wishStore.WishItems"
-              :key="item.id"
-              :data-item-id="item.id"
-              :data-item-name="item.name"
-              :data-item-description="item.description"
-              class="p-3 bg-zinc-50 rounded-lg cursor-move"
-          >
-            <div class="flex items-center justify-between">
-              <span class="text-zinc-900">{{ item.name }}</span>
-              <button
-                  @click="addWishItemToPlan(item)"
-                  class="text-amber-400 hover:text-amber-500"
-              >
-                <plus-icon class="w-5 h-5" />
-              </button>
+      <div class="lg:col-span-3">
+        <div class="bg-white rounded-lg shadow p-4 flex flex-col h-[600px] overflow-auto">
+          <div class="flex min-h-[60px] items-center content-center">
+            <h2 class="text-lg font-semibold text-zinc-900">위시리스트</h2>
+          </div>
+          <!-- 위시리스트 목록 -->
+          <div class="space-y-4 overflow-y-auto flex-grow min-h-[300px]" ref="wishlistContainer">
+            <div
+                v-for="item in wishStore.WishItems"
+                :key="item.id"
+                :data-item-id="item.id"
+                :data-item-name="item.name"
+                :data-item-description="item.description"
+                class="p-3 bg-zinc-50 rounded-lg cursor-move"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-zinc-900">{{ item.name }}</span>
+                <button
+                    @click="addWishItemToPlan(item)"
+                    class="text-amber-400 hover:text-amber-500"
+                >
+                  <plus-icon class="w-5 h-5" />
+                </button>
+              </div>
+              <p class="text-sm text-zinc-500 mt-1 line-clamp-2">{{ item.description }}</p>
             </div>
-            <p class="text-sm text-zinc-500 mt-1 line-clamp-2">{{ item.description }}</p>
           </div>
         </div>
       </div>
@@ -277,10 +281,6 @@ onMounted(() => {
   planStore.loadPlans();
   wishStore.loadWishlist();
 
-  console.log("thisisReal")
-  console.log(route.params.id)
-  console.log(typeof(route.params.id))
-
   dragula([wishlistContainer.value, planContainer.value], {
     copy: (el, source) => source === wishlistContainer.value,
     accepts: (el, target) => target === planContainer.value,
@@ -401,6 +401,7 @@ const addWishItemToPlan = (item) => {
       .setStartTime('09:00')
       .setEndTime('18:00')
       .setPlaceId(item.id)
+      .setTripId(route.params.id)
       .build();
   planStore.addPlan(currentPlan.value)
   planStore.savePlans();
@@ -451,7 +452,7 @@ select {
 @media (max-width: 640px) {
   input[type="date"],
   input[type="time"] {
-    font-size: 16px; /* iOS에서 자동 확대 방지 */
+    font-size: 16px; /* iOS 내에서 자동 확대 방지 */
   }
 
   /* 네이티브 달력/시간 선택 UI 스타일링 */
