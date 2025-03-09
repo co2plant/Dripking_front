@@ -1,51 +1,8 @@
 <template>
   <div class="container mx-auto p-4">
-        <!-- 여행 요약 정보 섹션 -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div class="space-y-2">
-              <h1 class="text-3xl font-bold text-zinc-900">{{ trip.name }}</h1>
-              <p class="text-zinc-600">{{ trip.description }}</p>
-              <div class="flex items-center text-zinc-700 mt-2">
-                <calendar-icon class="w-5 h-5 mr-2 text-amber-400" />
-                <span>{{ trip.start_date }} ~ {{trip.end_date}}</span>
-                <span class="mx-2">•</span>
-                <map-pin-icon class="w-5 h-5 mr-2 text-amber-400" />
-                <span>{{ trip.destination }}</span>
-              </div>
-            </div>
-            <div class="flex flex-col sm:flex-row gap-3">
-              <button class="px-4 pyx-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-lg flex items-center justify-center">
-                <share-icon class="w-5 h-5 mr-2" />
-                공유하기
-              </button>
-              <button class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-zinc-900 rounded-lg flex items-center justify-center">
-                <edit-icon class="w-5 h-5 mr-2" />
-                여행 정보 수정
-              </button>
-            </div>
-          </div>
-
-          <!-- 여행 통계 -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-zinc-100">
-            <div class="text-center">
-              <p class="text-2xl font-bold text-amber-400">{{ trip.getDuration() }} 일</p>
-              <p class="text-zinc-600 text-sm">총 여행일</p>
-            </div>
-            <div class="text-center">
-              <p class="text-2xl font-bold text-amber-400">{{ (planStore.Plans.filter(plan => plan.trip_id === route.params.id)).length }}</p>
-              <p class="text-zinc-600 text-sm">일정 수</p>
-            </div>
-            <div class="text-center">
-              <p class="text-2xl font-bold text-amber-400">{{ wishStore.WishItems.length }}</p>
-              <p class="text-zinc-600 text-sm">위시리스트</p>
-            </div>
-            <div class="text-center">
-              <p class="text-2xl font-bold text-amber-400">{{  }}%</p>
-              <p class="text-zinc-600 text-sm">계획 완성도</p>
-            </div>
-          </div>
-        </div>
+    <TripInfoEditor
+      :tripId="route.params.id"
+    />
     <!-- 메인 컨테이너 -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div class="lg:col-span-9">
@@ -282,12 +239,16 @@
 
 <script setup>
 import {ref, onMounted, computed, onUnmounted} from 'vue';
+import {useRoute} from "vue-router";
+
 import dragula from 'dragula';
-import {usePlanStore} from "@/stores/usePlanStore";
 import 'dragula/dist/dragula.min.css';
-import Plan from "@/composables/Entity/Plan";
+
+import TripInfoEditor from "@/components/TripInfoEditor.vue";
+
+import {usePlanStore} from "@/stores/usePlanStore";
 import {useWishStore} from "@/stores/useWishStore";
-import {useTripStore} from "@/stores/useTripStore";
+import Plan from "@/composables/Entity/Plan";
 import {
   Plus as PlusIcon,
   Calendar as CalendarIcon,
@@ -295,21 +256,17 @@ import {
   MapPin as MapPinIcon,
   Edit as EditIcon,
   Trash as TrashIcon,
-  GripVertical as GrabIcon,
-  Share as ShareIcon
+  GripVertical as GrabIcon
 } from 'lucide-vue-next'
-import {useRoute} from "vue-router";
-import Trip from "@/composables/Entity/Trip";
+
 
 const route = useRoute()
 const wishStore = useWishStore();
 const planStore = usePlanStore();
-const tripStore = useTripStore();
 // 상태 관리
 const showModal = ref(false)
 const editingPlan = ref(null)
 const currentPlan = ref(new Plan())
-const trip = ref(new Trip())
 
 // DOM 참조
 const wishlistContainer = ref(null)
@@ -319,9 +276,10 @@ const planContainer = ref(null)
 onMounted(() => {
   planStore.loadPlans();
   wishStore.loadWishlist();
-  tripStore.loadTrips();
 
-  trip.value = tripStore.findTripById(route.params.id)
+  console.log("thisisReal")
+  console.log(route.params.id)
+  console.log(typeof(route.params.id))
 
   dragula([wishlistContainer.value, planContainer.value], {
     copy: (el, source) => source === wishlistContainer.value,
@@ -447,6 +405,7 @@ const addWishItemToPlan = (item) => {
   planStore.addPlan(currentPlan.value)
   planStore.savePlans();
 }
+
 </script>
 
 <style>
