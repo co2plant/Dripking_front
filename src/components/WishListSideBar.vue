@@ -31,85 +31,86 @@
               @click="isWishlistOpen = false"
           />
         </div>
+        <div class="h-full overflow-auto">
+          <div v-if="wishStore.WishItems.length" class="space-y-4 wrapper">
+            <div v-for="item_trip in tripStore.Trips"
+                 :key="item_trip.id"
+                 :id="'item_trip' + item_trip.id"
+                 class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg relative">
+              <!-- Delete Trip Button -->
+              <button
+                  @click="deletePlansByTripId(item_trip)"
+                  class="absolute top-2 right-2 p-2 text-zinc-400 hover:text-red-500 transition-colors"
+                  aria-label="Delete trip"
+              >
+                <XIcon class="h-5 w-5"/>
+              </button>
 
-        <div v-if="wishStore.WishItems.length" class="space-y-4 wrapper">
-          <div v-for="item_trip in tripStore.Trips"
-               :key="item_trip.id"
-               :id="'item_trip' + item_trip.id"
-               class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg relative">
-            <!-- Delete Trip Button -->
-            <button
-                @click="deleteAllFromWishlistByTripId(item_trip)"
-                class="absolute top-2 right-2 p-2 text-zinc-400 hover:text-red-500 transition-colors"
-                aria-label="Delete trip"
-            >
-              <XIcon class="h-5 w-5"/>
-            </button>
-
-            <span class="font-bold text-zinc-900">{{ item_trip.name }}</span>
-            <span class="text-zinc-600">{{ item_trip.start_date }} ~ {{ item_trip.end_date }}</span>
-            <div class="dragula-container container min-h-24" :data-trip-id="item_trip.id">
-              <div v-for="item in planStore.Plans"
-                   :key="item.id"
-                   :data-item-id="item.id"
-                   :data-item-trip-id="item.trip_id"
-                   class="flex items-center my-3 p-4 bg-amber-100 rounded-lg">
-                <img :src="item.img_url" :alt="item.name" class="w-20 h-20 object-cover rounded">
-                <div class="flex-1">
-                  <h5 class="font-bold text-zinc-900 line-clamp-1">{{ item.name }}</h5>
-                  <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
+              <span class="font-bold text-zinc-900">{{ item_trip.name }}</span>
+              <span class="text-zinc-600">{{ item_trip.start_date }} ~ {{ item_trip.end_date }}</span>
+              <div class="dragula-container container min-h-24" :data-trip-id="item_trip.id">
+                <div v-for="item in planStore.Plans"
+                     :key="item.id"
+                     :data-item-id="item.id"
+                     :data-item-trip-id="item.trip_id"
+                     class="flex items-center my-3 p-4 bg-amber-100 rounded-lg">
+                  <img :src="item.img_url" :alt="item.name" class="w-20 h-20 object-cover rounded">
+                  <div class="flex-1">
+                    <h5 class="font-bold text-zinc-900 line-clamp-1">{{ item.name }}</h5>
+                    <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
+                  </div>
+                  <button
+                      @click="deletePlanById(item.id)"
+                      class="text-zinc-900 hover:text-red-500 transition-colors"
+                  >
+                    <TrashIcon class="h-5 w-5"/>
+                  </button>
                 </div>
-                <button
-                    @click="planStore.removePlan(item.id)"
-                    class="text-zinc-900 hover:text-red-500 transition-colors"
-                >
-                  <TrashIcon class="h-5 w-5"/>
-                </button>
+              </div>
+              <div class="mt-4 md:mt-6 text-center">
+                <router-link :to="{ name : 'tripModify', params : {id: item_trip.id}}">
+                  <button
+                      class="bg-amber-400 text-zinc-900 px-6 md:px-8 py-2 rounded-full hover:bg-amber-500 transition-colors duration-300 text-sm md:text-base"
+                  >
+                    다음
+                  </button>
+                </router-link>
               </div>
             </div>
-            <div class="mt-4 md:mt-6 text-center">
-              <router-link :to="{ name : 'tripModify', params : {id: item_trip.id}}">
-                <button
-                    class="bg-amber-400 text-zinc-900 px-6 md:px-8 py-2 rounded-full hover:bg-amber-500 transition-colors duration-300 text-sm md:text-base"
-                >
-                  다음
-                </button>
-              </router-link>
-            </div>
-          </div>
-          <div id="item_trip-1"
-               class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg">
-            <span class="font-bold text-zinc-900"> Wish </span>
-            <div class="dragula-container min-h-24" :data-trip-id="-1">
-              <div v-for="item in wishStore.WishItems"
-                   :key="item.id"
-                   :data-item-id="item.id"
-                   :data-item-trip-id="item.trip_id"
-                   class="flex items-center my-3 p-4 bg-amber-100 rounded-lg">
-                <img :src="item.img_url" :alt="item.name" class="w-20 h-20 object-cover rounded">
-                <div class="flex-1">
-                  <h5 class="font-bold text-zinc-900 line-clamp-1">{{ item.name }}</h5>
-                  <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
+            <div id="item_trip-1"
+                 class="grid grid-cols-1 items-center p-4 bg-gray-50 rounded-lg">
+              <span class="font-bold text-zinc-900"> Wish </span>
+              <div class="dragula-container min-h-24" :data-trip-id="-1">
+                <div v-for="item in wishStore.WishItems"
+                     :key="item.id"
+                     :data-item-id="item.id"
+                     :data-item-trip-id="item.trip_id"
+                     class="flex items-center my-3 p-4 bg-amber-100 rounded-lg">
+                  <img :src="item.img_url" :alt="item.name" class="w-20 h-20 object-cover rounded">
+                  <div class="flex-1">
+                    <h5 class="font-bold text-zinc-900 line-clamp-1">{{ item.name }}</h5>
+                    <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
+                  </div>
+                  <button
+                      @click="wishStore.toggleWishlist(item)"
+                      class="text-zinc-900 hover:text-red-500 transition-colors"
+                  >
+                    <TrashIcon class="h-5 w-5"/>
+                  </button>
                 </div>
-                <button
-                    @click="wishStore.toggleWishlist(item)"
-                    class="text-zinc-900 hover:text-red-500 transition-colors"
-                >
-                  <TrashIcon class="h-5 w-5"/>
-                </button>
+              </div>
+            </div>
+            <div class="border-t pt-4 mt-4">
+              <div class="flex justify-between text-xl font-bold text-zinc-900">
+                <!--                <span>Total:</span>-->
+                <!--                <span>${{ calculateTotal() }}</span>-->
               </div>
             </div>
           </div>
-          <div class="border-t pt-4 mt-4">
-            <div class="flex justify-between text-xl font-bold text-zinc-900">
-              <!--                <span>Total:</span>-->
-              <!--                <span>${{ calculateTotal() }}</span>-->
-            </div>
-          </div>
-        </div>
 
-        <div v-else class="text-center py-8 text-zinc-600">
-          Your wishlist is empty
+          <div v-else class="text-center py-8 text-zinc-600">
+            Your wishlist is empty
+          </div>
         </div>
       </div>
     </div>
@@ -140,6 +141,16 @@ onUnmounted(() => {
   wishStore.sortWishlist();
   wishStore.saveWishlist();
 })
+
+const deletePlanById = (plan_id) => {
+  planStore.removePlan(plan_id);
+  planStore.savePlans();
+}
+
+const deletePlansByTripId = (trip_id) => {
+  planStore.clearPlansByTripId(trip_id);
+  planStore.savePlans();
+}
 </script>
 
 <style scoped>
