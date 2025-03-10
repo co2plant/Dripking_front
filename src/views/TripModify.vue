@@ -21,7 +21,7 @@
           <!-- 일정 목록 -->
           <div class="space-y-4 overflow-y-auto flex-grow min-h-[300px]" ref="planContainer">
             <div
-                v-for="plan in planStore.Plans"
+                v-for="plan in planStore.Plans.filter(plan_item => plan_item.trip_id === route.params.id)"
                 :key="plan.id"
                 class="plan-item bg-zinc-50 rounded-lg p-4"
             >
