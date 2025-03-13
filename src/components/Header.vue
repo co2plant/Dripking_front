@@ -17,9 +17,9 @@
         <div class="hidden lg:flex lg:gap-x-12">
           <a v-for="item in navigation" :key="item.name" :href="item.href" class="text-sm/6 font-semibold text-zinc-900">{{ item.name }}</a>
         </div>
-        <div v-if="isAuthenticated" class="hidden lg:flex lg:flex-1 lg:justify-end">
+        <div v-if="authStore.isSignedIn" class="hidden lg:flex lg:flex-1 lg:justify-end">
           <button
-              @click="logout"
+              @click="handleSignOut"
               class="justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-400 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             로그아웃
@@ -57,9 +57,9 @@
               <div class="space-y-2 py-6">
                 <a v-for="item in navigation" :key="item.name" :href="item.href" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-zinc-900 hover:bg-zinc-50">{{ item.name }}</a>
               </div>
-              <div class="py-6" v-if="isAuthenticated">
+              <div class="py-6" v-if="authStore.isSignedIn">
                 <a href="#"
-                   @click="logout"
+                   @click="handleSignOut"
                    class="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-zinc-900 hover:bg-zinc-50">
                   로그아웃
                 </a>
@@ -86,45 +86,23 @@ import {Dialog, DialogPanel} from '@headlessui/vue'
 import {Bars3Icon, XMarkIcon} from '@heroicons/vue/24/outline'
 import Modal from './Modal.vue'
 import AuthenticationForm from './Authentication/AuthenticationForm.vue'
+import {useAuthStore} from '@/stores/useAuthStore'
 
 const navigation = [
       {name: 'Discover', href: '/destinationList'},
-      {name: 'Trips', href: '/triptest'},
+      {name: 'Trips', href: '#'},
       {name: 'Alcohol', href: '/alcoholList'},
       {name: 'More', href: '#'},
-    ]
+]
 
-const isAuthenticated = ref(false);
+const authStore = useAuthStore();
 
-const logout = () => {
-  localStorage.removeItem('Authorization');
-  isAuthenticated.value = false;
-}
-
-const checkAuth = async () => {
-  try{
-    const response = await fetch('http://localhost:8080/api/user/status', {
-      method: 'GET',
-      mode:'cors',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `${localStorage.getItem('Authorization')}`
-      },
-    })
-
-    if(response.ok){
-      isAuthenticated.value = true;
-    }
-
-    console.log(isAuthenticated.value);
-  }
-  catch(e){
-    console.error(e);
-  }
+const handleSignOut = () => {
+  authStore.signOut();
 }
 
 onMounted(() => {
-  checkAuth()
+  authStore.initAuth();
 })
 
 const showAuthModal = ref(false)

@@ -82,7 +82,7 @@
           <label for="signup-email" class="block text-sm font-medium text-zinc-700">이메일</label>
           <input
               id="signup-email"
-              v-model="SignUpForm.email"
+              v-model="signUpForm.email"
               type="email"
               required
               class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
@@ -94,7 +94,7 @@
           <label for="signup-password" class="block text-sm font-medium text-zinc-700">비밀번호</label>
           <input
               id="signup-password"
-              v-model="SignUpForm.password"
+              v-model="signUpForm.password"
               type="password"
               required
               class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
@@ -106,7 +106,7 @@
           <label for="signup-confirm-password" class="block text-sm font-medium text-zinc-700">비밀번호 확인</label>
           <input
               id="signup-confirm-password"
-              v-model="SignUpForm.confirmPassword"
+              v-model="signUpForm.confirmPassword"
               type="password"
               required
               class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
@@ -118,7 +118,7 @@
           <label for="signup-nickname" class="block text-sm font-medium text-zinc-700">닉네임</label>
           <input
               id="signup-nickname"
-              v-model="SignUpForm.nickname"
+              v-model="signUpForm.nickname"
               type="text"
               required
               class="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500"
@@ -129,7 +129,7 @@
         <div class="flex items-center">
           <input
               id="agree-terms"
-              v-model="SignUpForm.agreeToTerms"
+              v-model="signUpForm.agreeToTerms"
               type="checkbox"
               required
               class="h-4 w-4 text-amber-600 focus:ring-amber-500 border-zinc-300 rounded"
@@ -157,8 +157,11 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import router from "@/router";
+import {useAuthStore} from "@/stores/useAuthStore";
+
+const authStore = useAuthStore();
 
 const currentForm = ref('signIn')
 const isLoading = ref(false)
@@ -168,16 +171,16 @@ const globalError = ref('')
 const signInForm = reactive({
   email: '',
   password: '',
-  rememberMe: false
+  rememberMe: false//현재는 rememberMe 기능을 체크용도로만 사용하기 때문에 실제로는 사용 X
 })
 
 // 회원가입 폼 상태
-const SignUpForm = reactive({
+const signUpForm = reactive({
   email: '',
   password: '',
   confirmPassword: '',
   nickname: '',
-  agreeToTerms: false
+  agreeToTerms: false//현재는 agreeToTerms 기능을 체크용도로만 사용하기 때문에 실제로는 사용 X
 })
 
 // 유효성 검사 에러
@@ -207,22 +210,22 @@ const validateSignUpForm = () => {
   errors.confirmPassword = ''
   errors.nickname = ''
 
-  if (!validateEmail(SignUpForm.email)) {
+  if (!validateEmail(signUpForm.email)) {
     errors.email = '유효한 이메일 주소를 입력해주세요.'
     isValid = false
   }
 
-  if (!validatePassword(SignUpForm.password)) {
+  if (!validatePassword(signUpForm.password)) {
     errors.password = '비밀번호는 16자 이상이어야 합니다.'
     isValid = false
   }
 
-  if (SignUpForm.password !== SignUpForm.confirmPassword) {
+  if (signUpForm.password !== signUpForm.confirmPassword) {
     errors.confirmPassword = '비밀번호가 일치하지 않습니다.'
     isValid = false
   }
 
-  if (!SignUpForm.nickname.trim()) {
+  if (!signUpForm.nickname) {
     errors.nickname = '닉네임을 입력해주세요.'
     isValid = false
   }
@@ -235,23 +238,14 @@ const handleSignIn = async () => {
   try {
     isLoading.value = true
     globalError.value = ''
+    const result = await authStore.signIn(signInForm)
 
-    // 여기에 실제 로그인 API 호출 로직을 구현합니다
-    const response = await fetch('http://localhost:8080/api/user/signin', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(signInForm)
-    })
-
-    if(!response.ok){
+    if(result.success){
+      router.go(0)
+    } else {
       throw new Error('로그인에 실패했습니다.')
     }
-
-    localStorage.setItem('Authorization', response.headers.get('Authorization'))
-    router.go(0)
-  } catch (error) {
+  } catch (err) {
     globalError.value = '로그인에 실패했습니다. 다시 시도해주세요.'
   } finally {
     isLoading.value = false
@@ -265,30 +259,35 @@ const handleSignUp = async () => {
       return
     }
 
-    isLoading.value = true
-    globalError.value = ''
+    try{
+      const result = await authStore.signUp(signUpForm)
+      isLoading.value = true
+      globalError.value = ''
 
-    const response = await fetch('http://localhost:8080/api/user/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(SignUpForm)
-    })
-
-    if(!response.ok){
-      throw new Error('회원가입에 실패했습니다.')
+      if(result.success){
+        router.go(0)
+      }else{
+        throw new Error('회원가입에 실패했습니다.')
+      }
+    }catch(err){
+      globalError.value = '회원가입에 실패했습니다. 다시 시도해주세요.'
+    }finally{
+      isLoading.value = false
     }
 
     // 성공 시 로그인 폼으로 전환
     currentForm.value = 'signIn'
 
-  } catch (error) {
+  } catch (err) {
     globalError.value = '회원가입에 실패했습니다. 다시 시도해주세요.'
   } finally {
     isLoading.value = false
   }
 }
+
+onMounted(() => {
+  authStore.initAuth();
+});
 </script>
 
 <style scoped>

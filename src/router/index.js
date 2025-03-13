@@ -9,24 +9,38 @@ import AlcoholDetail from "@/views/AlcoholDetail.vue";
 import SearchedList from "@/views/SearchedList.vue";
 import TestPage from "@/views/TestPage.vue";
 import TripModify from "@/views/TripModify.vue";
+import Map from  "@/components/map.vue";
+import {useAuthStore} from "@/stores/useAuthStore";
 
 const routes = [
     { path: '/', name: 'Home', component: Landing },
-    { path: '/destinationList', name: 'destinationList', component: DestinationList },
-    { path: '/destination/:id', name: 'destinationDetail', component: DestinationDetail },
-    { path: '/distilleryList', name: 'distilleryList', component : DistilleryList },
-    { path: '/distillery/:id', name: 'distilleryDetail', component: DistilleryDetail },
-    { path: '/alcoholList', name: 'alcoholList', component : AlcoholList },
-    { path: '/alcohol/:id', name: 'alcoholDetail', component: AlcoholDetail },
-    { path: '/search/:dtype', name: 'searchList', component: SearchedList},
-    { path: '/test', name:'test', component:TestPage},
-    { path: '/trip/:id', name:'tripModify', component: TripModify},
-    { path: '/map', name:'map', component: () => import('@/components/map.vue')},
+    { path: '/destinationList', name: 'destinationList', component: DestinationList, meta:{requiredGuest : true} },
+    { path: '/destination/:id', name: 'destinationDetail', component: DestinationDetail, meta:{requiredGuest : true} },
+    { path: '/distilleryList', name: 'distilleryList', component : DistilleryList, meta:{requiredGuest : true} },
+    { path: '/distillery/:id', name: 'distilleryDetail', component: DistilleryDetail, meta:{requiredGuest : true} },
+    { path: '/alcoholList', name: 'alcoholList', component : AlcoholList, meta:{requiredGuest : true} },
+    { path: '/alcohol/:id', name: 'alcoholDetail', component: AlcoholDetail, meta:{requiredGuest : true} },
+    { path: '/search/:dtype', name: 'searchList', component: SearchedList, meta:{requiredGuest : true}}, //현재는 미사용(검색기능 추가 시 사용할 예정)
+    { path: '/test', name:'test', component:TestPage, meta:{requiredGuest : true}},
+    { path: '/trip/:id', name:'tripModify', component: TripModify, meta:{requiredGuest : true}},
+    { path: '/map', name:'map', component: Map, meta:{requiredGuest : true}},
 ]
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
+})
+
+router.beforeEach(async (to/*, from*/) => {
+    const authStore = useAuthStore();
+
+    if(!authStore.isSignedIn && !authStore.isAuthenticated()){
+        await authStore.initAuth();
+    }
+
+    if(to.meta.requiredUser && !authStore.isSignedIn){
+        return {name: 'Home', query: {redirect: to.fullPath}};
+    }
 })
 
 export default router
