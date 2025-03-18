@@ -101,25 +101,6 @@
               />
               <p class="text-xs text-zinc-500 mt-1">이메일은 변경할 수 없습니다.</p>
             </div>
-
-            <div>
-              <label class="block text-lg font-medium text-zinc-900 mb-2">
-                선호하는 여행 스타일
-              </label>
-              <div class="flex flex-wrap gap-2 mt-2">
-                <button
-                    v-for="style in travelStyles"
-                    :key="style"
-                    @click="toggleTravelStyle(style)"
-                    class="px-3 py-1 rounded-full text-sm transition-colors duration-200"
-                    :class="userProfile.travelStyles.includes(style)
-                    ? 'bg-amber-400 text-zinc-900 font-medium shadow-sm'
-                    : 'bg-zinc-100 border border-zinc-300 text-zinc-700 hover:bg-zinc-200'"
-                >
-                  {{ style }}
-                </button>
-              </div>
-            </div>
           </div>
 
           <!-- 비밀번호 변경 탭 -->
@@ -160,77 +141,6 @@
               />
             </div>
           </div>
-
-          <!-- 알림 설정 탭 -->
-          <div v-if="activeTab === 'notifications'" class="p-6 space-y-6">
-            <h3 class="text-xl font-bold text-zinc-900 mb-4 pb-2 border-b border-zinc-200">알림 설정</h3>
-
-            <div class="space-y-4">
-              <div v-for="(notification, index) in notificationSettings" :key="index"
-                   class="flex items-center justify-between py-3 px-4 bg-zinc-50 rounded-lg border border-zinc-200"
-              >
-                <div class="text-left">
-                  <h4 class="font-medium text-zinc-900">{{ notification.title }}</h4>
-                  <p class="text-sm text-zinc-600">{{ notification.description }}</p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                      type="checkbox"
-                      v-model="notification.enabled"
-                      class="sr-only peer"
-                  >
-                  <div class="w-11 h-6 bg-zinc-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400"></div>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <!-- 계정 설정 탭 -->
-          <div v-if="activeTab === 'account'" class="p-6 space-y-6">
-            <h3 class="text-xl font-bold text-zinc-900 mb-4 pb-2 border-b border-zinc-200">계정 설정</h3>
-
-            <div class="space-y-4">
-              <div class="flex items-center justify-between py-3 px-4 bg-zinc-50 rounded-lg border border-zinc-200">
-                <div class="text-left">
-                  <h4 class="font-medium text-zinc-900">언어 설정</h4>
-                  <p class="text-sm text-zinc-600">앱에서 사용할 언어를 선택하세요</p>
-                </div>
-                <select
-                    v-model="userProfile.language"
-                    class="px-4 py-2 rounded-2xl border-zinc-300 bg-zinc-100 focus:border-amber-500 focus:ring-amber-500"
-                >
-                  <option value="ko">한국어</option>
-                  <option value="en">English</option>
-                  <option value="ja">日本語</option>
-                  <option value="zh">中文</option>
-                </select>
-              </div>
-
-              <div class="flex items-center justify-between py-3 px-4 bg-zinc-50 rounded-lg border border-zinc-200">
-                <div class="text-left">
-                  <h4 class="font-medium text-zinc-900">다크 모드</h4>
-                  <p class="text-sm text-zinc-600">어두운 테마로 전환합니다</p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                      type="checkbox"
-                      v-model="userProfile.darkMode"
-                      class="sr-only peer"
-                  >
-                  <div class="w-11 h-6 bg-zinc-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400"></div>
-                </label>
-              </div>
-
-              <div class="flex py-3 justify-between px-4 bg-zinc-50 rounded-lg border border-zinc-200">
-                <button class="text-red-600 hover:text-red-700 font-medium flex items-center">
-                  <trash-icon class="w-4 h-4 mr-2" />
-                  계정 삭제
-                </button>
-                <p class="text-right text-zinc-500 mt-1">계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다.</p>
-              </div>
-            </div>
-          </div>
-
           <!-- 저장 버튼 -->
           <div class="p-6 bg-zinc-50 rounded-b-lg border-t border-zinc-200">
             <div class="flex justify-end">
@@ -255,17 +165,12 @@ import {
   Camera as CameraIcon,
   UserCircle as UserCircleIcon,
   Lock as LockIcon,
-  Bell as BellIcon,
-  Settings as SettingsIcon,
-  Trash as TrashIcon
 } from 'lucide-vue-next'
 
 // 탭 메뉴 정의
 const tabs = [
   {id: 'profile', name: '기본 정보', icon: UserCircleIcon},
-  {id: 'password', name: '비밀번호 변경', icon: LockIcon},
-  {id: 'notifications', name: '알림 설정', icon: BellIcon},
-  {id: 'account', name: '계정 설정', icon: SettingsIcon}
+  {id: 'password', name: '비밀번호 변경', icon: LockIcon}
 ]
 
 // 활성 탭 상태
@@ -273,11 +178,6 @@ const activeTab = ref('profile')
 
 // 파일 입력 참조
 const fileInput = ref(null)
-
-// 여행 스타일 목록
-const travelStyles = [
-  '자연 탐방', '문화 체험', '미식 여행', '쇼핑', '휴양', '모험', '역사 탐방', '축제', '로컬 체험'
-]
 
 // 사용자 프로필 데이터
 const userProfile = ref({
@@ -298,30 +198,6 @@ const passwordForm = ref({
   confirmPassword: ''
 })
 
-// 알림 설정
-const notificationSettings = ref([
-  {
-    title: '여행 일정 알림',
-    description: '예정된 여행 일정에 대한 알림을 받습니다.',
-    enabled: true
-  },
-  {
-    title: '위시리스트 알림',
-    description: '위시리스트 항목에 대한 정보와 추천을 받습니다.',
-    enabled: true
-  },
-  {
-    title: '마케팅 알림',
-    description: '특별 프로모션 및 이벤트 정보를 받습니다.',
-    enabled: false
-  },
-  {
-    title: '이메일 알림',
-    description: '알림을 이메일로도 받습니다.',
-    enabled: true
-  }
-])
-
 // 파일 입력 트리거
 const triggerFileInput = () => {
   fileInput.value.click()
@@ -336,16 +212,6 @@ const handleImageUpload = (event) => {
       userProfile.value.profileImage = e.target.result
     }
     reader.readAsDataURL(file)
-  }
-}
-
-// 여행 스타일 토글
-const toggleTravelStyle = (style) => {
-  const index = userProfile.value.travelStyles.indexOf(style)
-  if (index === -1) {
-    userProfile.value.travelStyles.push(style)
-  } else {
-    userProfile.value.travelStyles.splice(index, 1)
   }
 }
 
@@ -364,11 +230,6 @@ input[type="password"],
 textarea,
 select {
   @apply px-3 py-2;
-}
-
-/* 토글 스위치 애니메이션 */
-.peer:checked ~ .peer-checked\:after\:translate-x-full:after {
-  transition: transform 0.2s ease-in-out;
 }
 
 /* 입력 필드 포커스 효과 강화 */

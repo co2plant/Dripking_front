@@ -26,7 +26,7 @@ const routes = [
     { path: '/test', name:'test', component:TestPage, meta:{requiredGuest : true}},
     { path: '/trip/:id', name:'tripModify', component: TripModify, meta:{requiredGuest : true}},
     // { path: '/map', name:'map', component: Map, meta:{requiredGuest : true}},
-    { path: '/editUserDetail', name:'editUserDetail', component: EditUserDetail },
+    { path: '/editUserDetail', name:'editUserDetail', component: EditUserDetail, meta:{requiredUser : true}},
 ]
 
 const router = createRouter({
