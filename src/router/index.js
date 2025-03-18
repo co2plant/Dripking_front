@@ -10,7 +10,7 @@ import SearchedList from "@/views/SearchedList.vue";
 import TestPage from "@/views/TestPage.vue";
 import TripModify from "@/views/TripModify.vue";
 // import Map from  "@/components/map.vue";
-// import EditUserDetail from "@/views/EditUserDetail.vue"
+import EditUserDetail from "@/views/EditUserDetail.vue"
 import {useAuthStore} from "@/stores/useAuthStore";
 
 
@@ -26,7 +26,7 @@ const routes = [
     { path: '/test', name:'test', component:TestPage, meta:{requiredGuest : true}},
     { path: '/trip/:id', name:'tripModify', component: TripModify, meta:{requiredGuest : true}},
     // { path: '/map', name:'map', component: Map, meta:{requiredGuest : true}},
-    // { path: '/editUserDetail', name:'editUserDetail', component: EditUserDetail },
+    { path: '/editUserDetail', name:'editUserDetail', component: EditUserDetail },
 ]
 
 const router = createRouter({
