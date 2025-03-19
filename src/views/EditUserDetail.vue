@@ -159,13 +159,17 @@
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import {onMounted, ref} from 'vue'
+import {useAuthStore} from "@/stores/useAuthStore";
+
 import {
   User as UserIcon,
   Camera as CameraIcon,
   UserCircle as UserCircleIcon,
   Lock as LockIcon,
 } from 'lucide-vue-next'
+
+const authStore = useAuthStore();
 
 // 탭 메뉴 정의
 const tabs = [
@@ -181,15 +185,16 @@ const fileInput = ref(null)
 
 // 사용자 프로필 데이터
 const userProfile = ref({
-  name: '김여행',
-  nickname: '여행좋아',
-  email: 'travel@example.com',
-  bio: '여행을 좋아하는 평범한 직장인입니다. 주로 아시아 지역을 여행하며 현지 음식과 문화를 체험하는 것을 좋아합니다.',
-  profileImage: null,
-  travelStyles: ['미식 여행', '문화 체험', '로컬 체험'],
-  language: 'ko',
-  darkMode: false
+  nickname: '',
+  email: ''
 })
+
+onMounted(() => {
+   userProfile.value.nickname = authStore.userNickName;
+   userProfile.value.email = authStore.userEmail;
+})
+
+
 
 // 비밀번호 변경 폼
 const passwordForm = ref({
