@@ -8,7 +8,7 @@
       <Horizontal-scroll-card-list
           :title="'생산하는 술'"
           :toName="'alcoholDetail'"
-          :urlStr="'api/alcohols/distillery?distillery='+targetId">
+          :urlStr="'alcohols/distillery?distillery='+targetId">
       </Horizontal-scroll-card-list>
       <VerticalReviewList
           :targetId="targetId"
