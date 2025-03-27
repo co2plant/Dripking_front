@@ -11,7 +11,7 @@
           :urlStr="'alcohols/distillery?distillery='+targetId">
       </Horizontal-scroll-card-list>
       <VerticalReviewList
-          :targetId="targetId"
+          :target_id="targetId"
           :reviewType="itemType">
       </VerticalReviewList>
     </div>

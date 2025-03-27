@@ -3,7 +3,7 @@
     <h1 class="text-3xl font-bold mb-8">리뷰</h1>
     <div v-if="isLoggedIn">
       <ReviewForm
-          :targetId="targetId"
+          :target_id="target_id"
           :reviewType="reviewType"
           @reviewSubmitted="fetchReviews"
       />
@@ -36,9 +36,10 @@ import { ref, onMounted, defineProps } from 'vue'
 import ReviewCard from './ReviewCard.vue'
 import Pagination from './Pagination.vue'
 import ReviewForm from './ReviewForm.vue'
+import {apiService} from "@/services/api";
 
 const props = defineProps({
-  targetId: {
+  target_id: {
     type: String,
     required: true
   },
@@ -61,14 +62,13 @@ const fetchReviews = async (page = 0) => {
   isLoading.value = true
   error.value = null
   try {
-    const response = await fetch(`http://localhost:8080/api/reviews?reviewType=${props.reviewType}&target_id=${props.targetId}&page=${page}&size=${pageSize}`)
-    if (!response.ok) {
+    const response = await apiService.get(`reviews?reviewType=${props.reviewType}&target_id=${props.target_id}&page=${page}&size=${pageSize}`)
+    if (!response) {
       throw new Error('서버에서 리뷰를 가져오는데 실패했습니다.')
     }
-    const data = await response.json()
-    reviews.value = data.content
-    totalPages.value = data.totalPages
-    currentPage.value = data.pageable.pageNumber
+    reviews.value = response.content
+    totalPages.value = response.totalPages
+    currentPage.value = response.pageable.pageNumber
   } catch (err) {
     console.error('리뷰를 불러오는 중 오류가 발생했습니다:', err)
     error.value = '리뷰를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.'

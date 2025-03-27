@@ -45,7 +45,7 @@
     </div>
     <!-- Blur Overlay for Non-logged in Users -->
     <div
-        v-if="!isAuthenticated"
+        v-if="!authStore.isSignedIn"
         class="absolute inset-0 backdrop-blur-md bg-white/30 rounded-lg flex flex-col items-center justify-center gap-4 z-10"
     >
       <p class="text-lg font-medium text-zinc-900">리뷰를 작성하려면 로그인이 필요합니다</p>
@@ -67,10 +67,12 @@
 import {ref, defineProps, defineEmits, onMounted} from 'vue'
 import Modal from "@/components/Modal.vue";
 import AuthenticationForm from "@/components/Authentication/AuthenticationForm.vue";
+import {apiService} from "@/services/api";
+import {useAuthStore} from "@/stores/useAuthStore";
 
 const props = defineProps({
-  targetId: {
-    type: String,
+  target_id: {
+    type: Number,
     required: true
   },
   reviewType: {
@@ -86,7 +88,7 @@ const props = defineProps({
     default: false
   }
 })
-
+const authStore = useAuthStore();
 const emit = defineEmits(['reviewSubmitted'])
 
 const rating = ref(props.reviewToEdit ? props.reviewToEdit.rating : 0)
@@ -99,7 +101,7 @@ const setRating = (value) => {
 
 const submitReview = async () => {
   const reviewData = {
-    targetId: props.targetId,
+    target_id: props.target_id,
     reviewType: props.reviewType,
     rating: rating.value,
     contents: content.value
@@ -107,18 +109,16 @@ const submitReview = async () => {
 
   try {
     const url = isEditing.value
-        ? `http://localhost:8080/api/reviews/${props.reviewToEdit.id}`
-        : 'http://localhost:8080/api/reviews'
+        ? `reviews/${props.reviewToEdit.id}`
+        : 'reviews'
 
-    const method = isEditing.value ? 'PUT' : 'POST'
-
-    const response = await fetch(url, {
-      method: method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(reviewData),
-    })
+    let response;
+    if(isEditing.value){
+      console.log(reviewData)
+      response = await apiService.putWithToken(url, reviewData)
+    }else{
+      response = await apiService.postWithToken(url, reviewData)
+    }
 
     if (!response.ok) {
       throw new Error('리뷰 제출에 실패했습니다.')
@@ -139,30 +139,7 @@ const submitReview = async () => {
 
 const isAuthenticated = ref(false);
 
-const checkAuth = async () => {
-  try{
-    const response = await fetch('http://localhost:8080/api/user/status', {
-      method: 'GET',
-      mode:'cors',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `${localStorage.getItem('Authorization')}`
-      },
-    })
-
-    if(response.ok){
-      isAuthenticated.value = true;
-    }
-
-    console.log(isAuthenticated.value);
-  }
-  catch(e){
-    console.error(e);
-  }
-}
-
 onMounted(() => {
-  checkAuth()
 })
 
 const showAuthModal = ref(false)

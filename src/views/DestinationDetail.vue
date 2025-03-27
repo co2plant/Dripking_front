@@ -2,16 +2,16 @@
   <div class="bg-white">
     <div class="container mx-auto px-4 py-8">
       <Card
-          :targetId="targetId"
+          :target_id="target_id"
           :itemType="itemType"
       />
       <Horizontal-scroll-card-list
           :title="'주변 양조장'"
           :toName="'distilleryDetail'"
-          :urlStr="'distilleries/destination?destination='+targetId">
+          :urlStr="'distilleries/destination?destination='+target_id">
       </Horizontal-scroll-card-list>
       <VerticalReviewList
-          :targetId="targetId"
+          :target_id="target_id"
           :reviewType="itemType">
       </VerticalReviewList>
     </div>
@@ -25,7 +25,7 @@ import {useRoute} from "vue-router";
 import VerticalReviewList from "@/components/VerticalReviewList.vue";
 
 const route = useRoute();
-const targetId = route.params.id;
+const target_id = route.params.id;
 const itemType = 'DESTINATION';
 </script>
 
