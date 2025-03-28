@@ -19,7 +19,8 @@ const selectCategory = (categoryId) => {
 
 onMounted(async () => {
   try{
-    categories.value = await apiService.get(categories);
+    let data = await apiService.get(categories).content;
+    categories.value = data.content;
   } catch (error) {
     console.error("API 호출 오류:", error);
   }
