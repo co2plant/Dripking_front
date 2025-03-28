@@ -22,13 +22,13 @@ const ItemTypes = {
   DISTILLERY: 'distilleries'
 }
 
-const props = defineProps(['itemType', 'targetId']);
+const props = defineProps(['itemType', 'target_id']);
 
 const item = ref([]);
 
 onMounted(() => {
   (async function() {
-    item.value = await apiService.get(ItemTypes[props.itemType] + '/' + props.targetId);
+    item.value = await apiService.get(ItemTypes[props.itemType] + '/' + props.target_id);
   })();
 })
 </script>

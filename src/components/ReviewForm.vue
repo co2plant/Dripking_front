@@ -114,7 +114,6 @@ const submitReview = async () => {
 
     let response;
     if(isEditing.value){
-      console.log(reviewData)
       response = await apiService.putWithToken(url, reviewData)
     }else{
       response = await apiService.postWithToken(url, reviewData)
