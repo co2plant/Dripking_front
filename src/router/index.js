@@ -11,8 +11,9 @@ import TestPage from "@/views/TestPage.vue";
 import TripModify from "@/views/TripModify.vue";
 // import Map from  "@/components/map.vue";
 import EditUserDetail from "@/views/EditUserDetail.vue"
+import {Dashboard} from "@/views/Dashboard.vue";
+import {UserDashboard} from "@/views/UserDashboard.vue";
 import {useAuthStore} from "@/stores/useAuthStore";
-
 
 const routes = [
     { path: '/', name: 'Home', component: Landing },
@@ -27,6 +28,8 @@ const routes = [
     { path: '/trip/:id', name:'tripModify', component: TripModify, meta:{requiredGuest : true}},
     // { path: '/map', name:'map', component: Map, meta:{requiredGuest : true}},
     { path: '/editUserDetail', name:'editUserDetail', component: EditUserDetail, meta:{requiredUser : true}},
+    { path: '/dashboard', name:'dashboard', component: Dashboard},
+    { path: '/userDashboard', name:'userDashboard', component: UserDashboard},
 ]
 
 const router = createRouter({
