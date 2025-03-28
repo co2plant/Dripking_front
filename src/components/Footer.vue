@@ -69,7 +69,7 @@
               <a class="hover:opacity-75" href> 1on1 Coaching </a>
               <a class="hover:opacity-75" href> Company Review </a>
               <a class="hover:opacity-75" href> Accounts Review </a>
-              <a class="hover:opacity-75" href> HR Consulting </a>
+              <a class="hover:opacity-75" href="/dashboard"> Analyzing </a>
               <a class="hover:opacity-75" href> SEO Optimisation </a>
             </nav>
           </div>

@@ -1,66 +1,11 @@
-<script setup>
-  import axios from "axios";
-  import {defineProps, onMounted, ref} from "vue";
-
-  const props = defineProps(['title', 'toName', 'urlStr']);
-  const propsRef = ref(props);
-  /*
-  title :
-  toName : (default : null)
-  urlStr :
-  * */
-
-  const scrollContainer = ref(null)
-  let isScrolling = false
-  let startX
-  let scrollLeft
-
-  const touchStart = (e) => {
-    if (!scrollContainer.value) return
-    isScrolling = true
-    startX = e.touches[0].pageX - scrollContainer.value.offsetLeft
-    scrollLeft = scrollContainer.value.scrollLeft
-  }
-
-  const touchMove = (e) => {
-    if (!isScrolling || !scrollContainer.value) return
-    e.preventDefault()
-    const x = e.touches[0].pageX - scrollContainer.value.offsetLeft
-    const walk = (x - startX) * 2 // 스크롤 속도 조절
-    scrollContainer.value.scrollLeft = scrollLeft - walk
-  }
-
-  const touchEnd = () => {
-    isScrolling = false
-  }
-
-  onMounted(() => {
-    if (scrollContainer.value) {
-      scrollContainer.value.style.webkitOverflowScrolling = 'touch'
-    }
-  })
-
-  const items = ref([])
-  const urlStr = 'http://localhost:8080/'+props.urlStr;
-
-  axios.get(urlStr)
-    .then(response => {
-      items.value = response.data.content;
-    })
-    .catch(
-        error =>{
-          console.error('Error fetching distilleries get function :', error);
-        }
-    )
-
-</script>
-
 <template>
-  <div class="mb-6">
-    <h2 class="text-3xl font-semibold mb-6 text-gray-800">{{propsRef.title}}</h2>
+  <div
+      v-if="items.length"
+      class="mb-6">
+    <h3 class="text-2xl font-semibold mb-6 text-gray-800">{{propsRef.title}}</h3>
     <div class="relative">
       <div
-          class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide scroll-smooth"
+          class="flex overflow-x-auto space-x-6 p-6 scrollbar-hide scroll-smooth"
           @touchstart="touchStart"
           @touchmove="touchMove"
           @touchend="touchEnd"
@@ -88,6 +33,54 @@
     </div>
   </div>
 </template>
+
+<script setup>
+import {defineProps, onMounted, ref} from "vue";
+import {apiService} from "@/services/api";
+
+const props = defineProps(['title', 'toName', 'urlStr']);
+const propsRef = ref(props);
+const items = ref([]);
+
+const scrollContainer = ref(null)
+let isScrolling = false
+let startX
+let scrollLeft
+
+const touchStart = (e) => {
+  if (!scrollContainer.value) return
+  isScrolling = true
+  startX = e.touches[0].pageX - scrollContainer.value.offsetLeft
+  scrollLeft = scrollContainer.value.scrollLeft
+}
+
+const touchMove = (e) => {
+  if (!isScrolling || !scrollContainer.value) return
+  e.preventDefault()
+  const x = e.touches[0].pageX - scrollContainer.value.offsetLeft
+  const walk = (x - startX) * 2 // 스크롤 속도 조절
+  scrollContainer.value.scrollLeft = scrollLeft - walk
+}
+
+const touchEnd = () => {
+  isScrolling = false
+}
+
+onMounted(async () => {
+  if (scrollContainer.value) {
+    scrollContainer.value.style.webkitOverflowScrolling = 'touch'
+  }
+
+  try {
+    const data = await apiService.get(props.urlStr);
+
+    items.value = data.content;
+  } catch (error) {
+    console.error("API 호출 오류:", error);
+  }
+})
+</script>
+
 
 <style scoped>
 .scrollbar-hide {

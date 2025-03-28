@@ -59,18 +59,37 @@ export function useAuth() {
         }
     };
 
+    const createRequestConfig = (method, includeAuth = true, body = null) => {
+        const config = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+        };
+
+        if(includeAuth){
+            const token = localStorage.getItem('Authorization');
+            if(token){
+                config.headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+            }
+        }
+
+        if(body){
+            config.body = JSON.stringify(body);
+        }
+        return config;
+    };
+
     /**
      * 사용자 로그인 처리
      */
     const signIn = async (signInForm) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/user/signin`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(signInForm)
-            });
+            const response = await fetch(
+                `${API_BASE_URL}/user/signin`, 
+                createRequestConfig('POST', false, signInForm)
+            );
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -91,7 +110,7 @@ export function useAuth() {
         } catch (err) {
             console.error('Login error:', err);
             return {
-                success: false
+                success: false, error: err.message
             };
         }
     };
@@ -101,13 +120,10 @@ export function useAuth() {
      */
     const signUp = async (signUpForm) => {
         try{
-            const response = await fetch(`${API_BASE_URL}/user/signup`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(signUpForm)
-            });
+            const response = await fetch(
+                `${API_BASE_URL}/user/signup`, 
+                createRequestConfig('POST', false, signUpForm)
+            );
 
             if (!response.ok){
                 const errorData = await response.json().catch(() => ({}));
@@ -118,12 +134,11 @@ export function useAuth() {
         }catch(err){
             console.error('Sign up error:', err);
             return {
-                success: false
+                success: false, error: err.message
             }
         }
 
-    }
-
+    };
 
     /**
      * 사용자 로그아웃 처리
@@ -134,25 +149,43 @@ export function useAuth() {
         Object.keys(user).forEach(key => delete user[key]);
     };
 
+
+    const changePassword = async (passwordForm) => {
+        // 폼에 있는 것들이 맞는지 확인
+        // 현재 비밀번호가 맞는지 확인
+        if(this.passwordForm.newPassword === passwordForm.confirmPassword){
+            throw new Error('새 비밀번호가 일치하지 않습니다.');
+        }
+        try{
+            const response = await fetch(
+                `${API_BASE_URL}/user/changePassword`, 
+                createRequestConfig('POST', true, passwordForm)
+            );
+
+            if(!response.ok){
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || '비밀번호 변경에 실패했습니다.');
+            }
+
+            return { success: true};
+        }catch(err){
+            console.error('Change password error:', err);
+            return {
+                success: false, error: err.message
+            }
+        }
+        
+    }
+
     /**
      * 사용자 정보 가져오기
      */
     const getUserData = async () => {
         try {
-            const token = localStorage.getItem('Authorization');
-            if (!token) {
-                throw new Error('인증 토큰이 없습니다.');
-            }
-
-            const authHeader = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-
-            const response = await fetch(`${API_BASE_URL}/user/status`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': authHeader
-                }
-            });
+            const response = await fetch(
+                `${API_BASE_URL}/user/status`, 
+                createRequestConfig('GET', true)
+            );
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -168,7 +201,7 @@ export function useAuth() {
         } catch (err) {
             console.error('Getting user info error:', err);
             return {
-                success: false
+                success: false, error: err.message
             };
         }
     };
@@ -184,6 +217,7 @@ export function useAuth() {
         signIn,
         signUp,
         signOut,
+        changePassword,
         getUserData,
         initAuth,
         isAuthenticated,

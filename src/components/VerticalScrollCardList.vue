@@ -88,6 +88,7 @@
 <script setup>
 import  {defineProps, defineEmits, ref, onMounted, onUnmounted, watch} from 'vue'
 import {useWishStore} from "@/stores/useWishStore";
+import {apiService} from "@/services/api";
 
 const wishStore = useWishStore();
 
@@ -132,20 +133,17 @@ const fetchItems = async () => {
   try {
     let response
     if(itemTypeEnum[props.itemType] === 'alcohols') {
-      response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&category_id=${props.selectedItem}&size=10&sort=id,desc`)
+      response = await apiService.get(`${itemTypeEnum[props.itemType]}?page=${currentPage.value}&category_id=${props.selectedItem}&size=10&sort=id,desc`)
     }
     else if(itemTypeEnum[props.itemType] === 'destinations') {
-      response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&country_id=${props.selectedItem}&size=10&sort=id,desc`)
+      response = await apiService.get(`${itemTypeEnum[props.itemType]}?page=${currentPage.value}&country_id=${props.selectedItem}&size=10&sort=id,desc`)
     }
     else{
-      response = await fetch(`http://localhost:8080/api/${itemTypeEnum[props.itemType]}?page=${currentPage.value}&size=10&sort=id,desc`)
+      response = await apiService.get(`${itemTypeEnum[props.itemType]}?page=${currentPage.value}&size=10&sort=id,desc`)
     }
-    if (!response.ok) throw new Error('데이터를 불러오는데 실패했습니다.')
 
-    const data = await response.json()
-
-    items.value = [...items.value, ...data.content]
-    hasMore.value = !data.last
+    items.value = [...items.value, ...response.content]
+    hasMore.value = !response.last
     currentPage.value++
 
     // Reset indicators after successful fetch

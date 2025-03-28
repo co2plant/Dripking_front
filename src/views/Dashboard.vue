@@ -56,60 +56,64 @@
 </template>
 
 <script setup>
-import { Users, Map, Plane, Activity } from 'lucide-vue-next';
+  import { Users, Map, Plane, Activity } from 'lucide-vue-next';
 
-const stats = [
-  {
-    title: "총 사용자",
-    value: "2,853",
-    icon: Users,
-    description: "지난 달 대비 +12%",
-  },
-  {
-    title: "목적지",
-    value: "432",
-    icon: Map,
-    description: "지난 달 대비 +5%",
-  },
-  {
-    title: "여행",
-    value: "1,257",
-    icon: Plane,
-    description: "지난 달 대비 +18%",
-  },
-  {
-    title: "활성 여행",
-    value: "274",
-    icon: Activity,
-    description: "지난 달 대비 +7%",
-  },
-];
+  const stats = [
+    {
+      title: "총 사용자",
+      value: "2,853",
+      icon: Users,
+      description: "지난 달 대비 +12%",
+    },
+    {
+      title: "목적지",
+      value: "432",
+      icon: Map,
+      description: "지난 달 대비 +5%",
+    },
+    {
+      title: "여행",
+      value: "1,257",
+      icon: Plane,
+      description: "지난 달 대비 +18%",
+    },
+    {
+      title: "활성 여행",
+      value: "274",
+      icon: Activity,
+      description: "지난 달 대비 +7%",
+    },
+  ];
 
-const activities = [
-  {
-    user: "김민수",
-    action: "새 사용자 등록",
-    time: "10분 전",
-  },
-  {
-    user: "이지은",
-    action: "목적지 정보 수정",
-    time: "25분 전",
-  },
-  {
-    user: "박준호",
-    action: "여행 일정 추가",
-    time: "1시간 전",
-  },
-  {
-    user: "최유진",
-    action: "사용자 정보 업데이트",
-    time: "2시간 전",
-  },
-  {
-    user: "정다운",
-    action: "목적지 삭제",
-    time: "3시간 전",
-  },
-];
+  const activities = [
+    {
+      user: "김민수",
+      action: "새 사용자 등록",
+      time: "10분 전",
+    },
+    {
+      user: "이지은",
+      action: "목적지 정보 수정",
+      time: "25분 전",
+    },
+    {
+      user: "박준호",
+      action: "여행 일정 추가",
+      time: "1시간 전",
+    },
+    {
+      user: "최유진",
+      action: "사용자 정보 업데이트",
+      time: "2시간 전",
+    },
+    {
+      user: "정다운",
+      action: "목적지 삭제",
+      time: "3시간 전",
+    },
+  ];
 </script>
+
+<style>
+
+</style>
