@@ -4,6 +4,7 @@ import router from "@/router";
 import DateCountrySelection from "@/components/DateCountrySelection.vue";
 import {onMounted, ref} from "vue";
 import WishListSideBar from "@/components/WishListSideBar.vue";
+import {apiService} from "@/services/api";
 
 const countries = ref([]);
 const selectedCountry = ref(0);
@@ -11,18 +12,16 @@ const selectedCountry = ref(0);
 const handleViewDetails = (item) => {
   router.push({ name: 'destinationDetail', params: { id: item.id } })
 }
-
-const fetchItems = async () => {
-  const response = await fetch('http://localhost:8080/api/countries');
-  return await response.json();
-}
-
 const selectCountry = (countryId) => {
   selectedCountry.value = countryId
 }
 
 onMounted(async () => {
-  countries.value = await fetchItems();
+  try{
+    countries.value = await apiService.get('countries');
+  } catch (error) {
+    console.error("API 호출 오류:", error);
+  }
 })
 
 </script>

@@ -4,6 +4,7 @@ import CategoryNavigation from "@/components/CategoryNavigation.vue";
 import router from "@/router";
 import {onMounted, ref} from "vue";
 import WishListSideBar from "@/components/WishListSideBar.vue";
+import {apiService} from "@/services/api";
 
 const categories = ref([]);
 const selectedCategory = ref(0)
@@ -12,17 +13,16 @@ const handleViewDetails = (item) => {
   router.push({name: 'alcoholDetail', params: {id: item.id}})
 }
 
-const fetchItems = async () => {
-  const response = await fetch('http://localhost:8080/api/categories');
-  return await response.json();
-}
-
 const selectCategory = (categoryId) => {
   selectedCategory.value = categoryId
 }
 
 onMounted(async () => {
-  categories.value = await fetchItems();
+  try{
+    categories.value = await apiService.get(categories);
+  } catch (error) {
+    console.error("API 호출 오류:", error);
+  }
 })
 </script>
 
