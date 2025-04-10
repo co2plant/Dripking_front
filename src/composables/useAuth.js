@@ -1,7 +1,7 @@
 import { ref, reactive, computed } from 'vue';
 
 // API 엔드포인트 상수 정의
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = process.env.VUE_APP_API_URL;
 
 export function useAuth() {
     const user = reactive({});
