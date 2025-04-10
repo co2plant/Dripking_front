@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import DataEntryForm from '../components/DataEntryForm.vue';
+import DataEntryForm from '../../components/DataEntryForm.vue';
 
 // 제품 폼 필드 정의
 const productFields = [

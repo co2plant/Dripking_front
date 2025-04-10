@@ -11,9 +11,9 @@ import TestPage from "@/views/TestPage.vue";
 import TripModify from "@/views/TripModify.vue";
 // import Map from  "@/components/map.vue";
 import EditUserDetail from "@/views/EditUserDetail.vue"
-import Dashboard from "@/views/Dashboard.vue";
-import UserDashboard from "@/views/UserDashboard.vue";
-import ProductsFormView from "@/views/ProductsFormView.vue";
+import Dashboard from "@/views/admin/Dashboard.vue";
+import UserDashboard from "@/views/admin/UserDashboard.vue";
+import ProductsFormView from "@/views/admin/ProductsFormView.vue";
 import {useAuthStore} from "@/stores/useAuthStore";
 
 const routes = [
