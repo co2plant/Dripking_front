@@ -1,234 +1,236 @@
 <template>
-  <div class="flex min-h-screen flex-col space-y-6">
-    <div class="container grid flex-1 gap-12">
-      <main class="flex w-full flex-1 flex-col overflow-hidden">
-        <div class="flex flex-col gap-4 md:gap-6">
-          <div class="grid gap-1">
-            <h1 class="text-2xl font-bold tracking-tight">목적지 관리</h1>
-            <p class="text-zinc-500 dark:text-zinc-400">여행 목적지 정보를 관리합니다.</p>
-          </div>
-
-          <div class="space-y-4">
-            <div class="flex justify-between">
-              <h2 class="text-xl font-bold">목적지 목록</h2>
-              <button
-                  @click="openAddModal"
-                  class="inline-flex items-center rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800"
-              >
-                <MapPin class="mr-2 h-4 w-4" />
-                목적지 추가
-              </button>
+  <div class="container mx-auto">
+    <div class="flex min-h-screen flex-col space-y-6">
+      <div class="container grid flex-1 gap-12">
+        <main class="flex w-full flex-1 flex-col overflow-hidden">
+          <div class="flex flex-col gap-4 md:gap-6">
+            <div class="grid gap-1">
+              <h1 class="text-2xl font-bold tracking-tight">목적지 관리</h1>
+              <p class="text-zinc-500 dark:text-zinc-400">여행 목적지 정보를 관리합니다.</p>
             </div>
 
-            <div class="flex items-center py-4">
-              <input
-                  v-model="searchQuery"
-                  placeholder="이름으로 검색..."
-                  class="max-w-sm rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-              />
-            </div>
-
-            <div class="rounded-md border">
-              <table class="w-full">
-                <thead>
-                <tr class="border-b bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/50">
-                  <th v-for="column in columns" :key="column.key" class="px-4 py-3 text-left text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                    {{ column.label }}
-                  </th>
-                  <th class="px-4 py-3 text-right text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                    작업
-                  </th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr
-                    v-for="destination in filteredDestinations"
-                    :key="destination.id"
-                    class="border-b dark:border-zinc-800"
+            <div class="space-y-4">
+              <div class="flex justify-between">
+                <h2 class="text-xl font-bold">목적지 목록</h2>
+                <button
+                    @click="openAddModal"
+                    class="inline-flex items-center rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800"
                 >
-                  <td class="px-4 py-3 text-sm">{{ destination.name }}</td>
-                  <td class="px-4 py-3 text-sm">{{ destination.country }}</td>
-                  <td class="px-4 py-3 text-sm">{{ destination.city }}</td>
-                  <td class="px-4 py-3 text-sm">
-                    <div class="rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
-                      {{ destination.category }}
-                    </div>
-                  </td>
-                  <td class="px-4 py-3 text-sm">
-                    <div class="flex items-center">
-                      <div class="h-2 w-24 rounded-full bg-zinc-200 dark:bg-zinc-700">
-                        <div
-                            class="h-2 rounded-full bg-amber-500"
-                            :style="{ width: `${(destination.popularity / 10) * 100}%` }"
-                        />
+                  <MapPin class="mr-2 h-4 w-4" />
+                  목적지 추가
+                </button>
+              </div>
+
+              <div class="flex items-center py-4">
+                <input
+                    v-model="searchQuery"
+                    placeholder="이름으로 검색..."
+                    class="max-w-sm rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
+                />
+              </div>
+
+              <div class="rounded-md border">
+                <table class="w-full">
+                  <thead>
+                  <tr class="border-b bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/50">
+                    <th v-for="column in columns" :key="column.key" class="px-4 py-3 text-left text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                      {{ column.label }}
+                    </th>
+                    <th class="px-4 py-3 text-right text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                      작업
+                    </th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr
+                      v-for="destination in filteredDestinations"
+                      :key="destination.id"
+                      class="border-b dark:border-zinc-800"
+                  >
+                    <td class="px-4 py-3 text-sm">{{ destination.name }}</td>
+                    <td class="px-4 py-3 text-sm">{{ destination.country }}</td>
+                    <td class="px-4 py-3 text-sm">{{ destination.city }}</td>
+                    <td class="px-4 py-3 text-sm">
+                      <div class="rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
+                        {{ destination.category }}
                       </div>
-                      <span class="ml-2 text-sm">{{ destination.popularity }}</span>
-                    </div>
-                  </td>
-                  <td class="px-4 py-3 text-right text-sm">
-                    <div class="relative">
-                      <button @click="toggleDropdown(destination.id)" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800">
-                        <MoreHorizontal class="h-4 w-4" />
-                      </button>
-                      <div v-if="activeDropdown === destination.id" class="absolute right-0 z-10 mt-2 w-36 rounded-md border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-950">
-                        <div class="py-1 text-sm text-zinc-700 dark:text-zinc-300">
-                          <div class="border-b border-zinc-200 px-3 py-2 font-medium dark:border-zinc-800">작업</div>
-                          <button @click="openEditModal(destination)" class="flex w-full items-center px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                            <Pencil class="mr-2 h-4 w-4" />
-                            <span>편집</span>
-                          </button>
-                          <button @click="openDeleteModal(destination)" class="flex w-full items-center px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                            <Trash2 class="mr-2 h-4 w-4" />
-                            <span>삭제</span>
-                          </button>
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                      <div class="flex items-center">
+                        <div class="h-2 w-24 rounded-full bg-zinc-200 dark:bg-zinc-700">
+                          <div
+                              class="h-2 rounded-full bg-amber-500"
+                              :style="{ width: `${(destination.popularity / 10) * 100}%` }"
+                          />
+                        </div>
+                        <span class="ml-2 text-sm">{{ destination.popularity }}</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 text-right text-sm">
+                      <div class="relative">
+                        <button @click="toggleDropdown(destination.id)" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800">
+                          <MoreHorizontal class="h-4 w-4" />
+                        </button>
+                        <div v-if="activeDropdown === destination.id" class="absolute right-0 z-10 mt-2 w-36 rounded-md border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-950">
+                          <div class="py-1 text-sm text-zinc-700 dark:text-zinc-300">
+                            <div class="border-b border-zinc-200 px-3 py-2 font-medium dark:border-zinc-800">작업</div>
+                            <button @click="openEditModal(destination)" class="flex w-full items-center px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                              <Pencil class="mr-2 h-4 w-4" />
+                              <span>편집</span>
+                            </button>
+                            <button @click="openDeleteModal(destination)" class="flex w-full items-center px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                              <Trash2 class="mr-2 h-4 w-4" />
+                              <span>삭제</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-                <tr v-if="filteredDestinations.length === 0">
-                  <td colspan="6" class="h-24 text-center text-sm text-zinc-500 dark:text-zinc-400">
-                    데이터가 없습니다.
-                  </td>
-                </tr>
-                </tbody>
-              </table>
+                    </td>
+                  </tr>
+                  <tr v-if="filteredDestinations.length === 0">
+                    <td colspan="6" class="h-24 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                      데이터가 없습니다.
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="flex items-center justify-end space-x-2 py-4">
+                <button
+                    @click="prevPage"
+                    :disabled="currentPage <= 1"
+                    class="inline-flex items-center rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
+                >
+                  이전
+                </button>
+                <button
+                    @click="nextPage"
+                    :disabled="currentPage >= totalPages"
+                    class="inline-flex items-center rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
+                >
+                  다음
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <!-- 목적지 추가/편집 모달 -->
+      <Teleport to="body">
+        <div v-if="isFormModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-zinc-950">
+            <div class="mb-4">
+              <h2 class="text-lg font-semibold">{{ modalTitle }}</h2>
+              <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                목적지 정보를 입력하세요. 완료되면 저장 버튼을 클릭하세요.
+              </p>
             </div>
 
-            <div class="flex items-center justify-end space-x-2 py-4">
-              <button
-                  @click="prevPage"
-                  :disabled="currentPage <= 1"
-                  class="inline-flex items-center rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
-              >
-                이전
-              </button>
-              <button
-                  @click="nextPage"
-                  :disabled="currentPage >= totalPages"
-                  class="inline-flex items-center rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
-              >
-                다음
-              </button>
-            </div>
+            <form @submit.prevent="submitForm" class="space-y-4">
+              <div class="space-y-2">
+                <label class="text-sm font-medium">이름</label>
+                <input
+                    v-model="formData.name"
+                    placeholder="목적지 이름"
+                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
+                />
+                <p v-if="formErrors.name" class="text-xs text-red-500">{{ formErrors.name }}</p>
+              </div>
+
+              <div class="space-y-2">
+                <label class="text-sm font-medium">국가</label>
+                <input
+                    v-model="formData.country"
+                    placeholder="국가명"
+                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
+                />
+                <p v-if="formErrors.country" class="text-xs text-red-500">{{ formErrors.country }}</p>
+              </div>
+
+              <div class="space-y-2">
+                <label class="text-sm font-medium">도시</label>
+                <input
+                    v-model="formData.city"
+                    placeholder="도시명"
+                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
+                />
+                <p v-if="formErrors.city" class="text-xs text-red-500">{{ formErrors.city }}</p>
+              </div>
+
+              <div class="space-y-2">
+                <label class="text-sm font-medium">카테고리</label>
+                <select
+                    v-model="formData.category"
+                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
+                >
+                  <option value="명소">명소</option>
+                  <option value="역사">역사</option>
+                  <option value="자연">자연</option>
+                  <option value="문화">문화</option>
+                  <option value="음식">음식</option>
+                </select>
+              </div>
+
+              <div class="space-y-2">
+                <label class="text-sm font-medium">인기도 ({{ formData.popularity.toFixed(1) }})</label>
+                <input
+                    type="range"
+                    v-model.number="formData.popularity"
+                    min="0"
+                    max="10"
+                    step="0.1"
+                    class="w-full"
+                />
+              </div>
+
+              <div class="flex justify-end space-x-2 pt-4">
+                <button
+                    type="button"
+                    @click="closeFormModal"
+                    class="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium dark:border-zinc-800 dark:bg-zinc-950"
+                >
+                  취소
+                </button>
+                <button
+                    type="submit"
+                    class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800"
+                >
+                  저장
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </main>
-    </div>
+      </Teleport>
 
-    <!-- 목적지 추가/편집 모달 -->
-    <Teleport to="body">
-      <div v-if="isFormModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-zinc-950">
-          <div class="mb-4">
-            <h2 class="text-lg font-semibold">{{ modalTitle }}</h2>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">
-              목적지 정보를 입력하세요. 완료되면 저장 버튼을 클릭하세요.
+      <!-- 삭제 확인 모달 -->
+      <Teleport to="body">
+        <div v-if="isDeleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-zinc-950">
+            <h2 class="text-lg font-semibold">목적지 삭제</h2>
+            <p class="py-4 text-sm text-zinc-500 dark:text-zinc-400">
+              정말로 {{ selectedDestination?.name }} 목적지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
             </p>
-          </div>
-
-          <form @submit.prevent="submitForm" class="space-y-4">
-            <div class="space-y-2">
-              <label class="text-sm font-medium">이름</label>
-              <input
-                  v-model="formData.name"
-                  placeholder="목적지 이름"
-                  class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-              />
-              <p v-if="formErrors.name" class="text-xs text-red-500">{{ formErrors.name }}</p>
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-sm font-medium">국가</label>
-              <input
-                  v-model="formData.country"
-                  placeholder="국가명"
-                  class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-              />
-              <p v-if="formErrors.country" class="text-xs text-red-500">{{ formErrors.country }}</p>
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-sm font-medium">도시</label>
-              <input
-                  v-model="formData.city"
-                  placeholder="도시명"
-                  class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-              />
-              <p v-if="formErrors.city" class="text-xs text-red-500">{{ formErrors.city }}</p>
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-sm font-medium">카테고리</label>
-              <select
-                  v-model="formData.category"
-                  class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-              >
-                <option value="명소">명소</option>
-                <option value="역사">역사</option>
-                <option value="자연">자연</option>
-                <option value="문화">문화</option>
-                <option value="음식">음식</option>
-              </select>
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-sm font-medium">인기도 ({{ formData.popularity.toFixed(1) }})</label>
-              <input
-                  type="range"
-                  v-model.number="formData.popularity"
-                  min="0"
-                  max="10"
-                  step="0.1"
-                  class="w-full"
-              />
-            </div>
-
-            <div class="flex justify-end space-x-2 pt-4">
+            <div class="flex justify-end space-x-2">
               <button
-                  type="button"
-                  @click="closeFormModal"
+                  @click="closeDeleteModal"
                   class="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium dark:border-zinc-800 dark:bg-zinc-950"
               >
                 취소
               </button>
               <button
-                  type="submit"
-                  class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800"
+                  @click="confirmDelete"
+                  class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
               >
-                저장
+                삭제
               </button>
             </div>
-          </form>
-        </div>
-      </div>
-    </Teleport>
-
-    <!-- 삭제 확인 모달 -->
-    <Teleport to="body">
-      <div v-if="isDeleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-zinc-950">
-          <h2 class="text-lg font-semibold">목적지 삭제</h2>
-          <p class="py-4 text-sm text-zinc-500 dark:text-zinc-400">
-            정말로 {{ selectedDestination?.name }} 목적지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-          </p>
-          <div class="flex justify-end space-x-2">
-            <button
-                @click="closeDeleteModal"
-                class="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium dark:border-zinc-800 dark:bg-zinc-950"
-            >
-              취소
-            </button>
-            <button
-                @click="confirmDelete"
-                class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-            >
-              삭제
-            </button>
           </div>
         </div>
-      </div>
-    </Teleport>
+      </Teleport>
+    </div>
   </div>
 </template>
 

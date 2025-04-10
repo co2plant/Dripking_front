@@ -1,25 +1,27 @@
 <template>
-  <div class="flex min-h-screen flex-col space-y-6">
-    <div class="container grid flex-1 gap-12 py-8">
-      <main class="flex w-full flex-1 flex-col overflow-hidden">
-        <div class="flex flex-col gap-4 md:gap-6">
-          <div class="grid gap-1">
-            <h1 class="text-2xl font-bold tracking-tight">제품 관리</h1>
-            <p class="text-zinc-500 dark:text-zinc-400">새 제품을 추가하거나 기존 제품을 관리합니다.</p>
-          </div>
+  <div class="container mx-auto">
+    <div class="flex min-h-screen flex-col space-y-6">
+      <div class="container grid flex-1 gap-12 py-8">
+        <main class="flex w-full flex-1 flex-col overflow-hidden">
+          <div class="flex flex-col gap-4 md:gap-6">
+            <div class="grid gap-1">
+              <h1 class="text-2xl font-bold tracking-tight">제품 관리</h1>
+              <p class="text-zinc-500 dark:text-zinc-400">새 제품을 추가하거나 기존 제품을 관리합니다.</p>
+            </div>
 
-          <!-- 데이터 입력 폼 컴포넌트 -->
-          <DataEntryForm
-              title="새 제품 추가"
-              description="아래 양식을 작성하여 새 제품을 추가하세요."
-              endpoint="/api/products"
-              :fields="productFields"
-              @success="handleSuccess"
-              @error="handleError"
-              @reset="handleReset"
-          />
-        </div>
-      </main>
+            <!-- 데이터 입력 폼 컴포넌트 -->
+            <DataEntryForm
+                title="새 제품 추가"
+                description="아래 양식을 작성하여 새 제품을 추가하세요."
+                endpoint="/api/products"
+                :fields="productFields"
+                @success="handleSuccess"
+                @error="handleError"
+                @reset="handleReset"
+            />
+          </div>
+        </main>
+      </div>
     </div>
   </div>
 </template>
