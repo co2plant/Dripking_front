@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full max-w-4xl mx-auto">
+  <div class="w-full max-w-4xl mx-auto p-6">
     <div class="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
       <div class="mb-6">
         <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{{ title }}</h2>
@@ -192,7 +192,7 @@
           <button
               type="submit"
               :disabled="isSubmitting"
-              class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 dark:bg-amber-700 dark:hover:bg-amber-800"
+              class="rounded-md bg-amber-400 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 dark:bg-amber-700 dark:hover:bg-amber-800"
           >
             <div v-if="isSubmitting" class="flex items-center">
               <Loader2 class="mr-2 h-4 w-4 animate-spin" />

@@ -34,7 +34,7 @@
                         {{ activity.user.charAt(0) }}
                       </span>
                       </div>
-                      <div class="space-y-1">
+                      <div class=" grow">
                         <p class="text-sm font-medium leading-none">
                           {{ activity.user }}
                         </p>
@@ -59,6 +59,9 @@
 
 <script setup>
   import { Users, Map, Plane, Activity } from 'lucide-vue-next';
+  //import {apiService} from "@/services/api";
+
+
 
   const stats = [
     {
