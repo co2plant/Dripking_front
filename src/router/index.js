@@ -15,6 +15,7 @@ import Dashboard from "@/views/admin/Dashboard.vue";
 import UserDashboard from "@/views/admin/UserDashboard.vue";
 import ProductsFormView from "@/views/admin/ProductsFormView.vue";
 import {useAuthStore} from "@/stores/useAuthStore";
+import DestinationDashboard from '@/views/admin/DestinationDashboard.vue';
 
 const routes = [
     { path: '/', name: 'Home', component: Landing },
@@ -31,6 +32,7 @@ const routes = [
     { path: '/editUserDetail', name:'editUserDetail', component: EditUserDetail, meta:{requiredUser : true}},
     { path: '/dashboard', name:'dashboard', component: Dashboard, meta:{requiredGuest : true}},
     { path: '/userDashboard', name:'userDashboard', component: UserDashboard, meta:{requiredGuest : true}},
+    { path: '/destinationDashboard', name:'destinationDashboard', component: DestinationDashboard, meta:{requiredGuest : true}},
     { path: '/productsFormView', name:'productsFormView', component: ProductsFormView, meta:{requiredGuest : true}},
 ]
 
