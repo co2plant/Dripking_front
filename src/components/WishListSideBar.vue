@@ -137,7 +137,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   tripStore.sortTrips();
-  tripStore.saveTrips();
+  tripStore.updateTrip();
   wishStore.sortWishlist();
   wishStore.saveWishlist();
 })
@@ -151,7 +151,7 @@ const deleteAllPlansByTripId = (trip_id) => {
   planStore.clearPlansByTripId(trip_id);
   tripStore.removeTrip(trip_id);
   planStore.savePlans();
-  tripStore.saveTrips();
+  tripStore.updateTrip();
   console.log(trip_id);
 }
 </script>
