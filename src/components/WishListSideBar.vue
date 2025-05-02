@@ -136,7 +136,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  tripStore.sortTrips();
   tripStore.updateTrip();
   wishStore.sortWishlist();
   wishStore.saveWishlist();
