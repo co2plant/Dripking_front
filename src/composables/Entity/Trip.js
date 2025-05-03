@@ -53,4 +53,17 @@ export default class Trip {
         const end = new Date(this.end_date);
         return (end - start) / (1000 * 60 * 60 * 24) + 1;
     }
+
+    /**
+     * 서버 API 요청을 위한 DTO 객체를 반환합니다.
+     * @returns {{name: string, description: string, start_date: string, end_date: string}}
+     */
+    toRequestDTO() {
+        return {
+            name: this.name,
+            description: this.description,
+            start_date: this.start_date,
+            end_date: this.end_date,
+        };
+    }
 }
