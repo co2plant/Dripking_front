@@ -39,6 +39,8 @@ export const useTripStore = defineStore('trip', {
                 }
             } else {
                 this.Trips = [];
+                localStorage.setItem('Trips');
+                console.log("No trips found in local storage.");
             }
             this.isLoaded = true;
         },
@@ -125,7 +127,7 @@ export const useTripStore = defineStore('trip', {
                 }
 
             } else {
-                this._loadTripsFromLocal();
+                await this._loadTripsFromLocal();
             }
         },
 
@@ -140,7 +142,7 @@ export const useTripStore = defineStore('trip', {
             const newTrip = new Trip();
             Object.assign(newTrip, newTripData);
 
-            if (authStore.isAuthenticated) {
+            if (authStore.isAuthenticated()) {
                 try {
                     const requestDTO = newTrip.toRequestDTO();
                     const createdTripDTO = await apiService.postWithToken('trips', requestDTO);
