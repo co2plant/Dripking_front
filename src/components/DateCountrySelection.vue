@@ -20,6 +20,16 @@ const props = defineProps({
 const selectedCountry = ref(props.selectedCountry);
 const start_date = ref('');
 const end_date = ref('');
+const min_date = ref('');
+
+const initMinDate = () =>{
+  const temp = new Date();
+  const year = temp.getFullYear();
+  const month = ('0' + (temp.getMonth() + 1)).slice(-2);
+  const day = ('0' + temp.getDate()).slice(-2);
+
+  return `${year}-${month}-${day}`;
+}
 
 const selectCountry = (countryId) => {
   emit('select-country', countryId);
@@ -80,6 +90,7 @@ const createTrip = () => {
 
 onMounted(() => {
   tripStore.loadTrips();
+  min_date.value = initMinDate();
 });
 
 onUnmounted(() => {
@@ -98,12 +109,16 @@ onUnmounted(() => {
           <div class="flex gap-2 md:gap-4">
             <div class="flex-1">
               <label class="block text-xs md:text-sm text-zinc-600 mb-1">출발</label>
-              <input type="date" v-model="start_date"
+              <input type="date"
+                :min="min_date"
+                v-model="start_date"
                 class="w-full h-11 px-3 md:px-4 py-2 rounded-lg border border-zinc-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none text-sm md:text-base">
             </div>
             <div class="flex-1">
               <label class="block text-xs md:text-sm text-zinc-600 mb-1">도착</label>
-              <input type="date" v-model="end_date"
+              <input type="date" 
+                :min="min_date"
+                v-model="end_date"
                 class="w-full h-11 px-3 md:px-4 py-2 rounded-lg border border-zinc-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none text-sm md:text-base">
             </div>
           </div>
