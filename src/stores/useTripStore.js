@@ -109,7 +109,7 @@ export const useTripStore = defineStore('trip', {
         async loadTrips() {
             const authStore = useAuthStore();
             console.log("Loading trips...");
-            if (authStore.isAuthenticated) {
+            if (authStore.isAuthenticated()) {
                 await this._loadTripsFromServer();
                 const localOnlyTrips = JSON.parse(localStorage.getItem('Trips') || '[]')
                                         .filter(localTrip => !this.Trips.some(serverTrip => serverTrip.id === localTrip.id));
@@ -173,7 +173,7 @@ export const useTripStore = defineStore('trip', {
             const updatedTrip = new Trip();
             Object.assign(updatedTrip, originalTrip, updatedTripData);
 
-            if (authStore.isAuthenticated) {
+            if (authStore.isAuthenticated()) {
                 if (originalTrip.isLocal) {
                     try {
                         const requestDTO = updatedTrip.toRequestDTO();
@@ -214,7 +214,7 @@ export const useTripStore = defineStore('trip', {
 
             const tripToRemove = this.Trips[tripIndex];
 
-            if (authStore.isAuthenticated && !tripToRemove.isLocal) {
+            if (authStore.isAuthenticated() && !tripToRemove.isLocal) {
                 try {
                     await apiService.deleteWithToken(`trips?id=${tripId}`);
                     this.Trips.splice(tripIndex, 1);
