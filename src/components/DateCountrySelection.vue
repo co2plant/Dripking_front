@@ -114,7 +114,7 @@ onUnmounted(() => {
   <!-- Date and Country Selection Section -->
   <div class="max-w-[1800px] mx-auto px-4 mb-8 md:mb-12">
     <div class="bg-zinc-50 rounded-lg p-4 md:p-6 shadow-sm">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 max-w-4xl mx-auto">
         <!-- Date Selection -->
         <div class="space-y-2 md:space-y-3">
           <label class="block text-zinc-900 font-bold text-sm md:text-base">여행 날짜</label>
