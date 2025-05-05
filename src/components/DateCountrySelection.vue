@@ -37,7 +37,7 @@ const initMinEndDate = (inputTemp) => {
   const temp = new Date(inputTemp);
   const year = temp.getFullYear();
   const month = ('0' + (temp.getMonth() + 1)).slice(-2);
-  const day = ('0' + (temp.getDate() + 1)).slice(-2);
+  const day = ('0' + (temp.getDate())).slice(-2);
 
   return `${year}-${month}-${day}`;
 }
