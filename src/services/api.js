@@ -1,8 +1,20 @@
-const API_BASE_URL = process.env.VUE_APP_API_URL;
+const API_BASE_URL = 'http://localhost:8080/api';
 
 export const apiService = {
     async get(endpoint){
         const response = await fetch(`${API_BASE_URL}/${endpoint}`)
+            .then(response => response.json()
+        );
+        return await response;
+    },
+
+    async getWithToken(endpoint){
+        const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization' : localStorage.getItem('Authorization')
+            }
+        })
             .then(response => response.json()
         );
         return await response;
