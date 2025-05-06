@@ -1,3 +1,60 @@
+<template>
+  <!-- Date and Country Selection Section -->
+  <div class="max-w-[1800px] mx-auto px-4 mb-8 md:mb-12">
+    <div class="bg-zinc-50 rounded-lg p-4 md:p-6 shadow-sm">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 max-w-4xl mx-auto">
+        <!-- Date Selection -->
+        <div class="space-y-2 md:space-y-3">
+          <label class="block text-zinc-900 font-bold text-sm md:text-base">여행 날짜</label>
+          <div class="flex gap-2 md:gap-4">
+            <div class="relative flex-1">
+              <label class="block text-xs md:text-sm text-zinc-600 mb-1">출발</label>
+              <input type="date"
+                :min="min_start_date"
+                v-model="start_date"
+                @change="min_end_date = initMinEndDate(start_date)"
+                class="w-full h-11 px-3 md:px-4 py-2 rounded-lg border border-zinc-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none text-sm md:text-base" />
+            </div>
+            <div class="relative flex-1">
+              <label class="block text-xs md:text-sm text-zinc-600 mb-1">도착</label>
+              <input type="date" 
+                :min="min_end_date"
+                v-model="end_date"
+                class="w-full h-11 px-3 md:px-4 py-2 rounded-lg border border-zinc-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none text-sm md:text-base" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Country Selection -->
+        <div class="space-y-2 md:space-y-3">
+          <label class="block text-zinc-900 font-bold text-sm md:text-base">국가 선택</label>
+          <div class="flex gap-2 md:gap-4">
+            <div class="flex-1">
+              <label class="block text-xs md:text-sm text-zinc-600 mb-1">시작 국가</label>
+              <select id="country-selection-area" v-model="selectedCountry"
+                class="w-full px-3 md:px-4 py-2 h-11 rounded-lg border border-zinc-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none text-sm md:text-base"
+                @change="selectCountry(selectedCountry)">
+                <option value="0">모든 국가</option>
+                <option v-for="country in countries" :key="country.id" :value="country.id">
+                  {{ country.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Button -->
+      <div class="mt-4 md:mt-6 text-center">
+        <button @click="createTrip()"
+          class="bg-amber-400 text-zinc-900 px-6 md:px-8 py-2 rounded-full hover:bg-amber-500 transition-colors duration-300 text-sm md:text-base">
+          생성하기
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup>
 import { defineEmits, ref, defineProps, onMounted, onUnmounted } from 'vue';
 import Trip from '@/composables/Entity/Trip';
@@ -96,7 +153,6 @@ const createTrip = () => {
   const isPassed = tripStore.addTrip(newTrip);
   if (isPassed) alert('여행이 생성되었습니다.')
   else alert('여행 생성에 실패했습니다. 재시도 해주세요.')
-  console.log(tripStore.Trips)
 };
 
 onMounted(() => {
@@ -109,62 +165,5 @@ onUnmounted(() => {
   tripStore.updateTrip();
 })
 </script>
-
-<template>
-  <!-- Date and Country Selection Section -->
-  <div class="max-w-[1800px] mx-auto px-4 mb-8 md:mb-12">
-    <div class="bg-zinc-50 rounded-lg p-4 md:p-6 shadow-sm">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 max-w-4xl mx-auto">
-        <!-- Date Selection -->
-        <div class="space-y-2 md:space-y-3">
-          <label class="block text-zinc-900 font-bold text-sm md:text-base">여행 날짜</label>
-          <div class="flex gap-2 md:gap-4">
-            <div class="flex-1">
-              <label class="block text-xs md:text-sm text-zinc-600 mb-1">출발</label>
-              <input type="date"
-                :min="min_start_date"
-                v-model="start_date"
-                @change="min_end_date = initMinEndDate(start_date)"
-                class="w-full h-11 px-3 md:px-4 py-2 rounded-lg border border-zinc-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none text-sm md:text-base">
-            </div>
-            <div class="flex-1">
-              <label class="block text-xs md:text-sm text-zinc-600 mb-1">도착</label>
-              <input type="date" 
-                :min="min_end_date"
-                v-model="end_date"
-                class="w-full h-11 px-3 md:px-4 py-2 rounded-lg border border-zinc-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none text-sm md:text-base">
-            </div>
-          </div>
-        </div>
-
-        <!-- Country Selection -->
-        <div class="space-y-2 md:space-y-3">
-          <label class="block text-zinc-900 font-bold text-sm md:text-base">국가 선택</label>
-          <div class="flex gap-2 md:gap-4">
-            <div class="flex-1">
-              <label class="block text-xs md:text-sm text-zinc-600 mb-1">시작 국가</label>
-              <select id="country-selection-area" v-model="selectedCountry"
-                class="w-full px-3 md:px-4 py-2 h-11 rounded-lg border border-zinc-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none text-sm md:text-base"
-                @change="selectCountry(selectedCountry)">
-                <option value="0">모든 국가</option>
-                <option v-for="country in countries" :key="country.id" :value="country.id">
-                  {{ country.name }}
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Filter Button -->
-      <div class="mt-4 md:mt-6 text-center">
-        <button @click="createTrip()"
-          class="bg-amber-400 text-zinc-900 px-6 md:px-8 py-2 rounded-full hover:bg-amber-500 transition-colors duration-300 text-sm md:text-base">
-          생성하기
-        </button>
-      </div>
-    </div>
-  </div>
-</template>
 
 <style scoped></style>
