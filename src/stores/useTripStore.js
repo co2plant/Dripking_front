@@ -40,7 +40,6 @@ export const useTripStore = defineStore('trip', {
             } else {
                 this.Trips = [];
                 localStorage.setItem('Trips');
-                console.log("No trips found in local storage.");
             }
             this.isLoaded = true;
         },
@@ -78,8 +77,6 @@ export const useTripStore = defineStore('trip', {
                 return;
             }
 
-            console.log(`Syncing ${localTripsToSync.length} local trips to server...`);
-
             try {
                 const syncPromises = localTripsToSync.map(async (localTrip) => {
                     try {
@@ -91,13 +88,11 @@ export const useTripStore = defineStore('trip', {
                         if (index !== -1) {
                             this.Trips[index] = Trip.fromDTO(createdTripDTO);
                         }
-                        console.log(`Synced local trip ${localTrip.id} -> server ID ${createdTripDTO.id}`);
                     } catch (syncError) {
                         console.error(`Error syncing local trip ${localTrip.id}:`, syncError);
                     }
                 });
                 await Promise.all(syncPromises);
-                console.log("Local trips sync completed.");
             } catch (error) {
                 console.error("Error during trip synchronization:", error);
             } finally {
@@ -108,7 +103,6 @@ export const useTripStore = defineStore('trip', {
         // 메인 로드 함수: 로그인 상태 확인 후 로드 및 동기화 실행
         async loadTrips() {
             const authStore = useAuthStore();
-            console.log("Loading trips...");
             if (authStore.isAuthenticated()) {
                 await this._loadTripsFromServer();
                 const localOnlyTrips = JSON.parse(localStorage.getItem('Trips') || '[]')
