@@ -1,443 +1,346 @@
-<!--<script setup>-->
-<!--import {onMounted, ref} from "vue";-->
+<script setup>
+import { ref, onMounted, watch, defineProps } from 'vue';
 
-<!--const googleMapsLoaded = ref(false);-->
+const props = defineProps({
+  plans: {
+    type: Array,
+    default: () => [] // 예: [{ name: '장소1', position: { lat: ..., lng: ... }}, ...]
+  }
+});
 
-<!--const loadGoogleMaps = () => {-->
-<!--  return new Promise((resolve, reject) => {-->
-<!--    if (window.google && window.google.maps) {-->
-<!--      googleMapsLoaded.value = true;-->
-<!--      resolve();-->
-<!--      return;-->
-<!--    }-->
+const mapRef = ref(null); // 지도 DOM 요소 참조
+let map = null; // 지도 객체
+let directionsService = null;
+let directionsRenderer = null;
+const googleMapsLoaded = ref(false);
 
-<!--    const script = document.createElement("script");-->
-<!--    script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_AIzaSyC5om4s67lgDpGWdu6JIKKux2YAbHXAGHw&libraries=marker`;-->
-<!--    script.async = true;-->
-<!--    script.defer = true;-->
-<!--    script.onload = () => {-->
-<!--      googleMapsLoaded.value = true;-->
-<!--      resolve();-->
-<!--    };-->
-<!--    script.onerror = reject;-->
-<!--    document.head.appendChild(script);-->
+// 중요: 'YOUR_API_KEY'를 실제 Google Maps API 키로 교체하세요.
+// 이 키는 Maps JavaScript API와 Directions API가 활성화되어 있어야 합니다.
+const apiKey = "AIzaSyC5om4s67lgDpGWdu6JIKKux2YAbHXAGHw";
 
-<!--    const fontAwesomeScript = document.createElement('script');-->
-<!--    fontAwesomeScript.src = 'https://use.fontawesome.com/releases/v6.2.0/js/all.js';-->
-<!--    fontAwesomeScript.async = true;-->
-<!--    document.head.appendChild(fontAwesomeScript);-->
+function loadGoogleMaps() {
+  return new Promise((resolve, reject) => {
+    if (window.google && window.google.maps) {
+      googleMapsLoaded.value = true;
+      resolve();
+      return;
+    }
+    // 전역 콜백 함수 정의
+    window.initMapCallback = () => {
+      googleMapsLoaded.value = true;
+      resolve();
+      delete window.initMapCallback; // 사용 후 삭제
+    };
 
-<!--    // Load Google Maps-->
-<!--    const googleMapsScript = document.createElement('script');-->
-<!--    googleMapsScript.innerHTML = `(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=\`https://maps.googleapis.com/maps/api/js?\`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key: "AIzaSyC5om4s67lgDpGWdu6JIKKux2YAbHXAGHw", v: "weekly"});`;-->
-<!--    googleMapsScript.async = true;-->
-<!--    document.head.appendChild(googleMapsScript);-->
-<!--  });-->
-<!--};-->
+    const script = document.createElement('script');
+    // `libraries`에 `marker`, `places`, `directions` 추가
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker,places,directions&callback=initMapCallback`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+    script.onerror = (error) => {
+      console.error("Google Maps 스크립트 로드 실패:", error);
+      reject(error);
+      delete window.initMapCallback; // 오류 발생 시에도 삭제
+    };
+  });
+}
 
-<!--async function initMap() {-->
-<!--  await loadGoogleMaps();-->
-<!--  // Request needed libraries.-->
-<!--  const { Map } = await window.google.maps.importLibrary("maps");-->
-<!--  const center = { lat: 37.43238031167444, lng: -122.16795397128632 };-->
-<!--  const map = new Map(document.getElementById("map"), {-->
-<!--    zoom: 11,-->
-<!--    center,-->
-<!--    mapId: "4504f8b37365c3d0",-->
-<!--  });-->
+async function initializeMap() {
+  if (!googleMapsLoaded.value || !mapRef.value) {
+    console.warn("Google Maps API가 로드되지 않았거나 맵 컨테이너가 준비되지 않았습니다.");
+    return;
+  }
 
-<!--  for (const property of properties) {-->
-<!--    const AdvancedMarkerElement = new window.google.maps.marker.AdvancedMarkerElement({-->
-<!--      map,-->
-<!--      content: buildContent(property),-->
-<!--      position: property.position,-->
-<!--      title: property.description,-->
-<!--    });-->
+  const { Map } = await google.maps.importLibrary("maps");
+  const { DirectionsService, DirectionsRenderer } = await google.maps.importLibrary("directions");
 
-<!--    AdvancedMarkerElement.addListener("click", () => {-->
-<!--      toggleHighlight(AdvancedMarkerElement, property);-->
-<!--    });-->
-<!--  }-->
-<!--}-->
+  directionsService = new DirectionsService();
+  directionsRenderer = new DirectionsRenderer();
 
-<!--function toggleHighlight(markerView) {-->
-<!--  if (markerView.content.classList.contains("highlight")) {-->
-<!--    markerView.content.classList.remove("highlight");-->
-<!--    markerView.zIndex = null;-->
-<!--  } else {-->
-<!--    markerView.content.classList.add("highlight");-->
-<!--    markerView.zIndex = 1;-->
-<!--  }-->
-<!--}-->
+  const initialCenter = (props.plans && props.plans.length > 0)
+    ? props.plans[0].position
+    : { lat: 37.5665, lng: 126.9780 }; // 기본값: 서울
 
-<!--function buildContent(property) {-->
-<!--  const content = document.createElement("div");-->
+  map = new Map(mapRef.value, {
+    zoom: 12,
+    center: initialCenter,
+    // mapId: "4504f8b37365c3d0", // 필요시 특정 Map ID 사용
+  });
 
-<!--  content.classList.add("property");-->
-<!--  content.innerHTML = `-->
-<!--    <div class="icon">-->
-<!--        <i aria-hidden="true" class="fa fa-icon fa-${property.type}" title="${property.type}"></i>-->
-<!--        <span class="fa-sr-only">${property.type}</span>-->
-<!--    </div>-->
-<!--    <div class="details">-->
-<!--        <div class="price">${property.price}</div>-->
-<!--        <div class="address">${property.address}</div>-->
-<!--        <div class="features">-->
-<!--        <div>-->
-<!--            <i aria-hidden="true" class="fa fa-bed fa-lg bed" title="bedroom"></i>-->
-<!--            <span class="fa-sr-only">bedroom</span>-->
-<!--            <span>${property.bed}</span>-->
-<!--        </div>-->
-<!--        <div>-->
-<!--            <i aria-hidden="true" class="fa fa-bath fa-lg bath" title="bathroom"></i>-->
-<!--            <span class="fa-sr-only">bathroom</span>-->
-<!--            <span>${property.bath}</span>-->
-<!--        </div>-->
-<!--        <div>-->
-<!--            <i aria-hidden="true" class="fa fa-ruler fa-lg size" title="size"></i>-->
-<!--            <span class="fa-sr-only">size</span>-->
-<!--            <span>${property.size} ft<sup>2</sup></span>-->
-<!--        </div>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--    `;-->
-<!--  return content;-->
-<!--}-->
+  directionsRenderer.setMap(map);
+  calculateAndDisplayRoute();
+}
 
-<!--const properties = [-->
-<!--  {-->
-<!--    address: "215 Emily St, MountainView, CA",-->
-<!--    description: "Single family house with modern design",-->
-<!--    price: "$ 3,889,000",-->
-<!--    type: "home",-->
-<!--    bed: 5,-->
-<!--    bath: 4.5,-->
-<!--    size: 300,-->
-<!--    position: {-->
-<!--      lat: 37.50024109655184,-->
-<!--      lng: -122.28528451834352,-->
-<!--    },-->
-<!--  },-->
-<!--  {-->
-<!--    address: "108 Squirrel Ln &#128063;, Menlo Park, CA",-->
-<!--    description: "Townhouse with friendly neighbors",-->
-<!--    price: "$ 3,050,000",-->
-<!--    type: "building",-->
-<!--    bed: 4,-->
-<!--    bath: 3,-->
-<!--    size: 200,-->
-<!--    position: {-->
-<!--      lat: 37.44440882321596,-->
-<!--      lng: -122.2160620727,-->
-<!--    },-->
-<!--  },-->
-<!--  {-->
-<!--    address: "100 Chris St, Portola Valley, CA",-->
-<!--    description: "Spacious warehouse great for small business",-->
-<!--    price: "$ 3,125,000",-->
-<!--    type: "warehouse",-->
-<!--    bed: 4,-->
-<!--    bath: 4,-->
-<!--    size: 800,-->
-<!--    position: {-->
-<!--      lat: 37.39561833718522,-->
-<!--      lng: -122.21855116258479,-->
-<!--    },-->
-<!--  },-->
-<!--  {-->
-<!--    address: "98 Aleh Ave, Palo Alto, CA",-->
-<!--    description: "A lovely store on busy road",-->
-<!--    price: "$ 4,225,000",-->
-<!--    type: "store-alt",-->
-<!--    bed: 2,-->
-<!--    bath: 1,-->
-<!--    size: 210,-->
-<!--    position: {-->
-<!--      lat: 37.423928529779644,-->
-<!--      lng: -122.1087629822001,-->
-<!--    },-->
-<!--  },-->
-<!--  {-->
-<!--    address: "2117 Su St, MountainView, CA",-->
-<!--    description: "Single family house near golf club",-->
-<!--    price: "$ 1,700,000",-->
-<!--    type: "home",-->
-<!--    bed: 4,-->
-<!--    bath: 3,-->
-<!--    size: 200,-->
-<!--    position: {-->
-<!--      lat: 37.40578635332598,-->
-<!--      lng: -122.15043378466069,-->
-<!--    },-->
-<!--  },-->
-<!--  {-->
-<!--    address: "197 Alicia Dr, Santa Clara, CA",-->
-<!--    description: "Multifloor large warehouse",-->
-<!--    price: "$ 5,000,000",-->
-<!--    type: "warehouse",-->
-<!--    bed: 5,-->
-<!--    bath: 4,-->
-<!--    size: 700,-->
-<!--    position: {-->
-<!--      lat: 37.36399747905774,-->
-<!--      lng: -122.10465384268522,-->
-<!--    },-->
-<!--  },-->
-<!--  {-->
-<!--    address: "700 Jose Ave, Sunnyvale, CA",-->
-<!--    description: "3 storey townhouse with 2 car garage",-->
-<!--    price: "$ 3,850,000",-->
-<!--    type: "building",-->
-<!--    bed: 4,-->
-<!--    bath: 4,-->
-<!--    size: 600,-->
-<!--    position: {-->
-<!--      lat: 37.38343706184458,-->
-<!--      lng: -122.02340436985183,-->
-<!--    },-->
-<!--  },-->
-<!--  {-->
-<!--    address: "868 Will Ct, Cupertino, CA",-->
-<!--    description: "Single family house in great school zone",-->
-<!--    price: "$ 2,500,000",-->
-<!--    type: "home",-->
-<!--    bed: 3,-->
-<!--    bath: 2,-->
-<!--    size: 100,-->
-<!--    position: {-->
-<!--      lat: 37.34576403052,-->
-<!--      lng: -122.04455090047453,-->
-<!--    },-->
-<!--  },-->
-<!--  {-->
-<!--    address: "655 Haylee St, Santa Clara, CA",-->
-<!--    description: "2 storey store with large storage room",-->
-<!--    price: "$ 2,500,000",-->
-<!--    type: "store-alt",-->
-<!--    bed: 3,-->
-<!--    bath: 2,-->
-<!--    size: 450,-->
-<!--    position: {-->
-<!--      lat: 37.362863347890716,-->
-<!--      lng: -121.97802139023555,-->
-<!--    },-->
-<!--  },-->
-<!--  {-->
-<!--    address: "2019 Natasha Dr, San Jose, CA",-->
-<!--    description: "Single family house",-->
-<!--    price: "$ 2,325,000",-->
-<!--    type: "home",-->
-<!--    bed: 4,-->
-<!--    bath: 3.5,-->
-<!--    size: 500,-->
-<!--    position: {-->
-<!--      lat: 37.41391636421949,-->
-<!--      lng: -121.94592071575907,-->
-<!--    },-->
-<!--  },-->
-<!--];-->
+function calculateAndDisplayRoute() {
+  if (!map || !directionsService || !directionsRenderer) return;
 
-<!--onMounted(initMap)-->
-<!--</script>-->
+  if (!props.plans || props.plans.length === 0) {
+    directionsRenderer.setDirections({ routes: [] }); // 경로 지우기
+     // 모든 마커를 지우는 로직 추가 필요 (만약 개별 마커를 사용했다면)
+    map.setCenter({ lat: 37.5665, lng: 126.9780 });
+    map.setZoom(12);
+    return;
+  }
+  
+  if (props.plans.length === 1) {
+    // 장소가 하나일 경우 해당 위치로 지도 중앙 이동 및 마커 표시 (선택적)
+    directionsRenderer.setDirections({ routes: [] }); // 기존 경로 지우기
+    map.setCenter(props.plans[0].position);
+    map.setZoom(15);
+    // 단일 마커 표시 (기본 Google Maps 마커)
+    new google.maps.Marker({
+        position: props.plans[0].position,
+        map: map,
+        title: props.plans[0].name || '선택된 장소'
+    });
+    return;
+  }
 
+  const waypoints = props.plans.slice(1, -1).map(plan => ({
+    location: plan.position,
+    stopover: true,
+  }));
 
-<!--<template>-->
-<!--  <div id="map" class="w-full h-48"></div>-->
-<!--</template>-->
+  directionsService.route(
+    {
+      origin: props.plans[0].position,
+      destination: props.plans[props.plans.length - 1].position,
+      waypoints: waypoints,
+      optimizeWaypoints: true, // Google이 경유지 순서를 최적화하도록 허용 (true로 하면 순서가 바뀔 수 있음, 순서 유지가 중요하면 false)
+      travelMode: google.maps.TravelMode.DRIVING, // 또는 WALKING, BICYCLING, TRANSIT
+    },
+    (response, status) => {
+      if (status === "OK") {
+        directionsRenderer.setDirections(response);
+      } else {
+        window.alert("경로 요청에 실패했습니다: " + status);
+        console.error("Directions request failed due to " + status);
+      }
+    }
+  );
+}
 
-<!--<style scoped>-->
-<!--/**-->
-<!-- * @license-->
-<!-- * Copyright 2019 Google LLC. All Rights Reserved.-->
-<!-- * SPDX-License-Identifier: Apache-2.0-->
-<!-- */-->
-<!--:root {-->
-<!--  &#45;&#45;building-color: #FF9800;-->
-<!--  &#45;&#45;house-color: #0288D1;-->
-<!--  &#45;&#45;shop-color: #7B1FA2;-->
-<!--  &#45;&#45;warehouse-color: #558B2F;-->
-<!--}-->
+onMounted(async () => {
+  try {
+    await loadGoogleMaps();
+    // API 로드 후 props.plans 상태에 따라 지도 초기화
+    // watch가 immediate:true 이므로 초기에도 실행됨
+  } catch (error) {
+    console.error("맵 초기화 중 오류 발생:", error);
+  }
+});
 
-<!--/*-->
-<!-- * Optional: Makes the sample page fill the window.-->
-<!-- */-->
-<!--html,-->
-<!--body {-->
-<!--  height: 100%;-->
-<!--  margin: 0;-->
-<!--  padding: 0;-->
-<!--}-->
+watch(() => props.plans, (newPlans, oldPlans) => {
+  if (googleMapsLoaded.value) {
+    if (!map) { // 지도가 아직 초기화되지 않았다면 초기화
+        initializeMap();
+    } else { // 지도가 이미 있다면 경로만 업데이트
+        calculateAndDisplayRoute();
+    }
+  }
+}, { deep: true, immediate: true }); // immediate: true로 초기 로드 시에도 실행
 
-<!--.property {-->
-<!--  align-items: center;-->
-<!--  background-color: #FFFFFF;-->
-<!--  border-radius: 50%;-->
-<!--  color: #263238;-->
-<!--  display: flex;-->
-<!--  font-size: 14px;-->
-<!--  gap: 15px;-->
-<!--  height: 30px;-->
-<!--  justify-content: center;-->
-<!--  padding: 4px;-->
-<!--  position: relative;-->
-<!--  transition: all 0.3s ease-out;-->
-<!--  width: 30px;-->
-<!--}-->
+</script>
 
-<!--.property::after {-->
-<!--  border-left: 9px solid transparent;-->
-<!--  border-right: 9px solid transparent;-->
-<!--  border-top: 9px solid #FFFFFF;-->
-<!--  content: "";-->
-<!--  height: 0;-->
-<!--  left: 50%;-->
-<!--  position: absolute;-->
-<!--  top: 95%;-->
-<!--  transform: translate(-50%, 0);-->
-<!--  transition: all 0.3s ease-out;-->
-<!--  width: 0;-->
-<!--  z-index: 1;-->
-<!--}-->
+<template>
+  <div id="map" ref="mapRef" class="w-full h-96"></div>
+</template>
 
-<!--.property .icon {-->
-<!--  align-items: center;-->
-<!--  display: flex;-->
-<!--  justify-content: center;-->
-<!--  color: #FFFFFF;-->
-<!--}-->
+<style scoped>
+/* ...existing code... */
+:root {
+  --building-color: #FF9800;
+  --house-color: #0288D1;
+  --shop-color: #7B1FA2;
+  --warehouse-color: #558B2F;
+}
 
-<!--.property .icon svg {-->
-<!--  height: 20px;-->
-<!--  width: auto;-->
-<!--}-->
+/*
+ * Optional: Makes the sample page fill the window.
+ */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
 
-<!--.property .details {-->
-<!--  display: none;-->
-<!--  flex-direction: column;-->
-<!--  flex: 1;-->
-<!--}-->
+#map { /* map div의 높이를 명시적으로 지정 */
+  height: 500px; /* 필요에 따라 조절 */
+}
 
-<!--.property .address {-->
-<!--  color: #9E9E9E;-->
-<!--  font-size: 10px;-->
-<!--  margin-bottom: 10px;-->
-<!--  margin-top: 5px;-->
-<!--}-->
+.property {
+  align-items: center;
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  color: #263238;
+  display: flex;
+  font-size: 14px;
+  gap: 15px;
+  height: 30px;
+  justify-content: center;
+  padding: 4px;
+  position: relative;
+  transition: all 0.3s ease-out;
+  width: 30px;
+}
 
-<!--.property .features {-->
-<!--  align-items: flex-end;-->
-<!--  display: flex;-->
-<!--  flex-direction: row;-->
-<!--  gap: 10px;-->
-<!--}-->
+.property::after {
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 9px solid #FFFFFF;
+  content: "";
+  height: 0;
+  left: 50%;
+  position: absolute;
+  top: 95%;
+  transform: translate(-50%, 0);
+  transition: all 0.3s ease-out;
+  width: 0;
+  z-index: 1;
+}
 
-<!--.property .features > div {-->
-<!--  align-items: center;-->
-<!--  background: #F5F5F5;-->
-<!--  border-radius: 5px;-->
-<!--  border: 1px solid #ccc;-->
-<!--  display: flex;-->
-<!--  font-size: 10px;-->
-<!--  gap: 5px;-->
-<!--  padding: 5px;-->
-<!--}-->
+.property .icon {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  color: #FFFFFF;
+}
 
-<!--/*-->
-<!-- * Property styles in highlighted state.-->
-<!-- */-->
-<!--.property.highlight {-->
-<!--  background-color: #FFFFFF;-->
-<!--  border-radius: 8px;-->
-<!--  box-shadow: 10px 10px 5px rgba(0, 0, 0, 0.2);-->
-<!--  height: 80px;-->
-<!--  padding: 8px 15px;-->
-<!--  width: auto;-->
-<!--}-->
+.property .icon svg {
+  height: 20px;
+  width: auto;
+}
 
-<!--.property.highlight::after {-->
-<!--  border-top: 9px solid #FFFFFF;-->
-<!--}-->
+.property .details {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+}
 
-<!--.property.highlight .details {-->
-<!--  display: flex;-->
-<!--}-->
+.property .address {
+  color: #9E9E9E;
+  font-size: 10px;
+  margin-bottom: 10px;
+  margin-top: 5px;
+}
 
-<!--.property.highlight .icon svg {-->
-<!--  width: 50px;-->
-<!--  height: 50px;-->
-<!--}-->
+.property .features {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
 
-<!--.property .bed {-->
-<!--  color: #FFA000;-->
-<!--}-->
+.property .features > div {
+  align-items: center;
+  background: #F5F5F5;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  display: flex;
+  font-size: 10px;
+  gap: 5px;
+  padding: 5px;
+}
 
-<!--.property .bath {-->
-<!--  color: #03A9F4;-->
-<!--}-->
+/*
+ * Property styles in highlighted state.
+ */
+.property.highlight {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 10px 10px 5px rgba(0, 0, 0, 0.2);
+  height: 80px;
+  padding: 8px 15px;
+  width: auto;
+}
 
-<!--.property .size {-->
-<!--  color: #388E3C;-->
-<!--}-->
+.property.highlight::after {
+  border-top: 9px solid #FFFFFF;
+}
 
-<!--/*-->
-<!-- * House icon colors.-->
-<!-- */-->
-<!--.property.highlight:has(.fa-house) .icon {-->
-<!--  color: var(&#45;&#45;house-color);-->
-<!--}-->
+.property.highlight .details {
+  display: flex;
+}
 
-<!--.property:not(.highlight):has(.fa-house) {-->
-<!--  background-color: var(&#45;&#45;house-color);-->
-<!--}-->
+.property.highlight .icon svg {
+  width: 50px;
+  height: 50px;
+}
 
-<!--.property:not(.highlight):has(.fa-house)::after {-->
-<!--  border-top: 9px solid var(&#45;&#45;house-color);-->
-<!--}-->
+.property .bed {
+  color: #FFA000;
+}
 
-<!--/*-->
-<!-- * Building icon colors.-->
-<!-- */-->
-<!--.property.highlight:has(.fa-building) .icon {-->
-<!--  color: var(&#45;&#45;building-color);-->
-<!--}-->
+.property .bath {
+  color: #03A9F4;
+}
 
-<!--.property:not(.highlight):has(.fa-building) {-->
-<!--  background-color: var(&#45;&#45;building-color);-->
-<!--}-->
+.property .size {
+  color: #388E3C;
+}
 
-<!--.property:not(.highlight):has(.fa-building)::after {-->
-<!--  border-top: 9px solid var(&#45;&#45;building-color);-->
-<!--}-->
+/*
+ * House icon colors.
+ */
+.property.highlight:has(.fa-house) .icon {
+  color: var(--house-color);
+}
 
-<!--/*-->
-<!-- * Warehouse icon colors.-->
-<!-- */-->
-<!--.property.highlight:has(.fa-warehouse) .icon {-->
-<!--  color: var(&#45;&#45;warehouse-color);-->
-<!--}-->
+.property:not(.highlight):has(.fa-house) {
+  background-color: var(--house-color);
+}
 
-<!--.property:not(.highlight):has(.fa-warehouse) {-->
-<!--  background-color: var(&#45;&#45;warehouse-color);-->
-<!--}-->
+.property:not(.highlight):has(.fa-house)::after {
+  border-top: 9px solid var(--house-color);
+}
 
-<!--.property:not(.highlight):has(.fa-warehouse)::after {-->
-<!--  border-top: 9px solid var(&#45;&#45;warehouse-color);-->
-<!--}-->
+/*
+ * Building icon colors.
+ */
+.property.highlight:has(.fa-building) .icon {
+  color: var(--building-color);
+}
 
-<!--/*-->
-<!-- * Shop icon colors.-->
-<!-- */-->
-<!--.property.highlight:has(.fa-shop) .icon {-->
-<!--  color: var(&#45;&#45;shop-color);-->
-<!--}-->
+.property:not(.highlight):has(.fa-building) {
+  background-color: var(--building-color);
+}
 
-<!--.property:not(.highlight):has(.fa-shop) {-->
-<!--  background-color: var(&#45;&#45;shop-color);-->
-<!--}-->
+.property:not(.highlight):has(.fa-building)::after {
+  border-top: 9px solid var(--building-color);
+}
 
-<!--.property:not(.highlight):has(.fa-shop)::after {-->
-<!--  border-top: 9px solid var(&#45;&#45;shop-color);-->
-<!--}-->
+/*
+ * Warehouse icon colors.
+ */
+.property.highlight:has(.fa-warehouse) .icon {
+  color: var(--warehouse-color);
+}
+
+.property:not(.highlight):has(.fa-warehouse) {
+  background-color: var(--warehouse-color);
+}
+
+.property:not(.highlight):has(.fa-warehouse)::after {
+  border-top: 9px solid var(--warehouse-color);
+}
+
+/*
+ * Shop icon colors.
+ */
+.property.highlight:has(.fa-shop) .icon {
+  color: var(--shop-color);
+}
+
+.property:not(.highlight):has(.fa-shop) {
+  background-color: var(--shop-color);
+}
+
+.property:not(.highlight):has(.fa-shop)::after {
+  border-top: 9px solid var(--shop-color);
+}
 
 
-<!--</style>-->
+</style>
+```
