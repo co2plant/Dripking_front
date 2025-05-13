@@ -8,7 +8,7 @@ import AlcoholList from "@/views/AlcoholList.vue";
 import AlcoholDetail from "@/views/AlcoholDetail.vue";
 import SearchedList from "@/views/SearchedList.vue";
 import TripModify from "@/views/TripModify.vue";
-// import Map from  "@/components/map.vue";
+import Map from  "@/components/map.vue";
 import EditUserDetail from "@/views/EditUserDetail.vue"
 import Dashboard from "@/views/admin/Dashboard.vue";
 import UserDashboard from "@/views/admin/UserDashboard.vue";
