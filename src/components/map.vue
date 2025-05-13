@@ -16,7 +16,7 @@ const googleMapsLoaded = ref(false);
 
 // 중요: 'YOUR_API_KEY'를 실제 Google Maps API 키로 교체하세요.
 // 이 키는 Maps JavaScript API와 Directions API가 활성화되어 있어야 합니다.
-const apiKey = "AIzaSyC5om4s67lgDpGWdu6JIKKux2YAbHXAGHw";
+const apiKey = "";
 
 function loadGoogleMaps() {
   return new Promise((resolve, reject) => {
