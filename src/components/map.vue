@@ -1,13 +1,20 @@
 <template>
-  <div id="map" ref="mapRefElement"></div>
+  <div class="bg-white rounded-lg shadow p-6 mb-6 w-full h-screen" id="map" ref="mapRefElement"></div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
+// import {useTripStore} from "@/stores/useTripStore";
+// import {usePlanStore} from "@/stores/usePlanStore";
 
 const mapRefElement = ref(null);
 let mapInstance = null;
-const apiKey = "";
+const apiKey = process.env.VUE_APP_GOOGLE_MAPS_API_KEY;
+
+const map_center = {
+  lat: 37.43238031167444,
+  lng: -122.16795397128632,
+}
 
 function loadGoogleMapsAPI() {
   return new Promise((resolve, reject) => {
@@ -24,7 +31,7 @@ function loadGoogleMapsAPI() {
 
     const script = document.createElement('script');
 
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=${callbackName}&libraries=maps`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=${callbackName}&libraries=maps,marker`;
     script.async = true;
     script.defer = true;
     document.head.appendChild(script);
@@ -48,7 +55,7 @@ async function initMap() {
     const { AdvancedMarkerElement } = await googleMaps.importLibrary("marker");
 
     mapInstance = new Map(mapRefElement.value, {
-      center: { lat: 37.43238031167444, lng: -122.16795397128632 },
+      center: { lat: map_center.lat, lng: map_center.lng },
       zoom: 12,
       mapId: "4504f8b37365c3d0",
     });
@@ -259,11 +266,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-#map {
-  width: 100%;
-  height: 400px;
-  background-color: #f0f0f0;
-}
 
 :root {
   --building-color: #FF9800;
