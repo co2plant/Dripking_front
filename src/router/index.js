@@ -8,7 +8,6 @@ import AlcoholList from "@/views/AlcoholList.vue";
 import AlcoholDetail from "@/views/AlcoholDetail.vue";
 import SearchedList from "@/views/SearchedList.vue";
 import TripModify from "@/views/TripModify.vue";
-import Map from  "@/components/map.vue";
 import EditUserDetail from "@/views/EditUserDetail.vue"
 import Dashboard from "@/views/admin/Dashboard.vue";
 import UserDashboard from "@/views/admin/UserDashboard.vue";
@@ -26,7 +25,6 @@ const routes = [
     { path: '/alcohol/:id', name: 'alcoholDetail', component: AlcoholDetail, meta:{requiredGuest : true} },
     { path: '/search/:dtype', name: 'searchList', component: SearchedList, meta:{requiredGuest : true}}, //현재는 미사용(검색기능 추가 시 사용할 예정)
     { path: '/trip/:id', name:'tripModify', component: TripModify, meta:{requiredGuest : true}},
-    { path: '/map', name:'map', component: Map, meta:{requiredGuest : true}},
     { path: '/editUserDetail', name:'editUserDetail', component: EditUserDetail, meta:{requiredUser : true}},
     { path: '/dashboard', name:'dashboard', component: Dashboard, meta:{requiredGuest : true}},
     { path: '/userDashboard', name:'userDashboard', component: UserDashboard, meta:{requiredGuest : true}},
