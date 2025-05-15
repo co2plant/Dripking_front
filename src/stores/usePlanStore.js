@@ -15,7 +15,6 @@ export const usePlanStore = defineStore('plan', {
             if(this.Plans.length !== 0){
                 localStorage.setItem('Plans', JSON.stringify(this.Plans));
             }
-
         },
         addPlan(newPlan){
             if(newPlan!==null){

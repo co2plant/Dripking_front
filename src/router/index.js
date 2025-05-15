@@ -12,8 +12,9 @@ import EditUserDetail from "@/views/EditUserDetail.vue"
 import Dashboard from "@/views/admin/Dashboard.vue";
 import UserDashboard from "@/views/admin/UserDashboard.vue";
 import ProductsFormView from "@/views/admin/ProductsFormView.vue";
-import {useAuthStore} from "@/stores/useAuthStore";
 import DestinationDashboard from '@/views/admin/DestinationDashboard.vue';
+
+import {useAuthStore} from "@/stores/useAuthStore";
 
 const routes = [
     { path: '/', name: 'Home', component: Landing },

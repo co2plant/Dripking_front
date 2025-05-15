@@ -1,5 +1,4 @@
 <template>
-  <!-- 여행 요약 정보 섹션 -->
   <div class="bg-white rounded-lg shadow p-6 mb-6">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div class="space-y-2">
@@ -34,7 +33,6 @@
         </button>
       </div>
     </div>
-    <!-- 여행 통계 -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-zinc-100">
       <div class="text-center">
         <p class="text-2xl font-bold text-amber-400">{{ trip.getDuration() }} 일</p>
