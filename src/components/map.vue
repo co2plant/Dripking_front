@@ -3,17 +3,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-// import {useTripStore} from "@/stores/useTripStore";
-// import {usePlanStore} from "@/stores/usePlanStore";
+import { ref, onMounted, defineProps } from 'vue';
+import { useTripStore } from "@/stores/useTripStore";
+import { usePlanStore } from "@/stores/usePlanStore";
+import { apiService } from "@/services/api";
+
+const props = defineProps({
+  tripId: {
+    type: String,
+    required: true
+  }
+})
+
+const tripStore = useTripStore();
+const planStore = usePlanStore();
 
 const mapRefElement = ref(null);
 let mapInstance = null;
 const apiKey = process.env.VUE_APP_GOOGLE_MAPS_API_KEY;
 
-const map_center = {
+const map_center = ref({
   lat: 37.43238031167444,
   lng: -122.16795397128632,
+});
+function getMapCenterByFirstPlace(){
+  apiService.get(`trips/${props.tripId}/places`)
+    .then(response => {
+      const firstPlace = response.data[0];
+      map_center.value = {
+        lat: firstPlace.lat,
+        lng: firstPlace.lng
+      };
+    })
+    .catch(error => {
+      console.error("Error fetching places:", error);
+    });
 }
 
 function loadGoogleMapsAPI() {
@@ -55,11 +79,10 @@ async function initMap() {
     const { AdvancedMarkerElement } = await googleMaps.importLibrary("marker");
 
     mapInstance = new Map(mapRefElement.value, {
-      center: { lat: map_center.lat, lng: map_center.lng },
+      center: { lat: map_center.value.lat, lng: map_center.value.lng },
       zoom: 12,
       mapId: "4504f8b37365c3d0",
     });
-    console.log("Map initialized:", mapInstance);
 
     for (const property of properties) {
       const advancedMarkerElement = new AdvancedMarkerElement({
@@ -69,7 +92,7 @@ async function initMap() {
         title: property.description,
       });
 
-      advancedMarkerElement.addListener("click", () => {
+      advancedMarkerElement.addListener("gmp-click", () => {
         toggleHighlight(advancedMarkerElement);
       });
     }
@@ -260,6 +283,17 @@ const properties = [
 
 
 onMounted(() => {
+  planStore.loadPlans();
+  tripStore.loadTrips();
+  getMapCenterByFirstPlace();
+
+  if (planStore.plan && planStore.plan.length > 0) {
+    map_center.value = {
+      lat: planStore.plan[0].place_id,
+      lng: planStore.plan[0].lng
+    }
+  }
+
   initMap();
 });
 
