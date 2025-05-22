@@ -1,6 +1,8 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export default class Trip {
     constructor(){
-        this.id = 'T' + Date.now().toString();
+        this.id = uuidv4();
         this.name = null;
         this.description = null;
         this.start_date = null;

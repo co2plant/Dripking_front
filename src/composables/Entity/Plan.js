@@ -1,12 +1,15 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export default class Plan{
     constructor(){
-        this.id = 'P' + Date.now().toString();
+        this.id = uuidv4();
         this.name = null;
         this.description = null;
         this.plan_date = null;
         this.start_time = null;
         this.end_time = null;
         this.place_id = null;
+        this.item_type = null;
         this.trip_id = -1;
     }
 
