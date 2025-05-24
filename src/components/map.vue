@@ -20,7 +20,7 @@ const planStore = usePlanStore();
 
 const mapRefElement = ref(null);
 let mapInstance = null;
-const apiKey = process.env.VUE_APP_GOOGLE_MAPS_API_KEY;
+const apiKey = process.env.VUE_APP_GOOGLE_MAPS_API;
 
 const map_center = ref({
   lat: 37.43238031167444,
