@@ -144,7 +144,7 @@ const tripStore = useTripStore();
 const wishStore = useWishStore();
 const planStore = usePlanStore();
 
-const trip = tripStore.findTripById((props.tripId).toString());
+let trip = tripStore.findTripById((props.tripId).toString());
 const isEditing = ref(false);
 const editingTrip = ref({});
 
@@ -169,6 +169,8 @@ const saveTrip = async () => {
     } catch (error) {
       console.error('여행 정보 수정 중 오류 발생:', error);
       alert('여행 정보 수정 중 오류가 발생했습니다.');
+    } finally {
+      trip = tripStore.findTripById((props.tripId).toString());
     }
   }
 }
