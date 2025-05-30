@@ -26,6 +26,7 @@ const map_center = ref({
   lat: 37.43238031167444,
   lng: -122.16795397128632,
 });
+
 function getMapCenterByFirstPlace(){
   apiService.get(`trips/${props.tripId}/places`)
     .then(response => {
@@ -85,199 +86,192 @@ async function initMap() {
     });
 
     for (const property of properties) {
-      const advancedMarkerElement = new AdvancedMarkerElement({
+      const markerContent = buildContent(property);
+      const marker = new AdvancedMarkerElement({
         map: mapInstance,
-        content: buildContent(property),
-        position: property.position,
-        title: property.description,
+        content: markerContent,
+        position: { lat: property.latitude, lng: property.longitude },
+        title: property.name,
       });
 
-      advancedMarkerElement.addListener("gmp-click", () => {
-        toggleHighlight(advancedMarkerElement);
+      marker.addListener("gmp-click", () => {
+        toggleHighlight(marker);
       });
     }
   } catch (error) {
     console.error("지도 초기화 중 오류 발생:", error);
     if (mapRefElement.value) {
-        mapRefElement.value.innerHTML = `<p style="padding: 1em; text-align: center; color: red;">지도를 로드하는 중 오류가 발생했습니다: ${error.message}</p>`;
+      mapRefElement.value.innerHTML = `<p style="padding: 1em; text-align: center; color: red;">지도를 로드하는 중 오류가 발생했습니다: ${error.message}</p>`;
     }
   }
 }
 
 function toggleHighlight(markerView) {
-  if (markerView.content.classList.contains("highlight")) {
-    markerView.content.classList.remove("highlight");
+  const content = markerView.content;
+  const details = content.querySelector('.marker-details');
+  const name = content.querySelector('.marker-name');
+  
+  if (content.classList.contains("highlight")) {
+    content.classList.remove("highlight");
+    details.style.display = 'none';
+    name.style.display = 'block';
     markerView.zIndex = null;
   } else {
-    markerView.content.classList.add("highlight");
+    content.classList.add("highlight");
+    details.style.display = 'block';
+    name.style.display = 'none';
     markerView.zIndex = 1;
   }
 }
 
 function buildContent(property) {
   const content = document.createElement("div");
-
   content.classList.add("property");
+  
+  // 아이콘 클래스 결정
+  let iconClass = 'fa-map-marker';
+  switch(property.itemType) {
+    case 'PLACE':
+      iconClass = 'fa-map-marker';
+      break;
+    case 'DESTINATION':
+      iconClass = 'fa-flag';
+      break;
+    case 'DISTILLERY':
+      iconClass = 'fa-industry';
+      break;
+  }
+  
+  // 기본 상태 (이름만 표시)
   content.innerHTML = `
-    <div class="icon">
-        <i aria-hidden="true" class="fa fa-icon fa-${property.type}" title="${property.type}"></i>
-        <span class="fa-sr-only">${property.type}</span>
+    <div class="marker-content">
+      <i class="fa ${iconClass}"></i>
+      <div class="marker-name">${property.name}</div>
     </div>
-    <div class="details">
-        <div class="price">${property.price}</div>
-        <div class="address">${property.address}</div>
-        <div class="features">
-        <div>
-            <i aria-hidden="true" class="fa fa-bed fa-lg bed" title="bedroom"></i>
-            <span class="fa-sr-only">bedroom</span>
-            <span>${property.bed}</span>
-        </div>
-        <div>
-            <i aria-hidden="true" class="fa fa-bath fa-lg bath" title="bathroom"></i>
-            <span class="fa-sr-only">bathroom</span>
-            <span>${property.bath}</span>
-        </div>
-        <div>
-            <i aria-hidden="true" class="fa fa-ruler fa-lg size" title="size"></i>
-            <span class="fa-sr-only">size</span>
-            <span>${property.size} ft<sup>2</sup></span>
-        </div>
-        </div>
+    <div class="marker-details" style="display: none;">
+      <div class="details-header">
+        <h3>${property.name}</h3>
+        <span class="item-type">${property.itemType}</span>
+      </div>
+      <div class="details-body">
+        <p><strong>주소:</strong> ${property.address || '주소 정보 없음'}</p>
+        <p><strong>설명:</strong> ${property.description || '설명 정보 없음'}</p>
+      </div>
     </div>
-    `;
+  `;
   return content;
 }
 
 const properties = [
   {
-    address: "215 Emily St, MountainView, CA",
+    id: 1,
+    itemType: 'PLACE',
+    name: "Emily St",
+    latitude: 37.50024109655184,
+    longitude: -122.28528451834352,
     description: "Single family house with modern design",
-    price: "$ 3,889,000",
-    type: "home",
-    bed: 5,
-    bath: 4.5,
-    size: 300,
-    position: {
-      lat: 37.50024109655184,
-      lng: -122.28528451834352,
-    },
+    address: "215 Emily St, MountainView, CA",
+    img_url: null,
+    plan_id: -1
   },
   {
-    address: "108 Squirrel Ln &#128063;, Menlo Park, CA",
+    id: 2,
+    itemType: 'DESTINATION',
+    name: "Squirrel Ln",
+    latitude: 37.44440882321596,
+    longitude: -122.2160620727,
     description: "Townhouse with friendly neighbors",
-    price: "$ 3,050,000",
-    type: "building",
-    bed: 4,
-    bath: 3,
-    size: 200,
-    position: {
-      lat: 37.44440882321596,
-      lng: -122.2160620727,
-    },
+    address: "108 Squirrel Ln, Menlo Park, CA",
+    img_url: null,
+    plan_id: -1
   },
   {
-    address: "100 Chris St, Portola Valley, CA",
+    id: 3,
+    itemType: 'DISTILLERY',
+    name: "Chris St",
+    latitude: 37.39561833718522,
+    longitude: -122.21855116258479,
     description: "Spacious warehouse great for small business",
-    price: "$ 3,125,000",
-    type: "warehouse",
-    bed: 4,
-    bath: 4,
-    size: 800,
-    position: {
-      lat: 37.39561833718522,
-      lng: -122.21855116258479,
-    },
+    address: "100 Chris St, Portola Valley, CA",
+    img_url: null,
+    plan_id: -1
   },
   {
-    address: "98 Aleh Ave, Palo Alto, CA",
+    id: 4,
+    itemType: 'PLACE',
+    name: "Aleh Ave",
+    latitude: 37.423928529779644,
+    longitude: -122.1087629822001,
     description: "A lovely store on busy road",
-    price: "$ 4,225,000",
-    type: "store-alt",
-    bed: 2,
-    bath: 1,
-    size: 210,
-    position: {
-      lat: 37.423928529779644,
-      lng: -122.1087629822001,
-    },
+    address: "98 Aleh Ave, Palo Alto, CA",
+    img_url: null,
+    plan_id: -1
   },
   {
-    address: "2117 Su St, MountainView, CA",
+    id: 5,
+    itemType: 'PLACE',
+    name: "Su St",
+    latitude: 37.40578635332598,
+    longitude: -122.15043378466069,
     description: "Single family house near golf club",
-    price: "$ 1,700,000",
-    type: "home",
-    bed: 4,
-    bath: 3,
-    size: 200,
-    position: {
-      lat: 37.40578635332598,
-      lng: -122.15043378466069,
-    },
+    address: "2117 Su St, MountainView, CA",
+    img_url: null,
+    plan_id: -1
   },
   {
-    address: "197 Alicia Dr, Santa Clara, CA",
+    id: 6,
+    itemType: 'PLACE',
+    name: "Alicia Dr",
+    latitude: 37.36399747905774,
+    longitude: -122.10465384268522,
     description: "Multifloor large warehouse",
-    price: "$ 5,000,000",
-    type: "warehouse",
-    bed: 5,
-    bath: 4,
-    size: 700,
-    position: {
-      lat: 37.36399747905774,
-      lng: -122.10465384268522,
-    },
+    address: "197 Alicia Dr, Santa Clara, CA",
+    img_url: null,
+    plan_id: -1
   },
   {
-    address: "700 Jose Ave, Sunnyvale, CA",
+    id: 7,
+    itemType: 'PLACE',
+    name: "Jose Ave",
+    latitude: 37.38343706184458,
+    longitude: -122.02340436985183,
     description: "3 storey townhouse with 2 car garage",
-    price: "$ 3,850,000",
-    type: "building",
-    bed: 4,
-    bath: 4,
-    size: 600,
-    position: {
-      lat: 37.38343706184458,
-      lng: -122.02340436985183,
-    },
+    address: "700 Jose Ave, Sunnyvale, CA",
+    img_url: null,
+    plan_id: -1
   },
   {
-    address: "868 Will Ct, Cupertino, CA",
+    id: 8,
+    itemType: 'PLACE',
+    name: "Will Ct",
+    latitude: 37.34576403052,
+    longitude: -122.04455090047453,
     description: "Single family house in great school zone",
-    price: "$ 2,500,000",
-    type: "home",
-    bed: 3,
-    bath: 2,
-    size: 100,
-    position: {
-      lat: 37.34576403052,
-      lng: -122.04455090047453,
-    },
+    address: "868 Will Ct, Cupertino, CA",
+    img_url: null,
+    plan_id: -1
   },
   {
-    address: "655 Haylee St, Santa Clara, CA",
+    id: 9,
+    itemType: 'PLACE',
+    name: "Haylee St",
+    latitude: 37.362863347890716,
+    longitude: -121.97802139023555,
     description: "2 storey store with large storage room",
-    price: "$ 2,500,000",
-    type: "store-alt",
-    bed: 3,
-    bath: 2,
-    size: 450,
-    position: {
-      lat: 37.362863347890716,
-      lng: -121.97802139023555,
-    },
+    address: "655 Haylee St, Santa Clara, CA",
+    img_url: null,
+    plan_id: -1
   },
   {
-    address: "2019 Natasha Dr, San Jose, CA",
+    id: 10,
+    itemType: 'PLACE',
+    name: "Natasha Dr",
+    latitude: 37.41391636421949,
+    longitude: -121.94592071575907,
     description: "Single family house",
-    price: "$ 2,325,000",
-    type: "home",
-    bed: 4,
-    bath: 3.5,
-    size: 500,
-    position: {
-      lat: 37.41391636421949,
-      lng: -121.94592071575907,
-    },
+    address: "2019 Natasha Dr, San Jose, CA",
+    img_url: null,
+    plan_id: -1
   },
 ];
 
@@ -390,16 +384,15 @@ onMounted(() => {
  * Property styles in highlighted state.
  */
 .property.highlight {
-  background-color: #FFFFFF;
-  border-radius: 8px;
-  box-shadow: 10px 10px 5px rgba(0, 0, 0, 0.2);
-  height: 80px;
-  padding: 8px 15px;
+  background-color: transparent;
+  box-shadow: none;
+  height: auto;
   width: auto;
+  padding: 0;
 }
 
 .property.highlight::after {
-  border-top: 9px solid #FFFFFF;
+  display: none;
 }
 
 .property.highlight .details {
@@ -481,6 +474,71 @@ onMounted(() => {
 
 .property:not(.highlight):has(.fa-shop)::after {
   border-top: 9px solid var(--shop-color);
+}
+
+.marker-content {
+  background-color: #263238;
+  border-radius: 4px;
+  padding: 4px 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  min-width: 100px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.marker-content i {
+  color: #4285F4;
+  font-size: 16px;
+}
+
+.marker-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  max-width: 150px;
+}
+
+.marker-details {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  min-width: 200px;
+  max-width: 300px;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.item-type {
+  font-size: 12px;
+  color: #666;
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.details-body {
+  font-size: 14px;
+  color: #666;
+}
+
+.details-body p {
+  margin: 4px 0;
 }
 
 </style>
