@@ -128,30 +128,34 @@ function buildContent(property) {
   const content = document.createElement("div");
   content.classList.add("property");
   
-  // 아이콘 클래스 결정
+  // 아이콘 클래스와 배경색 결정
   let iconClass = 'fa-map-marker';
+  let bgColor = '#4285F4'; // 기본 색상
   switch(property.itemType) {
     case 'PLACE':
       iconClass = 'fa-map-marker';
+      bgColor = '#4285F4'; // Google Blue
       break;
     case 'DESTINATION':
       iconClass = 'fa-flag';
+      bgColor = '#34A853'; // Google Green
       break;
     case 'DISTILLERY':
       iconClass = 'fa-industry';
+      bgColor = '#EA4335'; // Google Red
       break;
   }
   
   // 기본 상태 (이름만 표시)
   content.innerHTML = `
-    <div class="marker-content">
+    <div class="marker-content" style="background-color: ${bgColor}">
       <i class="fa ${iconClass}"></i>
       <div class="marker-name">${property.name}</div>
     </div>
     <div class="marker-details" style="display: none;">
       <div class="details-header">
         <h3>${property.name}</h3>
-        <span class="item-type">${property.itemType}</span>
+        <span class="item-type" style="background-color: ${bgColor}">${property.itemType}</span>
       </div>
       <div class="details-body">
         <p><strong>주소:</strong> ${property.address || '주소 정보 없음'}</p>
@@ -477,7 +481,6 @@ onMounted(() => {
 }
 
 .marker-content {
-  background-color: #263238;
   border-radius: 4px;
   padding: 4px 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -489,17 +492,18 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
+  transition: all 0.3s ease;
 }
 
 .marker-content i {
-  color: #4285F4;
+  color: #FFFFFF;
   font-size: 16px;
 }
 
 .marker-name {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: #FFFFFF;
   max-width: 150px;
 }
 
@@ -524,21 +528,21 @@ onMounted(() => {
   margin-bottom: 8px;
 }
 
+.details-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+}
+
 .item-type {
   font-size: 12px;
-  color: #666;
-  background-color: #f0f0f0;
+  color: #FFFFFF;
   padding: 2px 6px;
   border-radius: 4px;
 }
 
-.details-body {
-  font-size: 14px;
-  color: #666;
-}
-
-.details-body p {
-  margin: 4px 0;
+.property.highlight .marker-content {
+  transform: scale(1.1);
 }
 
 </style>
