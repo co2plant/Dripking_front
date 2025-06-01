@@ -78,15 +78,17 @@ async function initMap() {
     const googleMaps = await loadGoogleMapsAPI();
     const { Map } = await googleMaps.importLibrary("maps");
     const { AdvancedMarkerElement } = await googleMaps.importLibrary("marker");
+    const center = { lat: map_center.value.lat, lng: map_center.value.lng };
 
     mapInstance = new Map(mapRefElement.value, {
-      center: { lat: map_center.value.lat, lng: map_center.value.lng },
-      zoom: 12,
+      center,
+      zoom: 11,
       mapId: "4504f8b37365c3d0",
     });
 
+    let number = 0;
     for (const property of properties) {
-      const markerContent = buildContent(property);
+      const markerContent = buildContent(property, number++);
       const marker = new AdvancedMarkerElement({
         map: mapInstance,
         content: markerContent,
@@ -94,7 +96,7 @@ async function initMap() {
         title: property.name,
       });
 
-      marker.addListener("gmp-click", () => {
+      markerContent.addEventListener("click", () => {
         toggleHighlight(marker);
       });
     }
@@ -108,59 +110,38 @@ async function initMap() {
 
 function toggleHighlight(markerView) {
   const content = markerView.content;
-  const details = content.querySelector('.marker-details');
-  const name = content.querySelector('.marker-name');
   
   if (content.classList.contains("highlight")) {
     content.classList.remove("highlight");
-    details.style.display = 'none';
-    name.style.display = 'block';
     markerView.zIndex = null;
   } else {
     content.classList.add("highlight");
-    details.style.display = 'block';
-    name.style.display = 'none';
     markerView.zIndex = 1;
   }
 }
 
-function buildContent(property) {
+function buildContent(property, number) {
   const content = document.createElement("div");
   content.classList.add("property");
   
-  // 아이콘 클래스와 배경색 결정
-  let iconClass = 'fa-map-marker';
-  let bgColor = '#4285F4'; // 기본 색상
-  switch(property.itemType) {
-    case 'PLACE':
-      iconClass = 'fa-map-marker';
-      bgColor = '#4285F4'; // Google Blue
-      break;
-    case 'DESTINATION':
-      iconClass = 'fa-flag';
-      bgColor = '#34A853'; // Google Green
-      break;
-    case 'DISTILLERY':
-      iconClass = 'fa-industry';
-      bgColor = '#EA4335'; // Google Red
-      break;
-  }
-  
-  // 기본 상태 (이름만 표시)
   content.innerHTML = `
-    <div class="marker-content" style="background-color: ${bgColor}">
-      <i class="fa ${iconClass}"></i>
-      <div class="marker-name">${property.name}</div>
+    <div class="icon">
+        <span aria-hidden="true">${number}</span>
     </div>
-    <div class="marker-details" style="display: none;">
-      <div class="details-header">
-        <h3>${property.name}</h3>
-        <span class="item-type" style="background-color: ${bgColor}">${property.itemType}</span>
-      </div>
-      <div class="details-body">
-        <p><strong>주소:</strong> ${property.address || '주소 정보 없음'}</p>
-        <p><strong>설명:</strong> ${property.description || '설명 정보 없음'}</p>
-      </div>
+    <div class="details">
+        <div class="price">${property.name}</div>
+        <div class="address">${property.address}</div>
+        <div class="features">
+        <div>
+            <i aria-hidden="true" class="fa fa-calendar fa-lg bath" title="bathroom"></i>
+            <span class="fa-sr-only">bathroom</span>
+            <span>${property.bath}</span>
+        </div>
+        <div>
+            <i aria-hidden="true" class="fa fa-clock fa-lg size" title="size"></i>
+            <span class="fa-sr-only">size</span>
+            <span>${property.size} ft<sup>2</sup></span>
+        </div>
     </div>
   `;
   return content;
@@ -298,251 +279,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
-:root {
-  --building-color: #FF9800;
-  --house-color: #0288D1;
-  --shop-color: #7B1FA2;
-  --warehouse-color: #558B2F;
-}
-
-/*
- * Property styles in unhighlighted state.
- */
-.property {
-  align-items: center;
-  background-color: #FFFFFF;
-  border-radius: 50%;
-  color: #263238;
-  display: flex;
-  font-size: 14px;
-  gap: 15px;
-  height: 30px;
-  justify-content: center;
-  padding: 4px;
-  position: relative;
-  position: relative;
-  transition: all 0.3s ease-out;
-  width: 30px;
-}
-
-.property::after {
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-top: 9px solid #FFFFFF;
-  content: "";
-  height: 0;
-  left: 50%;
-  position: absolute;
-  top: 95%;
-  transform: translate(-50%, 0);
-  transition: all 0.3s ease-out;
-  width: 0;
-  z-index: 1;
-}
-
-.property .icon {
-  align-items: center;
-  display: flex;
-  justify-content: center;
-  color: #FFFFFF;
-}
-
-.property .icon svg {
-  height: 20px;
-  width: auto;
-}
-
-.property .details {
-  display: none;
-  flex-direction: column;
-  flex: 1;
-}
-
-.property .address {
-  color: #9E9E9E;
-  font-size: 10px;
-  margin-bottom: 10px;
-  margin-top: 5px;
-}
-
-.property .features {
-  align-items: flex-end;
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-}
-
-.property .features > div {
-  align-items: center;
-  background: #F5F5F5;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  display: flex;
-  font-size: 10px;
-  gap: 5px;
-  padding: 5px;
-}
-
-/*
- * Property styles in highlighted state.
- */
-.property.highlight {
-  background-color: transparent;
-  box-shadow: none;
-  height: auto;
-  width: auto;
-  padding: 0;
-}
-
-.property.highlight::after {
-  display: none;
-}
-
-.property.highlight .details {
-  display: flex;
-}
-
-.property.highlight .icon svg {
-  width: 50px;
-  height: 50px;
-}
-
-.property .bed {
-  color: #FFA000;
-}
-
-.property .bath {
-  color: #03A9F4;
-}
-
-.property .size {
-  color: #388E3C;
-}
-
-/*
- * House icon colors.
- */
-.property.highlight:has(.fa-house) .icon {
-  color: var(--house-color);
-}
-
-.property:not(.highlight):has(.fa-house) {
-  background-color: var(--house-color);
-}
-
-.property:not(.highlight):has(.fa-house)::after {
-  border-top: 9px solid var(--house-color);
-}
-
-/*
- * Building icon colors.
- */
-.property.highlight:has(.fa-building) .icon {
-  color: var(--building-color);
-}
-
-.property:not(.highlight):has(.fa-building) {
-  background-color: var(--building-color);
-}
-
-.property:not(.highlight):has(.fa-building)::after {
-  border-top: 9px solid var(--building-color);
-}
-
-/*
- * Warehouse icon colors.
- */
-.property.highlight:has(.fa-warehouse) .icon {
-  color: var(--warehouse-color);
-}
-
-.property:not(.highlight):has(.fa-warehouse) {
-  background-color: var(--warehouse-color);
-}
-
-.property:not(.highlight):has(.fa-warehouse)::after {
-  border-top: 9px solid var(--warehouse-color);
-}
-
-/*
- * Shop icon colors.
- */
-.property.highlight:has(.fa-shop) .icon {
-  color: var(--shop-color);
-}
-
-.property:not(.highlight):has(.fa-shop) {
-  background-color: var(--shop-color);
-}
-
-.property:not(.highlight):has(.fa-shop)::after {
-  border-top: 9px solid var(--shop-color);
-}
-
-.marker-content {
-  border-radius: 4px;
-  padding: 4px 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  min-width: 100px;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.3s ease;
-}
-
-.marker-content i {
-  color: #FFFFFF;
-  font-size: 16px;
-}
-
-.marker-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #FFFFFF;
-  max-width: 150px;
-}
-
-.marker-details {
-  background-color: #FFFFFF;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  min-width: 200px;
-  max-width: 300px;
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-bottom: 8px;
-}
-
-.details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.details-header h3 {
-  margin: 0;
-  color: #333;
-  font-size: 16px;
-}
-
-.item-type {
-  font-size: 12px;
-  color: #FFFFFF;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.property.highlight .marker-content {
-  transform: scale(1.1);
-}
-
+@import "../../public/assets/css/googleMap.css";
 </style>
