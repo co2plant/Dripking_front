@@ -3,6 +3,7 @@
     --house-color: #0288D1;
     --shop-color: #7B1FA2;
     --warehouse-color: #558B2F;
+    --number-color: #FF9800;
   }
   
   /*
@@ -127,18 +128,29 @@
     height: 50px;
   }
   
-  .property .bed {
+  .property .clock {
     color: #FFA000;
   }
   
-  .property .bath {
+  .property .calendar {
     color: #03A9F4;
   }
   
-  .property .size {
-    color: #388E3C;
+  /*
+   * Number Marker colors.
+   */
+  .property.highlight:has(.number) .icon {
+    color: var(--number-color);
   }
   
+  .property:not(.highlight):has(.number) {
+    background-color: var(--number-color);
+  }
+  
+  .property:not(.highlight):has(.number)::after {
+    border-top: 9px solid var(--number-color);
+  }
+
   /*
    * House icon colors.
    */

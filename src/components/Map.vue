@@ -126,21 +126,27 @@ function buildContent(property, number) {
   
   content.innerHTML = `
     <div class="icon">
-        <span aria-hidden="true">${number}</span>
+        <i class="number" aria-hidden="true" title="${number+"번째여행"}">${number}</i>
+        <span class="sr-only">${property.type}</span>
     </div>
     <div class="details">
         <div class="price">${property.name}</div>
         <div class="address">${property.address}</div>
         <div class="features">
         <div>
-            <i aria-hidden="true" class="fa fa-calendar fa-lg bath" title="bathroom"></i>
-            <span class="fa-sr-only">bathroom</span>
-            <span>${property.bath}</span>
+            <i aria-hidden="true" class="fa fa-solid fa-calendar fa-lg calendar" title="date"></i>
+            <span class="sr-only">date</span>
+            <span>${property.date}</span>
         </div>
         <div>
-            <i aria-hidden="true" class="fa fa-clock fa-lg size" title="size"></i>
-            <span class="fa-sr-only">size</span>
-            <span>${property.size} ft<sup>2</sup></span>
+            <i aria-hidden="true" class="fa fa-solid fa-clock fa-lg clock" title="starttime"></i>
+            <span class="sr-only">start time</span>
+            <span>${property.startTime}</span>
+        </div>
+        <div>
+            <i aria-hidden="true" class="fa fa-solid fa-clock fa-lg clock" title="endtime"></i>
+            <span class="sr-only">end time</span>
+            <span>${property.endTime}</span>
         </div>
     </div>
   `;
