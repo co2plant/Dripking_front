@@ -151,7 +151,6 @@ const deleteAllPlansByTripId = (trip_id) => {
   tripStore.removeTrip(trip_id);
   planStore.savePlans();
   tripStore.updateTrip();
-  console.log(trip_id);
 }
 </script>
 
