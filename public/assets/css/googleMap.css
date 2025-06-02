@@ -34,11 +34,11 @@
     border-radius: 50%;
     color: #263238;
     display: flex;
-    font-size: 14px;
+    font-size: 16px;
     gap: 15px;
     height: 30px;
     justify-content: center;
-    padding: 4px;
+    padding: 5px;
     position: relative;
     position: relative;
     transition: all 0.3s ease-out;
@@ -53,7 +53,7 @@
     height: 0;
     left: 50%;
     position: absolute;
-    top: 95%;
+    top: 90%;
     transform: translate(-50%, 0);
     transition: all 0.3s ease-out;
     width: 0;
