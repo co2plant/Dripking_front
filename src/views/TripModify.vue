@@ -80,8 +80,7 @@
                   v-for="item in wishStore.WishItems"
                   :key="item.id"
                   :data-item-id="item.id"
-                  :data-item-name="item.name"
-                  :data-item-description="item.description"
+                  :data-item-type="item.itemType"
                   class="p-3 bg-zinc-50 rounded-lg cursor-move"
               >
                 <div class="flex items-center justify-between">
@@ -281,12 +280,8 @@ onMounted(() => {
     moves: (el) => !el.classList.contains('non-draggable')
   }).on('drop', (el, target) => {
     if (target === planContainer.value) {
-      // 위시리스트에서 플랜으로 아이템 이동 처리
-      addWishItemToPlan({
-        id: el.dataset.itemId,
-        name: el.dataset.itemName,
-        description: el.dataset.itemDescription
-      })
+      const temp_item = wishStore.WishItems.find(wishItem => wishItem.id === parseInt(el.dataset.itemId) && wishItem.itemType === el.dataset.itemType)
+      addWishItemToPlan(temp_item)
       editPlan(currentPlan.value)
       el.remove() // 복사된 엘리먼트 제거
     }
@@ -388,6 +383,7 @@ const deletePlan = (id) => {
 
 // 위시리스트 아이템을 플랜으로 추가
 const addWishItemToPlan = (item) => {
+  console.log('Adding wish item to plan:', item);
   currentPlan.value = new Plan()
       .setName(item.name)
       .setDescription(item.description)
@@ -396,6 +392,11 @@ const addWishItemToPlan = (item) => {
       .setEndTime('18:00')
       .setPlaceId(item.id)
       .setTripId(route.params.id)
+      .setLatitude(typeof item.latitude != "undefined" ? item.latitude : null)
+      .setLongitude(typeof item.longitude != "undefined" ?item.longitude : null)
+      .setPlaceName(typeof item.name != "undefined" ? item.name : null)
+      .setAddress(typeof item.address != "undefined" ? item.address : null)
+      .setItemType(item.itemType)
       .build();
   planStore.addPlan(currentPlan.value)
   planStore.savePlans();
