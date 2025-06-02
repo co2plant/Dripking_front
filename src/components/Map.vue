@@ -126,7 +126,7 @@ function buildContent(property, number) {
   
   content.innerHTML = `
     <div class="icon">
-        <i class="number" aria-hidden="true" title="${number+"번째여행"}">${number}</i>
+        <b class="number" aria-hidden="true" title="${number+"번째여행"}">${number}</b>
         <span class="sr-only">${property.type}</span>
     </div>
     <div class="details">
