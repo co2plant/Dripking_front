@@ -28,7 +28,7 @@
                     ? 'bg-zinc-900 text-white duration-600 hover:bg-amber-400 hover:text-zinc-900 hover:scale-102'
                     : 'bg-amber-400 text-zinc-900 duration-600 hover:bg-zinc-900 hover:text-white hover:scale-102'"
             >
-              {{ wishStore.isInWishlist(item) ? 'Remove from Wishlist' : 'Add to Wishlist' }}
+              {{ wishStore.isInWishlist(item, props.itemType) ? 'Remove from Wishlist' : 'Add to Wishlist' }}
             </button>
           </div>
         </div>
