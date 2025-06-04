@@ -16,6 +16,7 @@ export default class Plan{
         this.longitude = null;
         this.place_name = null;
         this.address = null;
+        this.img_url = null;
         // place에 해당되는 컬럼들
     }
 
