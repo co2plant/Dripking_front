@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto p-4">
     <TripInfoEditor
-      :tripId="route.params.id"
+      :id="route.params.id"
     />
     <div class="bg-white rounded-lg shadow p-6 mb-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-full">
@@ -228,7 +228,7 @@
         </div>
       </div>
     </div>
-    <Map>
+    <Map :id="route.params.id">
     </Map>
   </div>
 </template>

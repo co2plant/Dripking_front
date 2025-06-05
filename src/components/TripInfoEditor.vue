@@ -3,14 +3,14 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div class="space-y-2" style="flex: 1;">
         <div v-if="!isEditing">
-          <h1 class="text-3xl font-bold text-zinc-900">{{ trip.name }}</h1>
-          <p class="text-zinc-600">{{ trip.description }}</p>
+          <h1 class="text-3xl font-bold text-zinc-900">{{ trip?.name }}</h1>
+          <p class="text-zinc-600">{{ trip?.description }}</p>
           <div class="flex items-center text-zinc-700 mt-2">
             <calendar-icon class="w-5 h-5 mr-2 text-amber-400" />
-            <span>{{ trip.start_date }} ~ {{ trip.end_date }}</span>
+            <span>{{ trip?.start_date }} ~ {{ trip?.end_date }}</span>
             <span class="mx-2"></span>
             <map-pin-icon class="w-5 h-5 mr-2 text-amber-400" />
-            <span>{{ trip.country }}</span>
+            <span>{{ trip?.country }}</span>
           </div>
         </div>
         
@@ -104,7 +104,7 @@
         <p class="text-zinc-600 text-sm">총 여행일</p>
       </div>
       <div class="text-center">
-        <p class="text-2xl font-bold text-amber-400">{{ (planStore.Plans.filter(plan => plan.trip_id === props.tripId)).length }}</p>
+        <p class="text-2xl font-bold text-amber-400">{{ (planStore.Plans.filter(plan => plan.trip_id === props.id)).length }}</p>
         <p class="text-zinc-600 text-sm">일정 수</p>
       </div>
       <div class="text-center">
@@ -134,7 +134,7 @@ import {usePlanStore} from "@/stores/usePlanStore";
 import {useTripStore} from "@/stores/useTripStore";
 
 const props = defineProps({
-  tripId: {
+  id: {
     type: String,
     required: true
   }
@@ -144,13 +144,18 @@ const tripStore = useTripStore();
 const wishStore = useWishStore();
 const planStore = usePlanStore();
 
-let trip = tripStore.findTripById((props.tripId).toString());
+const trip = ref();
 const isEditing = ref(false);
 const editingTrip = ref({});
 
 const startEditing = () => {
-  editingTrip.value = JSON.parse(JSON.stringify(trip));
-  isEditing.value = true;
+  if (trip.value) {
+    editingTrip.value = JSON.parse(JSON.stringify(trip.value));
+    isEditing.value = true;
+  } else {
+    alert('여행 정보를 불러올 수 없어 편집할 수 없습니다.');
+    console.error('Cannot start editing because trip data is undefined.');
+  }
 }
 
 const cancelEditing = () => {
@@ -158,9 +163,9 @@ const cancelEditing = () => {
 }
 
 const saveTrip = async () => {
-  if (trip) {
+  if (trip.value) {
     try {
-      const success = await tripStore.updateTrip(trip.id, editingTrip.value);
+      const success = await tripStore.updateTrip(trip.value.id, editingTrip.value);
       if (success) {
         isEditing.value = false;
       } else {
@@ -170,17 +175,17 @@ const saveTrip = async () => {
       console.error('여행 정보 수정 중 오류 발생:', error);
       alert('여행 정보 수정 중 오류가 발생했습니다.');
     } finally {
-      trip = tripStore.findTripById((props.tripId).toString());
+      trip.value = tripStore.findTripById((props.id).toString());
     }
   }
 }
 
 const calculateCompletionPercentage = () => {
-  if (!trip) return 0;
-  
-  const planCount = planStore.Plans.filter(plan => plan.trip_id === props.tripId).length;
-  const duration = trip.getDuration();
-  
+  if (!trip.value) return 0;
+
+  const planCount = planStore.Plans.filter(plan => plan.trip_id === props.id).length;
+  const duration = trip.value.getDuration();
+
   if (duration <= 0) return 0;
   
   const percentage = Math.min(Math.round((planCount / duration) * 100), 100);
@@ -189,6 +194,7 @@ const calculateCompletionPercentage = () => {
 
 onMounted(() => {
   tripStore.loadTrips();
+  trip.value = tripStore.findTripById(props.id);
 })
 </script>
 

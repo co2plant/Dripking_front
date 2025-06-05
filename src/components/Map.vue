@@ -9,7 +9,7 @@ import { usePlanStore } from "@/stores/usePlanStore";
 import { apiService } from "@/services/api";
 
 const props = defineProps({
-  tripId: {
+  id: {
     type: String,
     required: true
   }
@@ -28,7 +28,7 @@ const map_center = ref({
 });
 
 function getMapCenterByFirstPlace(){
-  apiService.get(`trips/${props.tripId}/places`)
+  apiService.get(`trips/${props.id}/places`)
     .then(response => {
       const firstPlace = response.data[0];
       map_center.value = {
