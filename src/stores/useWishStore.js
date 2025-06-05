@@ -15,9 +15,7 @@ export const useWishStore = defineStore('wishlist', {
             }
         },
         saveWishlist(){
-            if(this.WishItems.length !== 0){
-                localStorage.setItem('Wishlist', JSON.stringify(this.WishItems));
-            }
+            localStorage.setItem('Wishlist', JSON.stringify(this.WishItems));
         },
         //현재 사용 X
         addWishItem(newWishItem){
