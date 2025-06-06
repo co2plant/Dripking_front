@@ -124,29 +124,31 @@ function buildContent(property, number) {
   const content = document.createElement("div");
   content.classList.add("property");
   
+  console.log(property);
+
   content.innerHTML = `
     <div class="icon">
         <b class="number" aria-hidden="true" title="${number+"번째여행"}">${number}</b>
         <span class="sr-only">${property.type}</span>
     </div>
     <div class="details">
-        <div class="price">${property.name}</div>
-        <div class="address">${property.address}</div>
+        <div class="price" :v-if="property.name">${property.name}</div>
+        <div class="address" :v-if="property.address">${property.address}</div>
         <div class="features">
-        <div>
+        <div :v-if="property.date">
             <i aria-hidden="true" class="fa fa-solid fa-calendar fa-lg calendar" title="date"></i>
             <span class="sr-only">date</span>
-            <span>${property.date}</span>
+            <span>${property.plan_date}</span>
         </div>
-        <div>
+        <div :v-if="property.startTime">
             <i aria-hidden="true" class="fa fa-solid fa-clock fa-lg clock" title="starttime"></i>
             <span class="sr-only">start time</span>
-            <span>${property.startTime}</span>
+            <span>${property.start_time}</span>
         </div>
-        <div>
+        <div :v-if="property.endTime">
             <i aria-hidden="true" class="fa fa-solid fa-clock fa-lg clock" title="endtime"></i>
             <span class="sr-only">end time</span>
-            <span>${property.endTime}</span>
+            <span>${property.end_time}</span>
         </div>
     </div>
   `;
