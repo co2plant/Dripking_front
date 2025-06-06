@@ -383,7 +383,6 @@ const deletePlan = (id) => {
 
 // 위시리스트 아이템을 플랜으로 추가
 const addWishItemToPlan = (item) => {
-  console.log('Adding wish item to plan:', item);
   currentPlan.value = new Plan()
       .setName(item.name)
       .setDescription(item.description)
