@@ -123,8 +123,6 @@ function toggleHighlight(markerView) {
 function buildContent(property, number) {
   const content = document.createElement("div");
   content.classList.add("property");
-  
-  console.log(property);
 
   content.innerHTML = `
     <div class="icon">
