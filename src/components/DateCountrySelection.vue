@@ -90,7 +90,6 @@ const initStartMinDate = () =>{
 }
 
 const initMinEndDate = (inputTemp) => {
-  console.log(inputTemp)
   const temp = new Date(inputTemp);
   const year = temp.getFullYear();
   const month = ('0' + (temp.getMonth() + 1)).slice(-2);

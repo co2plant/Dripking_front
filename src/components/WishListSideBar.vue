@@ -92,7 +92,7 @@
                     <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
                   </div>
                   <button
-                      @click="wishStore.toggleWishlist(item)"
+                      @click="wishStore.toggleWishlist(item, item.itemType)"
                       class="text-zinc-900 hover:text-red-500 transition-colors"
                   >
                     <TrashIcon class="h-5 w-5"/>
@@ -151,7 +151,6 @@ const deleteAllPlansByTripId = (trip_id) => {
   tripStore.removeTrip(trip_id);
   planStore.savePlans();
   tripStore.updateTrip();
-  console.log(trip_id);
 }
 </script>
 

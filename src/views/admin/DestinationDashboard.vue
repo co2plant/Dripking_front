@@ -179,7 +179,7 @@
                     type="range"
                     v-model.number="formData.popularity"
                     min="0"
-                    max="10"
+                    max="5"
                     step="0.1"
                     class="w-full"
                 />
@@ -235,52 +235,41 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { MoreHorizontal, Pencil, Trash2, MapPin } from 'lucide-vue-next';
+import { apiService } from "@/services/api";
 
-// 목적지 데이터
-const destinations = ref([
-  {
-    id: "1",
-    name: "에펠탑",
-    country: "프랑스",
-    city: "파리",
-    category: "명소",
-    popularity: 9.8,
-  },
-  {
-    id: "2",
-    name: "콜로세움",
-    country: "이탈리아",
-    city: "로마",
-    category: "역사",
-    popularity: 9.5,
-  },
-  {
-    id: "3",
-    name: "경복궁",
-    country: "대한민국",
-    city: "서울",
-    category: "역사",
-    popularity: 8.7,
-  },
-  {
-    id: "4",
-    name: "시드니 오페라 하우스",
-    country: "호주",
-    city: "시드니",
-    category: "명소",
-    popularity: 9.2,
-  },
-  {
-    id: "5",
-    name: "그랜드 캐니언",
-    country: "미국",
-    city: "애리조나",
-    category: "자연",
-    popularity: 9.6,
-  },
-]);
+const destinations = ref([]);
+const currentPage = ref(1);
+const pageSize = ref(5);
+const totalPages = computed(() => Math.ceil(filteredDestinations.value.length / pageSize.value));
+
+onMounted(async () => {
+  try {
+    const response = await apiService.get(`dashboard/destinations`);
+    
+    destinations.value = response;
+    
+    if (response) {
+      if (response.content) {
+        destinations.value = response.content;
+        pageSize.value = response.totalPages;
+      } else if (Array.isArray(response)) {
+        destinations.value = response;
+      } else {
+        destinations.value = response;
+      }
+    } else {
+      console.error("API 응답이 예상과 다릅니다:", response);
+      destinations.value = [];
+      pageSize.value = 0;
+    }
+  } catch (error) {
+    console.error("Error fetching destinations:", error);
+    destinations.value = [];
+    pageSize.value = 0;
+  }
+});
 
 // 테이블 컬럼 정의
 const columns = [
@@ -288,14 +277,11 @@ const columns = [
   { key: 'country', label: '국가' },
   { key: 'city', label: '도시' },
   { key: 'category', label: '카테고리' },
-  { key: 'popularity', label: '인기도' },
+  { key: 'reviewRating', label: '리뷰 점수' },
 ];
 
-// 페이지네이션 상태
-const currentPage = ref(1);
-const pageSize = ref(5);
-const totalPages = computed(() => Math.ceil(filteredDestinations.value.length / pageSize.value));
 
+``
 // 검색 상태
 const searchQuery = ref('');
 const filteredDestinations = computed(() => {
