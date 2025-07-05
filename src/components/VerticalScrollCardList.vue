@@ -172,8 +172,8 @@ const resetItems = () => {
   fetchItems()
 }
 
-watch(() => props.selectedItem, (newValue) => {
-  resetItems(newValue);
+watch(() => props.selectedItem, () => {
+  resetItems();
 })
 
 const retryLoading = () => {
