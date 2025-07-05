@@ -76,11 +76,11 @@ async function initMap() {
 
   try {
     const googleMaps = await loadGoogleMapsAPI();
-    const { Map } = await googleMaps.importLibrary("maps");
+    const { map } = await googleMaps.importLibrary("maps");
     const { AdvancedMarkerElement } = await googleMaps.importLibrary("marker");
     const center = { lat: map_center.value.lat, lng: map_center.value.lng };
 
-    mapInstance = new Map(mapRefElement.value, {
+    mapInstance = new map(mapRefElement.value, {
       center,
       zoom: 11,
       mapId: "4504f8b37365c3d0",
