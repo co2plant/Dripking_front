@@ -130,8 +130,9 @@
 
             <form @submit.prevent="submitForm" class="space-y-4">
               <div class="space-y-2">
-                <label class="text-sm font-medium">이름</label>
+                <label for="destination_name" class="text-sm font-medium">이름</label>
                 <input
+                    id="destination_name"
                     v-model="formData.name"
                     placeholder="목적지 이름"
                     class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
@@ -140,8 +141,9 @@
               </div>
 
               <div class="space-y-2">
-                <label class="text-sm font-medium">국가</label>
+                <label for="destination_country" class="text-sm font-medium">국가</label>
                 <input
+                    id="destination_country"
                     v-model="formData.country"
                     placeholder="국가명"
                     class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
@@ -150,8 +152,9 @@
               </div>
 
               <div class="space-y-2">
-                <label class="text-sm font-medium">도시</label>
+                <label for="destination_city" class="text-sm font-medium">도시</label>
                 <input
+                    id="destination_city"
                     v-model="formData.city"
                     placeholder="도시명"
                     class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
@@ -160,8 +163,9 @@
               </div>
 
               <div class="space-y-2">
-                <label class="text-sm font-medium">카테고리</label>
+                <label for="destination_category" class="text-sm font-medium">카테고리</label>
                 <select
+                    id="destination_category"
                     v-model="formData.category"
                     class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
                 >
@@ -174,8 +178,9 @@
               </div>
 
               <div class="space-y-2">
-                <label class="text-sm font-medium">인기도 ({{ formData.popularity.toFixed(1) }})</label>
+                <label for="destination_rating" class="text-sm font-medium">인기도 ({{ formData.popularity.toFixed(1) }})</label>
                 <input
+                    id="destination_rating"
                     type="range"
                     v-model.number="formData.popularity"
                     min="0"
@@ -281,7 +286,6 @@ const columns = [
 ];
 
 
-``
 // 검색 상태
 const searchQuery = ref('');
 const filteredDestinations = computed(() => {

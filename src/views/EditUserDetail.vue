@@ -67,10 +67,11 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-lg font-medium text-zinc-900 mb-2">
+                <label for="user_name" class="block text-lg font-medium text-zinc-900 mb-2">
                   이름
                 </label>
                 <input
+                    id="user_name"
                     v-model="userProfile.name"
                     type="text"
                     class="w-full py-1 px-4 rounded-2xl border-zinc-300 bg-zinc-100 focus:border-amber-500 focus:ring-amber-500"
@@ -78,10 +79,11 @@
               </div>
 
               <div>
-                <label class="block text-lg font-medium text-zinc-900 mb-2">
+                <label for="user_nickname" class="block text-lg font-medium text-zinc-900 mb-2">
                   닉네임
                 </label>
                 <input
+                    id="user_nickname"
                     v-model="userProfile.nickname"
                     type="text"
                     class="w-full py-1 px-4 rounded-2xl border-zinc-300 bg-zinc-100 focus:border-amber-500 focus:ring-amber-500"
@@ -90,10 +92,11 @@
             </div>
 
             <div>
-              <label class="block text-lg font-medium text-zinc-900 mb-2">
+              <label for="user_email" class="block text-lg font-medium text-zinc-900 mb-2">
                 이메일
               </label>
               <input
+                  id="user_email"
                   v-model="userProfile.email"
                   type="email"
                   disabled
@@ -108,10 +111,11 @@
             <h3 class="text-xl font-bold text-zinc-900 mb-4 pb-2 border-b border-zinc-200">비밀번호 변경</h3>
 
             <div>
-              <label class="block text-ls font-medium text-zinc-900 mb-2">
+              <label for="user_currentPassword" class="block text-ls font-medium text-zinc-900 mb-2">
                 현재 비밀번호
               </label>
               <input
+                  id="user_currentPassword"
                   v-model="passwordForm.currentPassword"
                   type="password"
                   class="w-full py-1 px-4 rounded-2xl border-zinc-300 bg-zinc-100 focus:border-amber-500 focus:ring-amber-500"
@@ -119,10 +123,11 @@
             </div>
 
             <div>
-              <label class="block text-ls font-medium text-zinc-900 mb-2">
+              <label for="user_newPassword" class="block text-ls font-medium text-zinc-900 mb-2">
                 새 비밀번호
               </label>
               <input
+                  id="user_newPassword"
                   v-model="passwordForm.newPassword"
                   type="password"
                   class="w-full py-1 px-4 rounded-2xl border-zinc-300 bg-zinc-100 focus:border-amber-500 focus:ring-amber-500"
@@ -131,10 +136,11 @@
             </div>
 
             <div>
-              <label class="block text-ls font-medium text-zinc-900 mb-2">
+              <label for="user_confirmPassword" class="block text-ls font-medium text-zinc-900 mb-2">
                 새 비밀번호 확인
               </label>
               <input
+                  id="user_confirmPassword"
                   v-model="passwordForm.confirmPassword"
                   type="password"
                   class="w-full py-1 px-4 rounded-2xl border-zinc-300 bg-zinc-100 focus:border-amber-500 focus:ring-amber-500"

@@ -124,8 +124,9 @@
 
             <form @submit.prevent="submitForm" class="space-y-4">
               <div class="space-y-2">
-                <label class="text-sm font-medium">이름</label>
+                <label for="user_name" class="text-sm font-medium">이름</label>
                 <input
+                    id="user_name"
                     v-model="formData.name"
                     placeholder="사용자 이름"
                     class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
@@ -134,8 +135,9 @@
               </div>
 
               <div class="space-y-2">
-                <label class="text-sm font-medium">이메일</label>
+                <label for="user_email" class="text-sm font-medium">이메일</label>
                 <input
+                    id="user_email"
                     v-model="formData.email"
                     placeholder="이메일 주소"
                     class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
@@ -144,8 +146,9 @@
               </div>
 
               <div class="space-y-2">
-                <label class="text-sm font-medium">역할</label>
+                <label for="user_role" class="text-sm font-medium">역할</label>
                 <select
+                  id="user_role"
                     v-model="formData.role"
                     class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
                 >
@@ -156,8 +159,9 @@
               </div>
 
               <div class="space-y-2">
-                <label class="text-sm font-medium">상태</label>
+                <label for="user_status" class="text-sm font-medium">상태</label>
                 <select
+                    id="user_status"
                     v-model="formData.status"
                     class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
                 >

@@ -16,8 +16,9 @@
         
         <div v-else class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-zinc-700 mb-1">여행 이름</label>
+            <label for="trip_name" class="block text-sm font-medium text-zinc-700 mb-1">여행 이름</label>
             <input 
+              id="trip_name"
               v-model="editingTrip.name" 
               type="text" 
               class="w-full h-12 px-4 rounded-xl border-2 border-zinc-200 focus:border-amber-400 focus:ring-amber-400 text-lg"
@@ -26,8 +27,9 @@
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-zinc-700 mb-1">설명</label>
+            <label for="trip_description" class="block text-sm font-medium text-zinc-700 mb-1">설명</label>
             <textarea 
+            id="trip_description"
               v-model="editingTrip.description" 
               rows="3"
               class="w-full px-4 py-3 rounded-xl border-2 border-zinc-200 focus:border-amber-400 focus:ring-amber-400 text-lg resize-none"
@@ -37,8 +39,9 @@
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label class="block text-sm font-medium text-zinc-700 mb-1">시작일</label>
+              <label for="trip_startDate" class="block text-sm font-medium text-zinc-700 mb-1">시작일</label>
               <input 
+                id="trip_startDate"
                 v-model="editingTrip.start_date" 
                 type="date" 
                 class="w-full h-12 px-4 rounded-xl border-2 border-zinc-200 focus:border-amber-400 focus:ring-amber-400 text-lg"
@@ -46,8 +49,9 @@
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-zinc-700 mb-1">종료일</label>
+              <label for="trip_EndDate" class="block text-sm font-medium text-zinc-700 mb-1">종료일</label>
               <input 
+                id="trip_endDate"
                 v-model="editingTrip.end_date" 
                 type="date" 
                 class="w-full h-12 px-4 rounded-xl border-2 border-zinc-200 focus:border-amber-400 focus:ring-amber-400 text-lg"
@@ -55,8 +59,9 @@
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-zinc-700 mb-1">국가</label>
+              <label for="trip_country" class="block text-sm font-medium text-zinc-700 mb-1">국가</label>
               <input 
+                id="trip_country"
                 v-model="editingTrip.country" 
                 type="text" 
                 class="w-full h-12 px-4 rounded-xl border-2 border-zinc-200 focus:border-amber-400 focus:ring-amber-400 text-lg"
