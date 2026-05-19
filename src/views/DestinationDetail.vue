@@ -8,7 +8,7 @@
       <Horizontal-scroll-card-list
           :title="'주변 양조장'"
           :toName="'distilleryDetail'"
-          :urlStr="'distilleries/destination?destination='+target_id">
+          :urlStr="'distilleries?destinationId='+target_id">
       </Horizontal-scroll-card-list>
       <VerticalReviewList
           :target_id="target_id"

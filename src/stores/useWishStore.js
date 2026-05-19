@@ -4,6 +4,9 @@ import Distillery from '@/composables/Entity/Distillery'
 import Destination from '@/composables/Entity/Destination'
 import Place from '@/composables/Entity/Place'
 
+const getImageUrl = (item) => item.imgUrl || item.img_url;
+const getPlanId = (item) => item.planId || item.plan_id;
+
 export const useWishStore = defineStore('wishlist', {
     state: () => ({WishItems:[]}),
     getters: {},
@@ -34,8 +37,8 @@ export const useWishStore = defineStore('wishlist', {
                         .setId(item.id)
                         .setName(item.name)
                         .setDescription(item.description)
-                        .setImgUrl(item.img_url)
-                        .setPlanId(item.plan_id)
+                        .setImgUrl(getImageUrl(item))
+                        .setPlanId(getPlanId(item))
                         .build();
                     break;
                 case 'DISTILLERY':
@@ -46,8 +49,8 @@ export const useWishStore = defineStore('wishlist', {
                         .setLongitude(item.longitude)
                         .setAddress(item.address)
                         .setDescription(item.description)
-                        .setImgUrl(item.img_url)
-                        .setPlanID(item.plan_id)
+                        .setImgUrl(getImageUrl(item))
+                        .setPlanID(getPlanId(item))
                         .build();
                     break;
                 case 'DESTINATION':
@@ -57,8 +60,8 @@ export const useWishStore = defineStore('wishlist', {
                         .setLatitude(item.latitude)
                         .setLongitude(item.longitude)
                         .setDescription(item.description)
-                        .setImgUrl(item.img_url)
-                        .setPlanID(item.plan_id)
+                        .setImgUrl(getImageUrl(item))
+                        .setPlanID(getPlanId(item))
                         .build();
                     break;
                 case 'PLACE':
@@ -69,8 +72,8 @@ export const useWishStore = defineStore('wishlist', {
                         .setLongitude(item.longitude)
                         .setAddress(item.address)
                         .setDescription(item.description)
-                        .setImgUrl(item.img_url)
-                        .setPlanID(item.plan_id)
+                        .setImgUrl(getImageUrl(item))
+                        .setPlanID(getPlanId(item))
                         .build();
                     break;
                 default:

@@ -6,7 +6,7 @@
         <div class="flex flex-col md:flex-row">
           <div class="md:w-1/3 relative overflow-hidden group">
             <img
-                :src="item.img_url"
+                :src="getImageUrl(item)"
                 :alt="item.name"
                 class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
             >
@@ -121,6 +121,7 @@ const nextPageIndicator = ref(null)
 const showNextPageIndicator = ref(false)
 const canFetchMore = ref(true)
 const listEndMarker = ref(null)
+const getImageUrl = (item) => item.imgUrl || item.img_url
 
 // Fetch items from the API
 const fetchItems = async () => {
@@ -133,10 +134,10 @@ const fetchItems = async () => {
   try {
     let response
     if(itemTypeEnum[props.itemType] === 'alcohols') {
-      response = await apiService.get(`${itemTypeEnum[props.itemType]}?page=${currentPage.value}&category_id=${props.selectedItem}&size=10&sort=id,desc`)
+      response = await apiService.get(`${itemTypeEnum[props.itemType]}?page=${currentPage.value}&categoryId=${props.selectedItem}&size=10&sort=id,desc`)
     }
     else if(itemTypeEnum[props.itemType] === 'destinations') {
-      response = await apiService.get(`${itemTypeEnum[props.itemType]}?page=${currentPage.value}&country_id=${props.selectedItem}&size=10&sort=id,desc`)
+      response = await apiService.get(`${itemTypeEnum[props.itemType]}?page=${currentPage.value}&countryId=${props.selectedItem}&size=10&sort=id,desc`)
     }
     else{
       response = await apiService.get(`${itemTypeEnum[props.itemType]}?page=${currentPage.value}&size=10&sort=id,desc`)

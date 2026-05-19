@@ -48,8 +48,8 @@ export default class Alcohol{
             .setId(jsonAlcohol.id)
             .setDescription(jsonAlcohol.description)
             .setName(jsonAlcohol.name)
-            .setImgUrl(jsonAlcohol.img_url)
-            .setPlanId(jsonAlcohol.plan_id)
+            .setImgUrl(jsonAlcohol.imgUrl || jsonAlcohol.img_url)
+            .setPlanId(jsonAlcohol.planId || jsonAlcohol.plan_id)
             .build();
     }
 }

@@ -19,7 +19,7 @@
         >
           <div class="relative h-48 overflow-hidden">
             <img
-                :src="item.img_url"
+                :src="getImageUrl(item)"
                 :alt="item.name"
                 class="w-full h-full object-cover"
             />
@@ -41,6 +41,7 @@ import {apiService} from "@/services/api";
 const props = defineProps(['title', 'toName', 'urlStr']);
 const propsRef = ref(props);
 const items = ref([]);
+const getImageUrl = (item) => item.imgUrl || item.img_url;
 
 const scrollContainer = ref(null)
 let isScrolling = false

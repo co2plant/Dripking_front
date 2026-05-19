@@ -101,8 +101,8 @@ const setRating = (value) => {
 
 const submitReview = async () => {
   const reviewData = {
-    target_id: props.target_id,
-    reviewType: props.reviewType,
+    targetId: props.target_id,
+    itemType: props.reviewType,
     rating: rating.value,
     contents: content.value
   }
@@ -112,15 +112,10 @@ const submitReview = async () => {
         ? `reviews/${props.reviewToEdit.id}`
         : 'reviews'
 
-    let response;
     if(isEditing.value){
-      response = await apiService.putWithToken(url, reviewData)
+      await apiService.putWithToken(url, reviewData)
     }else{
-      response = await apiService.postWithToken(url, reviewData)
-    }
-
-    if (!response.ok) {
-      throw new Error('리뷰 제출에 실패했습니다.')
+      await apiService.postWithToken(url, reviewData)
     }
 
     // 폼 초기화

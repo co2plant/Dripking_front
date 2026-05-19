@@ -62,7 +62,7 @@ const fetchReviews = async (page = 0) => {
   isLoading.value = true
   error.value = null
   try {
-    const response = await apiService.get(`reviews?reviewType=${props.reviewType}&target_id=${props.target_id}&page=${page}&size=${pageSize}`)
+    const response = await apiService.get(`reviews?itemType=${props.reviewType}&targetId=${props.target_id}&page=${page}&size=${pageSize}`)
     if (!response) {
       throw new Error('서버에서 리뷰를 가져오는데 실패했습니다.')
     }

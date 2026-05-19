@@ -2,7 +2,7 @@
   <div class="mb-12">
     <div class="relative h-96 mb-6">
       <img
-          :src=item.img_url
+          :src="getImageUrl(item)"
           :alt=item.name
           class="rounded-lg object-cover w-full h-full shadow-lg"
       />
@@ -25,6 +25,7 @@ const ItemTypes = {
 const props = defineProps(['itemType', 'target_id']);
 
 const item = ref([]);
+const getImageUrl = (item) => item.imgUrl || item.img_url;
 
 onMounted(() => {
   (async function() {

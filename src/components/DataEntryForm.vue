@@ -210,6 +210,8 @@
 import { ref, reactive, computed, onMounted, defineProps, defineEmits } from 'vue';
 import { CheckCircle, AlertCircle, Upload, File, X, Loader2 } from 'lucide-vue-next';
 
+const API_BASE_URL = (process.env.VUE_APP_API_URL || '/api').replace(/\/+$/, '');
+
 const props = defineProps({
   // 폼 제목
   title: {
@@ -252,6 +254,30 @@ const showAlert = ref(false);
 const alertType = ref('success');
 const alertTitle = ref('');
 const alertMessage = ref('');
+
+const buildApiUrl = (endpoint) => {
+  const trimmedEndpoint = endpoint.trim();
+  if (/^https?:\/\//i.test(trimmedEndpoint)) {
+    return trimmedEndpoint;
+  }
+
+  const normalizedEndpoint = trimmedEndpoint
+      .replace(/^\/+/, '')
+      .replace(/^api\/?/, '');
+
+  return normalizedEndpoint ? `${API_BASE_URL}/${normalizedEndpoint}` : API_BASE_URL;
+};
+
+const createAuthHeaders = () => {
+  const token = localStorage.getItem('Authorization');
+  if (!token) {
+    return {};
+  }
+
+  return {
+    Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`
+  };
+};
 
 // 알림 스타일 계산
 const alertClass = computed(() => {
@@ -382,8 +408,9 @@ const submitForm = async () => {
     }
 
     // API 요청 보내기
-    const response = await fetch(props.endpoint, {
+    const response = await fetch(buildApiUrl(props.endpoint), {
       method: 'POST',
+      headers: createAuthHeaders(),
       body: formDataToSend,
       // FormData를 사용할 때는 Content-Type 헤더를 설정하지 않음 (자동으로 설정됨)
     });
