@@ -32,11 +32,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineProps } from 'vue'
+import { computed, ref, onMounted, defineProps } from 'vue'
 import ReviewCard from './ReviewCard.vue'
 import Pagination from './Pagination.vue'
 import ReviewForm from './ReviewForm.vue'
 import {apiService} from "@/services/api";
+import {useAuthStore} from "@/stores/useAuthStore";
 
 const props = defineProps({
   target_id: {
@@ -55,8 +56,9 @@ const totalPages = ref(0)
 const pageSize = 5
 const isLoading = ref(false)
 const error = ref(null)
-const isLoggedIn = ref(false) // 실제 로그인 상태를 확인하는 로직으로 대체해야 합니다
-const currentUserId = ref(null) // 현재 로그인한 사용자의 ID
+const authStore = useAuthStore()
+const isLoggedIn = computed(() => authStore.isSignedIn || authStore.isAuthenticated())
+const currentUserId = computed(() => authStore.userId)
 
 const fetchReviews = async (page = 0) => {
   isLoading.value = true
@@ -82,11 +84,8 @@ const editReview = (reviewId) => {
   console.log('Edit review:', reviewId)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await authStore.initAuth()
   fetchReviews()
-  // 로그인 상태 확인 및 현재 사용자 ID 가져오기
-  // 이 부분은 실제 인증 시스템에 맞게 구현해야 합니다
-  isLoggedIn.value = true // 예시: 항상 로그인 상태
-  currentUserId.value = '123' // 예시: 임의의 사용자 ID
 })
 </script>

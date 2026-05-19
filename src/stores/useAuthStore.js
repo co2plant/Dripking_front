@@ -11,6 +11,7 @@ export const useAuthStore = defineStore('auth', () => {
         getUserData,
         initAuth,
         isAuthenticated,
+        userId,
         userNickName,
         userEmail,
         userRole
@@ -25,6 +26,7 @@ export const useAuthStore = defineStore('auth', () => {
         getUserData,
         initAuth,
         isAuthenticated,
+        userId,
         userNickName,
         userEmail,
         userRole

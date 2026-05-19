@@ -192,7 +192,8 @@ export function useAuth() {
                 throw new Error(errorData.message || '사용자 정보를 가져오는데 실패했습니다.');
             }
 
-            const userData = await response.json();
+            const userStatus = await response.json();
+            const userData = userStatus.data || {};
 
             // 반응형 객체 업데이트
             Object.assign(user, userData);
@@ -207,9 +208,10 @@ export function useAuth() {
     };
 
     // 유저 정보에서 가져올 수 있는 계산된 속성들
+    const userId = computed(() => user.id || null);
     const userNickName = computed(() => user.nickname || '');
     const userEmail = computed(() => user.email || '');
-    const userRole = computed(() => user.roles.authority || '');
+    const userRole = computed(() => Array.isArray(user.roles) ? user.roles[0] || '' : user.roles?.authority || '');
 
     return {
         user,
@@ -223,6 +225,7 @@ export function useAuth() {
         isAuthenticated,
         parseJwt,
         // 계산된 속성들
+        userId,
         userNickName,
         userEmail,
         userRole
