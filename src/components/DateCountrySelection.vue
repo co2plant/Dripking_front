@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { defineEmits, ref, defineProps, onMounted, onUnmounted } from 'vue';
+import { defineEmits, ref, defineProps, onMounted } from 'vue';
 import Trip from '@/composables/Entity/Trip';
 import { useTripStore } from "@/stores/useTripStore";
 
@@ -106,9 +106,9 @@ const selectCountry = (countryId) => {
 
 
 
-const createTrip = () => {
+const createTrip = async () => {
   let localLastId = 0
-  let today = new Date()
+  let today = initStartMinDate()
   if (start_date.value === '' || end_date.value === '') {
     alert('여행 날짜를 입력해주세요.')
     return
@@ -151,7 +151,7 @@ const createTrip = () => {
     .setIsLocal(true)
     .setCountry(props.countries.find((country) => country.id === selectedCountry.value).name)
 
-  const isPassed = tripStore.addTrip(newTrip);
+  const isPassed = await tripStore.addTrip(newTrip);
   if (isPassed) alert('여행이 생성되었습니다.')
   else alert('여행 생성에 실패했습니다. 재시도 해주세요.')
 };
@@ -162,7 +162,4 @@ onMounted(() => {
   min_end_date.value = initMinEndDate(min_start_date.value);
 });
 
-onUnmounted(() => {
-  tripStore.updateTrip();
-})
 </script>

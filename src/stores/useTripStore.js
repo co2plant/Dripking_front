@@ -183,7 +183,7 @@ export const useTripStore = defineStore('trip', {
                     // 서버 여행 -> 서버에 수정
                     try {
                         const requestDTO = updatedTrip.toRequestDTO();
-                        await apiService.putWithToken(`trips?id=${tripId}`, requestDTO);
+                        await apiService.putWithToken(`trips/${tripId}`, requestDTO);
                         this.Trips[tripIndex] = updatedTrip.build();
                         this._saveTripsToLocal();
                         return true;
@@ -210,7 +210,7 @@ export const useTripStore = defineStore('trip', {
 
             if (authStore.isAuthenticated() && !tripToRemove.isLocal) {
                 try {
-                    await apiService.deleteWithToken(`trips?id=${tripId}`);
+                    await apiService.deleteWithToken(`trips/${tripId}`);
                     this.Trips.splice(tripIndex, 1);
                     this._saveTripsToLocal();
                 } catch (error) {

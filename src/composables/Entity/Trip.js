@@ -58,15 +58,15 @@ export default class Trip {
 
     /**
      * 서버 API 요청을 위한 DTO 객체를 반환합니다.
-     * @returns {{name: string, description: string, start_date: string, end_date: string}}
+     * @returns {{name: string, description: string, startDate: string, endDate: string, countryName: string}}
      */
     toRequestDTO() {
         return {
             name: this.name,
             description: this.description,
-            start_date: this.start_date,
-            end_date: this.end_date,
-            country: this.country,
+            startDate: this.start_date,
+            endDate: this.end_date,
+            countryName: this.country,
         };
     }
 
@@ -80,11 +80,16 @@ export default class Trip {
         trip.id = dto.id; // 서버에서 받은 ID 사용
         trip.name = dto.name;
         trip.description = dto.description;
-        trip.start_date = dto.start_date;
-        trip.end_date = dto.end_date;
+        trip.start_date = Trip.normalizeDate(dto.startDate || dto.start_date);
+        trip.end_date = Trip.normalizeDate(dto.endDate || dto.end_date);
         trip.isLocal = false; // 서버에서 왔으므로 isLocal은 false
-        trip.country = dto.country_name || dto.country; // DTO 필드명 확인 (country_name 또는 country)
+        trip.country = dto.countryName || dto.country_name || dto.country;
         // 필요한 다른 속성들도 dto에서 가져와 설정
         return trip; // 생성된 인스턴스 반환
+    }
+
+    static normalizeDate(value) {
+        if (!value || typeof value !== 'string') return value;
+        return value.includes('T') ? value.slice(0, 10) : value;
     }
 }
