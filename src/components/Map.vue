@@ -6,7 +6,6 @@
 import { ref, onMounted, defineProps } from 'vue';
 import { useTripStore } from "@/stores/useTripStore";
 import { usePlanStore } from "@/stores/usePlanStore";
-import { apiService } from "@/services/api";
 
 const props = defineProps({
   id: {
@@ -27,19 +26,11 @@ const map_center = ref({
   lng: -122.16795397128632,
 });
 
-function getMapCenterByFirstPlace(){
-  apiService.get(`trips/${props.id}/places`)
-    .then(response => {
-      const firstPlace = response.data[0];
-      map_center.value = {
-        lat: firstPlace.lat,
-        lng: firstPlace.lng
-      };
-    })
-    .catch(error => {
-      console.error("Error fetching places:", error);
-    });
-}
+const hasCoordinates = (plan) => Number.isFinite(Number(plan.latitude)) && Number.isFinite(Number(plan.longitude));
+
+const getTripPlansWithCoordinates = () => planStore.Plans
+  .filter(plan => String(plan.trip_id) === String(props.id))
+  .filter(hasCoordinates);
 
 function loadGoogleMapsAPI() {
   return new Promise((resolve, reject) => {
@@ -87,12 +78,12 @@ async function initMap() {
     });
 
     let number = 0;
-    for (const property of planStore.Plans) {
+    for (const property of getTripPlansWithCoordinates()) {
       const markerContent = buildContent(property, number++);
       const marker = new AdvancedMarkerElement({
         map: mapInstance,
         content: markerContent,
-        position: { lat: property.latitude, lng: property.longitude },
+        position: { lat: Number(property.latitude), lng: Number(property.longitude) },
         title: property.name,
       });
 
@@ -157,12 +148,11 @@ onMounted(() => {
   planStore.loadPlans();
   tripStore.loadTrips();
 
-  getMapCenterByFirstPlace();
-
-  if (planStore.Plans && planStore.Plans.length > 0) {
+  const tripPlansWithCoordinates = getTripPlansWithCoordinates();
+  if (tripPlansWithCoordinates.length > 0) {
     map_center.value = {
-      lat: planStore.Plans[0].latitude,
-      lng: planStore.Plans[0].longitude
+      lat: Number(tripPlansWithCoordinates[0].latitude),
+      lng: Number(tripPlansWithCoordinates[0].longitude)
     }
   }
 
