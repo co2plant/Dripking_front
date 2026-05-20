@@ -6,6 +6,7 @@
 import { ref, onMounted, defineProps } from 'vue';
 import { useTripStore } from "@/stores/useTripStore";
 import { usePlanStore } from "@/stores/usePlanStore";
+import { getValidCoordinates, hasValidCoordinates } from "@/utils/coordinates";
 
 const props = defineProps({
   id: {
@@ -26,35 +27,9 @@ const map_center = ref({
   lng: -122.16795397128632,
 });
 
-const parseCoordinate = (value) => {
-  if (value === null || value === undefined || value === '') {
-    return null;
-  }
-
-  const coordinate = Number(value);
-  return Number.isFinite(coordinate) ? coordinate : null;
-};
-
-const getValidCoordinates = (plan) => {
-  const lat = parseCoordinate(plan.latitude);
-  const lng = parseCoordinate(plan.longitude);
-
-  if (lat === null || lng === null) {
-    return null;
-  }
-
-  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-    return null;
-  }
-
-  return { lat, lng };
-};
-
-const hasCoordinates = (plan) => getValidCoordinates(plan) !== null;
-
 const getTripPlansWithCoordinates = () => planStore.Plans
   .filter(plan => String(plan.trip_id) === String(props.id))
-  .filter(hasCoordinates);
+  .filter(hasValidCoordinates);
 
 function loadGoogleMapsAPI() {
   return new Promise((resolve, reject) => {

@@ -246,6 +246,7 @@ import Map from "@/components/Map.vue";
 import {usePlanStore} from "@/stores/usePlanStore";
 import {useWishStore} from "@/stores/useWishStore";
 import Plan from "@/composables/Entity/Plan";
+import {normalizeCoordinates} from "@/utils/coordinates";
 import {
   Plus as PlusIcon,
   Calendar as CalendarIcon,
@@ -383,6 +384,8 @@ const deletePlan = (id) => {
 
 // 위시리스트 아이템을 플랜으로 추가
 const addWishItemToPlan = (item) => {
+  const coordinates = normalizeCoordinates(item);
+
   currentPlan.value = new Plan()
       .setName(item.name)
       .setDescription(item.description)
@@ -391,8 +394,8 @@ const addWishItemToPlan = (item) => {
       .setEndTime('18:00')
       .setPlaceId(item.id)
       .setTripId(route.params.id)
-      .setLatitude(typeof item.latitude != "undefined" ? item.latitude : null)
-      .setLongitude(typeof item.longitude != "undefined" ?item.longitude : null)
+      .setLatitude(coordinates.latitude)
+      .setLongitude(coordinates.longitude)
       .setPlaceName(typeof item.name != "undefined" ? item.name : null)
       .setAddress(typeof item.address != "undefined" ? item.address : null)
       .setItemType(item.itemType)
@@ -487,4 +490,3 @@ textarea {
   @apply touch-manipulation;
 }
 </style>
-

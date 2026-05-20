@@ -3,6 +3,7 @@ import Alcohol from '@/composables/Entity/Alcohol'
 import Distillery from '@/composables/Entity/Distillery'
 import Destination from '@/composables/Entity/Destination'
 import Place from '@/composables/Entity/Place'
+import { normalizeCoordinates } from '@/utils/coordinates'
 
 const getImageUrl = (item) => item.imgUrl || item.img_url;
 const getPlanId = (item) => item.planId || item.plan_id;
@@ -31,6 +32,7 @@ export const useWishStore = defineStore('wishlist', {
         },
         toggleWishlist(item, itemType) {
             let entity;
+            const coordinates = normalizeCoordinates(item);
             switch (itemType) {
                 case 'ALCOHOL':
                     entity = new Alcohol()
@@ -45,8 +47,8 @@ export const useWishStore = defineStore('wishlist', {
                     entity = new Distillery()
                         .setId(item.id)
                         .setName(item.name)
-                        .setLatitude(item.latitude)
-                        .setLongitude(item.longitude)
+                        .setLatitude(coordinates.latitude)
+                        .setLongitude(coordinates.longitude)
                         .setAddress(item.address)
                         .setDescription(item.description)
                         .setImgUrl(getImageUrl(item))
@@ -57,8 +59,8 @@ export const useWishStore = defineStore('wishlist', {
                     entity = new Destination()
                         .setId(item.id)
                         .setName(item.name)
-                        .setLatitude(item.latitude)
-                        .setLongitude(item.longitude)
+                        .setLatitude(coordinates.latitude)
+                        .setLongitude(coordinates.longitude)
                         .setDescription(item.description)
                         .setImgUrl(getImageUrl(item))
                         .setPlanID(getPlanId(item))
@@ -68,8 +70,8 @@ export const useWishStore = defineStore('wishlist', {
                     entity = new Place()
                         .setId(item.id)
                         .setName(item.name)
-                        .setLatitude(item.latitude)
-                        .setLongitude(item.longitude)
+                        .setLatitude(coordinates.latitude)
+                        .setLongitude(coordinates.longitude)
                         .setAddress(item.address)
                         .setDescription(item.description)
                         .setImgUrl(getImageUrl(item))
