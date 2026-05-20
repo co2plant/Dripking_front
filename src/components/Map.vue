@@ -26,7 +26,31 @@ const map_center = ref({
   lng: -122.16795397128632,
 });
 
-const hasCoordinates = (plan) => Number.isFinite(Number(plan.latitude)) && Number.isFinite(Number(plan.longitude));
+const parseCoordinate = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const coordinate = Number(value);
+  return Number.isFinite(coordinate) ? coordinate : null;
+};
+
+const getValidCoordinates = (plan) => {
+  const lat = parseCoordinate(plan.latitude);
+  const lng = parseCoordinate(plan.longitude);
+
+  if (lat === null || lng === null) {
+    return null;
+  }
+
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    return null;
+  }
+
+  return { lat, lng };
+};
+
+const hasCoordinates = (plan) => getValidCoordinates(plan) !== null;
 
 const getTripPlansWithCoordinates = () => planStore.Plans
   .filter(plan => String(plan.trip_id) === String(props.id))
@@ -79,11 +103,17 @@ async function initMap() {
 
     let number = 0;
     for (const property of getTripPlansWithCoordinates()) {
+      const position = getValidCoordinates(property);
+
+      if (position === null) {
+        continue;
+      }
+
       const markerContent = buildContent(property, number++);
       const marker = new AdvancedMarkerElement({
         map: mapInstance,
         content: markerContent,
-        position: { lat: Number(property.latitude), lng: Number(property.longitude) },
+        position,
         title: property.name,
       });
 
@@ -150,9 +180,15 @@ onMounted(() => {
 
   const tripPlansWithCoordinates = getTripPlansWithCoordinates();
   if (tripPlansWithCoordinates.length > 0) {
+    const center = getValidCoordinates(tripPlansWithCoordinates[0]);
+
+    if (center === null) {
+      return;
+    }
+
     map_center.value = {
-      lat: Number(tripPlansWithCoordinates[0].latitude),
-      lng: Number(tripPlansWithCoordinates[0].longitude)
+      lat: center.lat,
+      lng: center.lng
     }
   }
 
