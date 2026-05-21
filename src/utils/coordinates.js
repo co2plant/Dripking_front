@@ -58,3 +58,24 @@ export const getValidCoordinateBounds = (source) => {
     maxLongitude,
   };
 };
+
+export const getCoordinateBoundsFromCenter = (source) => {
+  const coordinates = getValidCoordinates(source);
+  const radiusKm = parseCoordinate(source?.radiusKm);
+
+  if (coordinates === null || radiusKm === null || radiusKm <= 0) {
+    return null;
+  }
+
+  const latRadius = radiusKm / 111.32;
+  const latRadians = coordinates.lat * (Math.PI / 180);
+  const lngDistance = 111.32 * Math.max(Math.cos(latRadians), 0.01);
+  const lngRadius = radiusKm / lngDistance;
+
+  return getValidCoordinateBounds({
+    minLatitude: Math.max(-90, coordinates.lat - latRadius),
+    maxLatitude: Math.min(90, coordinates.lat + latRadius),
+    minLongitude: Math.max(-180, coordinates.lng - lngRadius),
+    maxLongitude: Math.min(180, coordinates.lng + lngRadius),
+  });
+};

@@ -1,8 +1,16 @@
 <script setup>
 import VerticalScrollCardList from "@/components/VerticalScrollCardList.vue";
 import router from "@/router";
+import {ref} from "vue";
+import NearbyPositionFilter from "@/components/NearbyPositionFilter.vue";
+
+const coordinateBounds = ref(null);
+
 const handleViewDetails = (item) => {
   router.push({ name: 'distilleryDetail', params: { id: item.id } })
+}
+const updateCoordinateBounds = (bounds) => {
+  coordinateBounds.value = bounds
 }
 </script>
 
@@ -13,8 +21,12 @@ const handleViewDetails = (item) => {
       양조장 목록
       <span class="inline-block bg-amber-400 w-20 h-1"></span>
     </h1>
+    <NearbyPositionFilter
+        @update-coordinate-bounds="updateCoordinateBounds"
+    />
     <VerticalScrollCardList
         itemType="DISTILLERY"
+        :coordinateBounds="coordinateBounds"
         @view-details="handleViewDetails"
     />
   </div>

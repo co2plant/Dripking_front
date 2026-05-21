@@ -5,15 +5,20 @@ import DateCountrySelection from "@/components/DateCountrySelection.vue";
 import {onMounted, ref} from "vue";
 import WishListSideBar from "@/components/WishListSideBar.vue";
 import {apiService} from "@/services/api";
+import NearbyPositionFilter from "@/components/NearbyPositionFilter.vue";
 
 const countries = ref([]);
 const selectedCountry = ref(0);
+const coordinateBounds = ref(null);
 
 const handleViewDetails = (item) => {
   router.push({ name: 'destinationDetail', params: { id: item.id } })
 }
 const selectCountry = (countryId) => {
   selectedCountry.value = countryId
+}
+const updateCoordinateBounds = (bounds) => {
+  coordinateBounds.value = bounds
 }
 
 onMounted(async () => {
@@ -39,10 +44,14 @@ onMounted(async () => {
         @select-country="selectCountry"
     >
     </DateCountrySelection>
+    <NearbyPositionFilter
+        @update-coordinate-bounds="updateCoordinateBounds"
+    />
     <WishListSideBar />
     <VerticalScrollCardList
         itemType="DESTINATION"
         :selectedItem="selectedCountry"
+        :coordinateBounds="coordinateBounds"
         @view-details="handleViewDetails"
     />
   </div>
