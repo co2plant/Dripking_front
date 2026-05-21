@@ -32,3 +32,29 @@ export const normalizeCoordinates = (source) => {
     longitude: coordinates?.lng ?? null,
   };
 };
+
+export const getValidCoordinateBounds = (source) => {
+  const minLatitude = parseCoordinate(source?.minLatitude);
+  const maxLatitude = parseCoordinate(source?.maxLatitude);
+  const minLongitude = parseCoordinate(source?.minLongitude);
+  const maxLongitude = parseCoordinate(source?.maxLongitude);
+
+  if ([minLatitude, maxLatitude, minLongitude, maxLongitude].some((value) => value === null)) {
+    return null;
+  }
+
+  if (minLatitude < -90 || maxLatitude > 90 || minLongitude < -180 || maxLongitude > 180) {
+    return null;
+  }
+
+  if (minLatitude > maxLatitude || minLongitude > maxLongitude) {
+    return null;
+  }
+
+  return {
+    minLatitude,
+    maxLatitude,
+    minLongitude,
+    maxLongitude,
+  };
+};

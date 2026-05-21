@@ -89,6 +89,7 @@
 import  {defineProps, defineEmits, ref, onMounted, onUnmounted, watch} from 'vue'
 import {useWishStore} from "@/stores/useWishStore";
 import {apiService} from "@/services/api";
+import {getValidCoordinateBounds} from "@/utils/coordinates";
 
 const wishStore = useWishStore();
 
@@ -100,6 +101,11 @@ const props = defineProps({
   selectedItem: {
     type: Number,
     required: false
+  },
+  coordinateBounds: {
+    type: Object,
+    required: false,
+    default: null
   }
 })
 
@@ -122,6 +128,42 @@ const showNextPageIndicator = ref(false)
 const canFetchMore = ref(true)
 const listEndMarker = ref(null)
 const getImageUrl = (item) => item.imgUrl || item.img_url
+const PAGE_SIZE = 10
+const SORT_PARAM = 'id,desc'
+
+const buildQueryString = (params) => {
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
+      query.set(key, value);
+    }
+  });
+
+  return query.toString();
+}
+
+const buildItemsEndpoint = () => {
+  const resource = itemTypeEnum[props.itemType]
+  const params = {
+    page: currentPage.value,
+    size: PAGE_SIZE,
+    sort: SORT_PARAM,
+  }
+  const coordinateBounds = getValidCoordinateBounds(props.coordinateBounds)
+
+  if (coordinateBounds && ['destinations', 'distilleries'].includes(resource)) {
+    return `${resource}/latlng?${buildQueryString({...params, ...coordinateBounds})}`
+  }
+
+  if (resource === 'alcohols') {
+    params.categoryId = props.selectedItem
+  } else if (resource === 'destinations') {
+    params.countryId = props.selectedItem
+  }
+
+  return `${resource}?${buildQueryString(params)}`
+}
 
 // Fetch items from the API
 const fetchItems = async () => {
@@ -132,16 +174,7 @@ const fetchItems = async () => {
   canFetchMore.value = false
 
   try {
-    let response
-    if(itemTypeEnum[props.itemType] === 'alcohols') {
-      response = await apiService.get(`${itemTypeEnum[props.itemType]}?page=${currentPage.value}&categoryId=${props.selectedItem}&size=10&sort=id,desc`)
-    }
-    else if(itemTypeEnum[props.itemType] === 'destinations') {
-      response = await apiService.get(`${itemTypeEnum[props.itemType]}?page=${currentPage.value}&countryId=${props.selectedItem}&size=10&sort=id,desc`)
-    }
-    else{
-      response = await apiService.get(`${itemTypeEnum[props.itemType]}?page=${currentPage.value}&size=10&sort=id,desc`)
-    }
+    const response = await apiService.get(buildItemsEndpoint())
 
     items.value = [...items.value, ...response.content]
     hasMore.value = !response.last
@@ -176,6 +209,10 @@ const resetItems = () => {
 watch(() => props.selectedItem, () => {
   resetItems();
 })
+
+watch(() => props.coordinateBounds, () => {
+  resetItems();
+}, {deep: true})
 
 const retryLoading = () => {
   error.value = null;
