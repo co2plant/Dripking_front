@@ -5,6 +5,10 @@
           :itemType="itemType"
           :target_id="target_id"
       />
+      <DetailLocationMap
+          :target_id="target_id"
+          :itemType="itemType"
+      />
       <Horizontal-scroll-card-list
           :title="'생산하는 술'"
           :toName="'alcoholDetail'"
@@ -23,6 +27,7 @@ import HorizontalScrollCardList from "@/components/HorizontalScrollCardList.vue"
 import Card from "@/components/Card.vue";
 import {useRoute} from "vue-router";
 import VerticalReviewList from "@/components/VerticalReviewList.vue";
+import DetailLocationMap from "@/components/DetailLocationMap.vue";
 
 const route = useRoute();
 const target_id = route.params.id;

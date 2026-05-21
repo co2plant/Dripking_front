@@ -7,6 +7,7 @@ import { ref, onMounted, defineProps } from 'vue';
 import { useTripStore } from "@/stores/useTripStore";
 import { usePlanStore } from "@/stores/usePlanStore";
 import { getValidCoordinates, hasValidCoordinates } from "@/utils/coordinates";
+import { loadGoogleMapsAPI } from "@/utils/googleMaps";
 
 const props = defineProps({
   id: {
@@ -31,33 +32,6 @@ const getTripPlansWithCoordinates = () => planStore.Plans
   .filter(plan => String(plan.trip_id) === String(props.id))
   .filter(hasValidCoordinates);
 
-function loadGoogleMapsAPI() {
-  return new Promise((resolve, reject) => {
-    if (window.google && window.google.maps) {
-      resolve(window.google.maps);
-      return;
-    }
-
-    const callbackName = 'initMapCallback_' + Date.now();
-    window[callbackName] = () => {
-      resolve(window.google.maps);
-      delete window[callbackName];
-    };
-
-    const script = document.createElement('script');
-
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=${callbackName}&libraries=maps,marker`;
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-    script.onerror = (error) => {
-      console.error("Google Maps 스크립트 로드 실패:", error);
-      reject(error);
-      delete window[callbackName];
-    };
-  });
-}
-
 async function initMap() {
   if (!mapRefElement.value) {
     console.error("지도 컨테이너 요소를 찾을 수 없습니다.");
@@ -65,7 +39,7 @@ async function initMap() {
   }
 
   try {
-    const googleMaps = await loadGoogleMapsAPI();
+    const googleMaps = await loadGoogleMapsAPI(apiKey);
     const { map } = await googleMaps.importLibrary("maps");
     const { AdvancedMarkerElement } = await googleMaps.importLibrary("marker");
     const center = { lat: map_center.value.lat, lng: map_center.value.lng };
