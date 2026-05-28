@@ -138,6 +138,7 @@
             <span>이용약관 및 개인정보 처리방침에 동의합니다</span>
           </label>
         </div>
+        <p v-if="errors.agreeToTerms" class="mt-1 text-sm text-red-600">{{ errors.agreeToTerms }}</p>
 
         <button
             type="submit"
@@ -188,7 +189,8 @@ const errors = reactive({
   email: '',
   password: '',
   confirmPassword: '',
-  nickname: ''
+  nickname: '',
+  agreeToTerms: ''
 })
 
 // 이메일 유효성 검사
@@ -199,16 +201,29 @@ const validateEmail = (email) => {
 
 // 비밀번호 유효성 검사
 const validatePassword = (password) => {
-  return password.length >= 16
+  return password.length >= 16 && password.length <= 32
+}
+
+const resetSignUpErrors = () => {
+  errors.email = ''
+  errors.password = ''
+  errors.confirmPassword = ''
+  errors.nickname = ''
+  errors.agreeToTerms = ''
+}
+
+const applyFieldErrors = (fieldErrors = {}) => {
+  Object.entries(fieldErrors).forEach(([field, message]) => {
+    if (Object.prototype.hasOwnProperty.call(errors, field)) {
+      errors[field] = message
+    }
+  })
 }
 
 // 회원가입 폼 유효성 검사
 const validateSignUpForm = () => {
   let isValid = true
-  errors.email = ''
-  errors.password = ''
-  errors.confirmPassword = ''
-  errors.nickname = ''
+  resetSignUpErrors()
 
   if (!validateEmail(signUpForm.email)) {
     errors.email = '유효한 이메일 주소를 입력해주세요.'
@@ -216,7 +231,7 @@ const validateSignUpForm = () => {
   }
 
   if (!validatePassword(signUpForm.password)) {
-    errors.password = '비밀번호는 16자 이상이어야 합니다.'
+    errors.password = '비밀번호는 16자 이상 32자 이하이어야 합니다.'
     isValid = false
   }
 
@@ -227,6 +242,11 @@ const validateSignUpForm = () => {
 
   if (!signUpForm.nickname) {
     errors.nickname = '닉네임을 입력해주세요.'
+    isValid = false
+  }
+
+  if (!signUpForm.agreeToTerms) {
+    errors.agreeToTerms = '이용약관에 동의해주세요.'
     isValid = false
   }
 
@@ -259,27 +279,19 @@ const handleSignUp = async () => {
       return
     }
 
-    try{
-      const result = await authStore.signUp(signUpForm)
-      isLoading.value = true
-      globalError.value = ''
+    isLoading.value = true
+    globalError.value = ''
+    const result = await authStore.signUp(signUpForm)
 
-      if(result.success){
-        router.go(0)
-      }else{
-        throw new Error('회원가입에 실패했습니다.')
-      }
-    }catch(err){
-      globalError.value = '회원가입에 실패했습니다. 다시 시도해주세요.'
-    }finally{
-      isLoading.value = false
+    if(result.success){
+      currentForm.value = 'signIn'
+      router.go(0)
+    }else{
+      applyFieldErrors(result.fieldErrors)
+      throw new Error(result.error || '회원가입에 실패했습니다.')
     }
-
-    // 성공 시 로그인 폼으로 전환
-    currentForm.value = 'signIn'
-
   } catch (err) {
-    globalError.value = '회원가입에 실패했습니다. 다시 시도해주세요.'
+    globalError.value = err.message || '회원가입에 실패했습니다. 다시 시도해주세요.'
   } finally {
     isLoading.value = false
   }
