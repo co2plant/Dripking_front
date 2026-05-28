@@ -271,19 +271,21 @@ const wishlistContainer = ref(null)
 const planContainer = ref(null)
 
 // Dragula 설정
-onMounted(() => {
-  planStore.loadPlans();
+onMounted(async () => {
+  await planStore.loadPlans(route.params.id);
   wishStore.loadWishlist();
 
   dragula([wishlistContainer.value, planContainer.value], {
     copy: (el, source) => source === wishlistContainer.value,
     accepts: (el, target) => target === planContainer.value,
     moves: (el) => !el.classList.contains('non-draggable')
-  }).on('drop', (el, target) => {
+  }).on('drop', async (el, target) => {
     if (target === planContainer.value) {
       const temp_item = wishStore.WishItems.find(wishItem => wishItem.id === parseInt(el.dataset.itemId) && wishItem.itemType === el.dataset.itemType)
-      addWishItemToPlan(temp_item)
-      editPlan(currentPlan.value)
+      const addedPlan = await addWishItemToPlan(temp_item)
+      if (addedPlan) {
+        editPlan(addedPlan)
+      }
       el.remove() // 복사된 엘리먼트 제거
     }
   })
@@ -348,21 +350,17 @@ const closeModal = () => {
 }
 
 // 플랜 저장
-const savePlan = () => {
+const savePlan = async () => {
   if (editingPlan.value) {
     // 기존 플랜 수정
-    const index = planStore.Plans.findIndex(p => p.id === editingPlan.value.id)
-    if (index !== -1) {
-      planStore.Plans[index] = { ...currentPlan.value }
-    }
+    await planStore.updatePlan(editingPlan.value.id, currentPlan.value)
   } else {
     // 새 플랜 추가
     const newPlan = {
       ...currentPlan.value,
       id: Date.now().toString()
     }
-    planStore.addPlan(newPlan);
-    planStore.savePlans();
+    await planStore.addPlan(newPlan);
   }
   closeModal()
 }
@@ -375,15 +373,15 @@ const editPlan = (plan) => {
 }
 
 // 플랜 삭제
-const deletePlan = (id) => {
+const deletePlan = async (id) => {
   if (confirm('이 일정을 삭제하시겠습니까?')) {
-    planStore.removePlan(id);
-    planStore.savePlans();
+    await planStore.removePlan(id);
   }
 }
 
 // 위시리스트 아이템을 플랜으로 추가
-const addWishItemToPlan = (item) => {
+const addWishItemToPlan = async (item) => {
+  if (!item) return null;
   const coordinates = normalizeCoordinates(item);
 
   currentPlan.value = new Plan()
@@ -400,8 +398,9 @@ const addWishItemToPlan = (item) => {
       .setAddress(typeof item.address != "undefined" ? item.address : null)
       .setItemType(item.itemType)
       .build();
-  planStore.addPlan(currentPlan.value)
-  planStore.savePlans();
+  const addedPlan = await planStore.addPlan(currentPlan.value)
+  currentPlan.value = addedPlan || currentPlan.value
+  return currentPlan.value
 }
 
 </script>
