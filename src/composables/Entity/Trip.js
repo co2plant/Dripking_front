@@ -8,6 +8,7 @@ export default class Trip {
         this.start_date = null;
         this.end_date = null;
         this.isLocal = true;
+        this.country_id = null;
         this.country = null; //country name
     }
 
@@ -46,6 +47,11 @@ export default class Trip {
         return this;
     }
 
+    setCountryId(country_id) {
+        this.country_id = country_id;
+        return this;
+    }
+
     build(){
         return this;
     }
@@ -58,7 +64,7 @@ export default class Trip {
 
     /**
      * 서버 API 요청을 위한 DTO 객체를 반환합니다.
-     * @returns {{name: string, description: string, startDate: string, endDate: string, countryName: string}}
+     * @returns {{name: string, description: string, startDate: string, endDate: string, countryId: number, countryName: string}}
      */
     toRequestDTO() {
         return {
@@ -66,6 +72,7 @@ export default class Trip {
             description: this.description,
             startDate: this.start_date,
             endDate: this.end_date,
+            countryId: this.country_id,
             countryName: this.country,
         };
     }
@@ -83,6 +90,7 @@ export default class Trip {
         trip.start_date = Trip.normalizeDate(dto.startDate || dto.start_date);
         trip.end_date = Trip.normalizeDate(dto.endDate || dto.end_date);
         trip.isLocal = false; // 서버에서 왔으므로 isLocal은 false
+        trip.country_id = dto.countryId || dto.country_id;
         trip.country = dto.countryName || dto.country_name || dto.country;
         // 필요한 다른 속성들도 dto에서 가져와 설정
         return trip; // 생성된 인스턴스 반환

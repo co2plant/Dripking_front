@@ -197,8 +197,9 @@ const calculateCompletionPercentage = () => {
   return percentage;
 };
 
-onMounted(() => {
-  tripStore.loadTrips();
+onMounted(async () => {
+  await tripStore.loadTrips();
+  await planStore.loadPlans(props.id);
   trip.value = tripStore.findTripById(props.id);
 })
 </script>

@@ -123,9 +123,9 @@ function buildContent(property, number) {
   return content;
 }
 
-onMounted(() => {
-  planStore.loadPlans();
-  tripStore.loadTrips();
+onMounted(async () => {
+  await planStore.loadPlans(props.id);
+  await tripStore.loadTrips();
 
   const tripPlansWithCoordinates = getTripPlansWithCoordinates();
   if (tripPlansWithCoordinates.length > 0) {

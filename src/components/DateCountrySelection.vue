@@ -149,6 +149,7 @@ const createTrip = async () => {
     .setStartDate(start_date.value)
     .setEndDate(end_date.value)
     .setIsLocal(true)
+    .setCountryId(selectedCountry.value)
     .setCountry(props.countries.find((country) => country.id === selectedCountry.value).name)
 
   const isPassed = await tripStore.addTrip(newTrip);
