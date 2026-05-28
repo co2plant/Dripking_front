@@ -127,14 +127,18 @@ export function useAuth() {
 
             if (!response.ok){
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || '회원가입에 실패했습니다.');
+                return {
+                    success: false,
+                    error: errorData.message || '회원가입에 실패했습니다.',
+                    fieldErrors: errorData.fieldErrors || {}
+                };
             }
 
             return { success : true};
         }catch(err){
             console.error('Sign up error:', err);
             return {
-                success: false, error: err.message
+                success: false, error: err.message, fieldErrors: {}
             }
         }
 
