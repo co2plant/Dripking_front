@@ -49,7 +49,7 @@
               <span class="font-bold text-zinc-900">{{ item_trip.name }}</span>
               <span class="text-zinc-600">{{ item_trip.start_date }} ~ {{ item_trip.end_date }}</span>
               <div class="dragula-container container min-h-24" :data-trip-id="item_trip.id">
-                <div v-for="item in planStore.Plans.filter(plan => plan.trip_id === item_trip.id)"
+                <div v-for="item in getTripPlans(item_trip.id)"
                      :key="item.id"
                      :data-item-id="item.id"
                      :data-item-trip-id="item.trip_id"
@@ -123,34 +123,57 @@ import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next';
 import {useTripStore} from "@/stores/useTripStore";
 import {useWishStore} from "@/stores/useWishStore";
 import {usePlanStore} from "@/stores/usePlanStore";
+import {useAuthStore} from "@/stores/useAuthStore";
 
 const tripStore = useTripStore();
 const wishStore = useWishStore();
 const planStore = usePlanStore();
+const authStore = useAuthStore();
 const isWishlistOpen = ref(false);
 
-onMounted(() => {
-  tripStore.loadTrips();
-  planStore.loadPlans();
-  wishStore.loadWishlist();
+const sortOrderValue = (plan) => {
+  const sortOrder = Number(plan.sort_order)
+  return Number.isFinite(sortOrder) ? sortOrder : Number.MAX_SAFE_INTEGER
+}
+
+const comparePlanOrder = (a, b) => {
+  const sortOrderDiff = sortOrderValue(a) - sortOrderValue(b)
+  if (sortOrderDiff !== 0) return sortOrderDiff
+  const dateDiff = String(a.plan_date || '').localeCompare(String(b.plan_date || ''))
+  if (dateDiff !== 0) return dateDiff
+  const startTimeDiff = String(a.start_time || '').localeCompare(String(b.start_time || ''))
+  if (startTimeDiff !== 0) return startTimeDiff
+  return String(a.id).localeCompare(String(b.id))
+}
+
+const getTripPlans = (tripId) => planStore.Plans
+    .filter(plan => String(plan.trip_id) === String(tripId))
+    .sort(comparePlanOrder)
+
+onMounted(async () => {
+  await tripStore.loadTrips();
+  if (authStore.isAuthenticated()) {
+    for (const trip of tripStore.Trips) {
+      await planStore.loadPlans(trip.id);
+    }
+  } else {
+    await planStore.loadPlans();
+  }
+  await wishStore.loadWishlist();
 });
 
 onUnmounted(() => {
-  tripStore.updateTrip();
-  wishStore.sortWishlist();
+  wishStore.WishItems = wishStore.sortWishlist();
   wishStore.saveWishlist();
 })
 
-const deletePlanById = (plan_id) => {
-  planStore.removePlan(plan_id);
-  planStore.savePlans();
+const deletePlanById = async (plan_id) => {
+  await planStore.removePlan(plan_id);
 }
 
-const deleteAllPlansByTripId = (trip_id) => {
-  planStore.clearPlansByTripId(trip_id);
-  tripStore.removeTrip(trip_id);
-  planStore.savePlans();
-  tripStore.updateTrip();
+const deleteAllPlansByTripId = async (trip_id) => {
+  await planStore.clearPlansByTripId(trip_id);
+  await tripStore.removeTrip(trip_id);
 }
 </script>
 

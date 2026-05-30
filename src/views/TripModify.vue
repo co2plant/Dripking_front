@@ -19,17 +19,23 @@
             </div>
 
             <div class="space-y-4 overflow-y-auto flex-grow min-h-[300px]" ref="planContainer">
+              <div v-if="tripPlans.length === 0" class="text-center py-10 text-zinc-500">
+                <calendar-icon class="w-12 h-12 mx-auto mb-4 text-zinc-300" />
+                <p>아직 계획된 일정이 없습니다.</p>
+                <p class="text-sm mt-2">새 일정을 추가하거나 위시리스트에서 드래그하세요.</p>
+              </div>
               <div
-                  v-for="plan in planStore.Plans.filter(plan_item => plan_item.trip_id === route.params.id)"
+                  v-for="plan in tripPlans"
                   :key="plan.id"
+                  :data-plan-id="plan.id"
                   class="plan-item bg-zinc-50 rounded-lg p-4"
               >
                 <div class="flex items-center justify-between mb-2">
                   <div class="flex items-center space-x-4">
                     <grab-icon class="min-w-5 min-h-5 text-zinc-400 cursor-move" />
                     <div class="mx-4">
-                      <h3 class="font-semibold text-zinc-900">{{ plan.name }}</h3>
-                      <p class="text-sm text-zinc-500 line-clamp-3">{{ plan.description }}</p>
+                      <h3 class="font-semibold text-zinc-900">{{ getPlanDisplayName(plan) }}</h3>
+                      <p class="text-sm text-zinc-500 line-clamp-3">{{ getPlanDisplayDescription(plan) }}</p>
                       <div class="flex items-center space-x-4 text-sm text-zinc-600">
                         <div class="flex items-center">
                           <calendar-icon class="w-4 h-4 mr-1" />
@@ -41,14 +47,9 @@
                         </div>
                         <div class="flex items-center">
                           <map-pin-icon class="w-4 h-4 mr-1" />
-                          {{ plan.address }}
+                          {{ getPlanDisplayAddress(plan) }}
                         </div>
                       </div>
-                    </div>
-                    <div v-if="planStore.Plans.length === 0" class="text-center py-10 text-zinc-500">
-                      <calendar-icon class="w-12 h-12 mx-auto mb-4 text-zinc-300" />
-                      <p>아직 계획된 일정이 없습니다.</p>
-                      <p class="text-sm mt-2">새 일정을 추가하거나 위시리스트에서 드래그하세요.</p>
                     </div>
                   </div>
                   <div class="flex items-center space-x-4 ml-4">
@@ -265,33 +266,95 @@ const planStore = usePlanStore();
 const showModal = ref(false)
 const editingPlan = ref(null)
 const currentPlan = ref(new Plan())
+const sortOrderValue = (plan) => {
+  const sortOrder = Number(plan.sort_order)
+  return Number.isFinite(sortOrder) ? sortOrder : Number.MAX_SAFE_INTEGER
+}
+const comparePlanOrder = (a, b) => {
+  const sortOrderDiff = sortOrderValue(a) - sortOrderValue(b)
+  if (sortOrderDiff !== 0) return sortOrderDiff
+  const dateDiff = String(a.plan_date || '').localeCompare(String(b.plan_date || ''))
+  if (dateDiff !== 0) return dateDiff
+  const startTimeDiff = String(a.start_time || '').localeCompare(String(b.start_time || ''))
+  if (startTimeDiff !== 0) return startTimeDiff
+  return String(a.id).localeCompare(String(b.id))
+}
+const tripPlans = computed(() => planStore.Plans
+    .filter(plan => String(plan.trip_id) === String(route.params.id))
+    .sort(comparePlanOrder))
+const getPlanDisplayName = (plan) => (
+  plan.name ||
+  plan.place_name ||
+  plan.snapshot_name ||
+  plan.custom_place_name ||
+  '일정'
+)
+const getPlanDisplayDescription = (plan) => plan.description || plan.snapshot_description || ''
+const getPlanDisplayAddress = (plan) => (
+  plan.address ||
+  plan.snapshot_address ||
+  plan.custom_place_address ||
+  ''
+)
 
 // DOM 참조
 const wishlistContainer = ref(null)
 const planContainer = ref(null)
+let drake = null
+
+const nextSortOrder = () => {
+  const sortOrders = tripPlans.value
+      .map(plan => Number(plan.sort_order))
+      .filter(Number.isFinite)
+  if (sortOrders.length === 0) {
+    return tripPlans.value.length
+  }
+  return Math.max(...sortOrders) + 1
+}
+
+const persistCurrentPlanOrder = async () => {
+  const orderedPlanIds = Array.from(planContainer.value?.querySelectorAll('[data-plan-id]') || [])
+      .map(element => element.dataset.planId)
+      .filter(Boolean)
+
+  if (orderedPlanIds.length === 0) {
+    return true
+  }
+
+  const reordered = await planStore.reorderPlans(route.params.id, orderedPlanIds)
+  if (!reordered) {
+    alert('일정 순서를 저장하지 못했습니다. 잠시 후 다시 시도해주세요.')
+  }
+  return reordered
+}
 
 // Dragula 설정
 onMounted(async () => {
   await planStore.loadPlans(route.params.id);
   wishStore.loadWishlist();
 
-  dragula([wishlistContainer.value, planContainer.value], {
+  drake = dragula([wishlistContainer.value, planContainer.value], {
     copy: (el, source) => source === wishlistContainer.value,
     accepts: (el, target) => target === planContainer.value,
     moves: (el) => !el.classList.contains('non-draggable')
-  }).on('drop', async (el, target) => {
+  }).on('drop', async (el, target, source) => {
     if (target === planContainer.value) {
-      const temp_item = wishStore.WishItems.find(wishItem => wishItem.id === parseInt(el.dataset.itemId) && wishItem.itemType === el.dataset.itemType)
-      const addedPlan = await addWishItemToPlan(temp_item)
-      if (addedPlan) {
-        editPlan(addedPlan)
+      if (source === wishlistContainer.value) {
+        const temp_item = wishStore.WishItems.find(wishItem => String(wishItem.id) === String(el.dataset.itemId) && wishItem.itemType === el.dataset.itemType)
+        const addedPlan = await addWishItemToPlan(temp_item)
+        if (addedPlan) {
+          editPlan(addedPlan)
+        }
+        el.remove() // 복사된 엘리먼트 제거
+        return
       }
-      el.remove() // 복사된 엘리먼트 제거
+
+      await persistCurrentPlanOrder()
     }
   })
 })
 onUnmounted(() => {
-  planStore.sortPlans();
+  drake?.destroy()
   planStore.savePlans();
 })
 
@@ -339,6 +402,12 @@ const formatTime = (time) => {
 const openNewPlanModal = () => {
   editingPlan.value = null
   currentPlan.value = new Plan()
+      .setTripId(route.params.id)
+      .setItemType('CUSTOM_PLACE')
+      .setPlanDate(new Date().toISOString().slice(0, 10))
+      .setStartTime('09:00')
+      .setEndTime('10:00')
+  currentPlan.value.sort_order = nextSortOrder()
   showModal.value = true
 }
 
@@ -349,15 +418,39 @@ const closeModal = () => {
   currentPlan.value = new Plan()
 }
 
+const normalizeCurrentPlanForSave = () => {
+  const plan = Object.assign(new Plan(), currentPlan.value)
+  plan.trip_id = route.params.id
+  if (!plan.item_type) {
+    plan.item_type = 'CUSTOM_PLACE'
+  }
+  if (plan.item_type === 'CUSTOM_PLACE' || plan.item_type === 'PLACE') {
+    plan.custom_place_name = plan.custom_place_name || plan.place_name || plan.name
+    plan.custom_place_address = plan.custom_place_address || plan.address
+    plan.place_name = plan.place_name || plan.custom_place_name || plan.name
+    plan.address = plan.address || plan.custom_place_address
+  }
+  return plan
+}
+
 // 플랜 저장
 const savePlan = async () => {
+  const planToSave = normalizeCurrentPlanForSave()
+  if (planToSave.sort_order === null || planToSave.sort_order === undefined || planToSave.sort_order === '') {
+    planToSave.sort_order = editingPlan.value?.sort_order ?? nextSortOrder()
+  }
+  if ((planToSave.item_type === 'CUSTOM_PLACE' || planToSave.item_type === 'PLACE') && !planToSave.address) {
+    alert('사용자 지정 장소의 주소를 입력해주세요.')
+    return
+  }
+
   if (editingPlan.value) {
     // 기존 플랜 수정
-    await planStore.updatePlan(editingPlan.value.id, currentPlan.value)
+    await planStore.updatePlan(editingPlan.value.id, planToSave)
   } else {
     // 새 플랜 추가
     const newPlan = {
-      ...currentPlan.value,
+      ...planToSave,
       id: Date.now().toString()
     }
     await planStore.addPlan(newPlan);
@@ -398,6 +491,7 @@ const addWishItemToPlan = async (item) => {
       .setAddress(typeof item.address != "undefined" ? item.address : null)
       .setItemType(item.itemType)
       .build();
+  currentPlan.value.sort_order = nextSortOrder()
   const addedPlan = await planStore.addPlan(currentPlan.value)
   currentPlan.value = addedPlan || currentPlan.value
   return currentPlan.value

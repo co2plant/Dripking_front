@@ -149,7 +149,7 @@ export default class Plan{
         plan.address = plan.snapshot_address || plan.custom_place_address;
         plan.latitude = plan.snapshot_latitude;
         plan.longitude = plan.snapshot_longitude;
-        plan.sort_order = dto.sortOrder || dto.sort_order;
+        plan.sort_order = dto.sortOrder ?? dto.sort_order ?? null;
         plan.isLocal = false;
         return plan;
     }

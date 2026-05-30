@@ -2,6 +2,23 @@ import {defineStore} from 'pinia';
 import Plan from "@/composables/Entity/Plan";
 import {apiService} from "@/services/api";
 import {useAuthStore} from "@/stores/useAuthStore";
+import {recordInteractionEvent} from "@/services/interactionEvents";
+
+const recordPlanAddEvent = (plan) => {
+    const itemType = plan?.item_type;
+    const targetId = plan?.target_id || plan?.place_id;
+    if (itemType && itemType !== 'CUSTOM_PLACE' && itemType !== 'PLACE' && targetId != null) {
+        recordInteractionEvent(itemType, targetId, 'TRIP_PLAN_ADD');
+    }
+};
+
+const normalizeSortOrder = (value) => {
+    if (value === null || value === undefined || value === '') {
+        return null;
+    }
+    const parsedValue = Number(value);
+    return Number.isFinite(parsedValue) ? parsedValue : null;
+};
 
 export const usePlanStore = defineStore('plan', {
     state: () => ({
@@ -14,7 +31,16 @@ export const usePlanStore = defineStore('plan', {
         _loadPlansFromLocal(){
             const savedPlans = localStorage.getItem('Plans');
             if(savedPlans!==null){
-                this.Plans = JSON.parse(savedPlans);
+                try {
+                    const parsedPlans = JSON.parse(savedPlans);
+                    this.Plans = Array.isArray(parsedPlans) ? parsedPlans : [];
+                } catch (error) {
+                    console.error('Error parsing local plans:', error);
+                    this.Plans = [];
+                }
+            } else {
+                this.Plans = [];
+                localStorage.setItem('Plans', JSON.stringify([]));
             }
         },
         async loadPlans(tripId = null){
@@ -53,6 +79,7 @@ export const usePlanStore = defineStore('plan', {
                     try {
                         const createdPlan = Plan.fromDTO(await apiService.postWithToken(`trips/${plan.trip_id}/plans`, plan.toRequestDTO()));
                         this.Plans.push(createdPlan);
+                        recordPlanAddEvent(createdPlan);
                         return createdPlan;
                     } catch (error) {
                         console.error("Error adding plan to server:", error);
@@ -63,6 +90,7 @@ export const usePlanStore = defineStore('plan', {
                 plan.isLocal = true;
                 this.Plans.push(plan);
                 this.savePlans();
+                recordPlanAddEvent(plan);
                 return plan;
             }
             return null;
@@ -100,6 +128,39 @@ export const usePlanStore = defineStore('plan', {
                 }
             }
             this.Plans = this.Plans.filter(plan => plan.id !== planId);
+            this.savePlans();
+            return true;
+        },
+        async reorderPlans(tripId, orderedPlanIds){
+            const idOrder = orderedPlanIds.map(id => String(id));
+            const orderedIdSet = new Set(idOrder);
+            const previousPlans = this.Plans;
+            const tripPlans = this.Plans.filter(plan => String(plan.trip_id) === String(tripId));
+            const otherPlans = this.Plans.filter(plan => String(plan.trip_id) !== String(tripId));
+            const tripPlanById = new Map(tripPlans.map(plan => [String(plan.id), plan]));
+            const orderedTripPlans = [
+                ...idOrder.map(id => tripPlanById.get(id)).filter(Boolean),
+                ...tripPlans.filter(plan => !orderedIdSet.has(String(plan.id)))
+            ].map((plan, index) => Object.assign(new Plan(), plan, { sort_order: index }));
+            const changedPlans = orderedTripPlans.filter((plan) => {
+                const previousPlan = tripPlanById.get(String(plan.id));
+                return normalizeSortOrder(previousPlan?.sort_order) !== plan.sort_order;
+            });
+
+            this.Plans = [...otherPlans, ...orderedTripPlans];
+
+            const authStore = useAuthStore();
+            if(authStore.isAuthenticated()){
+                for (const plan of changedPlans.filter(plan => plan.isLocal === false)) {
+                    const savedPlan = await this.updatePlan(plan.id, plan);
+                    if (savedPlan === null) {
+                        this.Plans = previousPlans;
+                        this.savePlans();
+                        return false;
+                    }
+                }
+            }
+
             this.savePlans();
             return true;
         },

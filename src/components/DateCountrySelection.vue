@@ -13,7 +13,7 @@
                 id="start-date"
                 :min="min_start_date"
                 v-model="start_date"
-                @change="min_end_date = initMinEndDate(start_date)"
+                @change="handleStartDateChange"
                 class="w-full h-11 px-3 md:px-4 py-2 rounded-lg border border-zinc-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none text-sm md:text-base" />
             </div>
             <div class="relative flex-1">
@@ -36,7 +36,7 @@
               <select id="country-selection-area" v-model="selectedCountry"
                 class="w-full px-3 md:px-4 py-2 h-11 rounded-lg border border-zinc-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 outline-none text-sm md:text-base"
                 @change="selectCountry(selectedCountry)">
-                <option value="0">모든 국가</option>
+                <option :value="0">모든 국가</option>
                 <option v-for="country in countries" :key="country.id" :value="country.id">
                   {{ country.name }}
                 </option>
@@ -82,38 +82,66 @@ const end_date = ref('');
 const min_start_date = ref('');
 const min_end_date = ref('');
 
-const initStartMinDate = () =>{
-  const temp = new Date();
-  const year = temp.getFullYear();
-  const month = ('0' + (temp.getMonth() + 1)).slice(-2);
-  const day = ('0' + temp.getDate()).slice(-2);
+const formatDateInput = (date) => {
+  const year = date.getFullYear();
+  const month = ('0' + (date.getMonth() + 1)).slice(-2);
+  const day = ('0' + date.getDate()).slice(-2);
 
   return `${year}-${month}-${day}`;
 }
 
-const initMinEndDate = (inputTemp) => {
-  const temp = new Date(inputTemp);
-  const year = temp.getFullYear();
-  const month = ('0' + (temp.getMonth() + 1)).slice(-2);
-  const day = ('0' + (temp.getDate())).slice(-2);
+const parseDateInput = (value) => {
+  if (!value || typeof value !== 'string') return null;
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return null;
 
-  return `${year}-${month}-${day}`;
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null;
+  }
+  return date;
+}
+
+const initStartMinDate = () =>{
+  return formatDateInput(new Date());
+}
+
+const initMinEndDate = (inputTemp) => {
+  const startDate = parseDateInput(inputTemp);
+  if (!startDate) return min_start_date.value || initStartMinDate();
+
+  return formatDateInput(startDate);
 }
 
 const selectCountry = (countryId) => {
   emit('select-country', countryId);
 };
 
+const handleStartDateChange = () => {
+  min_end_date.value = initMinEndDate(start_date.value);
+  const startDate = parseDateInput(start_date.value);
+  const endDate = parseDateInput(end_date.value);
+  if (startDate && endDate && endDate < startDate) {
+    end_date.value = start_date.value;
+  }
+};
+
 
 
 const createTrip = async () => {
   let localLastId = 0
-  let today = initStartMinDate()
+  const startDate = parseDateInput(start_date.value)
+  const endDate = parseDateInput(end_date.value)
+  const today = parseDateInput(initStartMinDate())
   if (start_date.value === '' || end_date.value === '') {
     alert('여행 날짜를 입력해주세요.')
     return
   }
-  if (start_date.value > end_date.value) {
+  if (!startDate || !endDate || !today) {
+    alert('올바른 날짜를 입력해주세요.')
+    return
+  }
+  if (startDate > endDate) {
     alert('출발 날짜가 도착 날짜보다 늦을 수 없습니다.')
     return
   }
@@ -121,7 +149,7 @@ const createTrip = async () => {
     alert('국가를 선택해주세요.')
     return
   }
-  if (start_date.value < today || end_date.value < today) {
+  if (startDate < today || endDate < today) {
     alert('오늘 이후의 날짜를 선택해주세요.')
     return
   }
@@ -131,7 +159,7 @@ const createTrip = async () => {
     if (item.itemType === 'TRIP' && item.isLocal) {
       const isConfirm = confirm('이미 여행이 생성되어 있습니다. 작성하던 여행계획을 삭제하고 새로운 여행을 생성하시겠습니까?')
       if (isConfirm) {
-        tripStore.removeTrip(item.id)
+        await tripStore.removeTrip(item.id)
       }
       else {
         return
@@ -143,14 +171,20 @@ const createTrip = async () => {
   // VerticalScrollCardList에서는 DB에서 끌어오는 것을 기본으로 사용하기 때문에 현재 로컬에서 사용하는 trip-id와 db trip-id를 구분해야됨 이것을 넣기 위해서는 trip-id 앞에 들어가는 임시적 구분자가 필요 그게 0과 1 <- 0이면 db 로컬이면 1
   // 임시적 구분자에 의해서 로컬과 서버가 구분이 되면 로컬에서는 로컬 trip을 모두 찾아 id순으로 sort하고 가장 마지막 id를 찾아서 +1씩 추가하도록 onMounted에서 제어해야됨
 
+  const country = props.countries.find((item) => Number(item.id) === Number(selectedCountry.value));
+  if (!country) {
+    alert('선택한 국가 정보를 찾을 수 없습니다.')
+    return
+  }
+
   const newTrip = new Trip()
     .setName('여행' + localLastId)
     .setDescription('설명이 입력되어있지 않습니다.')
     .setStartDate(start_date.value)
     .setEndDate(end_date.value)
     .setIsLocal(true)
-    .setCountryId(selectedCountry.value)
-    .setCountry(props.countries.find((country) => country.id === selectedCountry.value).name)
+    .setCountryId(country.id)
+    .setCountry(country.name)
 
   const isPassed = await tripStore.addTrip(newTrip);
   if (isPassed) alert('여행이 생성되었습니다.')

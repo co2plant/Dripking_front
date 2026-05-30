@@ -1,9 +1,9 @@
 <template>
-  <div class="bg-white rounded-lg shadow p-6 mb-6 w-full h-screen" id="map" ref="mapRefElement"></div>
+  <div v-if="shouldRender" class="bg-white rounded-lg shadow p-6 mb-6 w-full h-screen" id="map" ref="mapRefElement"></div>
 </template>
 
 <script setup>
-import { ref, onMounted, defineProps } from 'vue';
+import { ref, onMounted, defineProps, nextTick } from 'vue';
 import { useTripStore } from "@/stores/useTripStore";
 import { usePlanStore } from "@/stores/usePlanStore";
 import { getValidCoordinates, hasValidCoordinates } from "@/utils/coordinates";
@@ -20,6 +20,7 @@ const tripStore = useTripStore();
 const planStore = usePlanStore();
 
 const mapRefElement = ref(null);
+const shouldRender = ref(false);
 let mapInstance = null;
 const apiKey = process.env.VUE_APP_GOOGLE_MAPS_API;
 
@@ -33,18 +34,18 @@ const getTripPlansWithCoordinates = () => planStore.Plans
   .filter(hasValidCoordinates);
 
 async function initMap() {
-  if (!mapRefElement.value) {
-    console.error("지도 컨테이너 요소를 찾을 수 없습니다.");
+  if (!mapRefElement.value || !apiKey) {
+    shouldRender.value = false;
     return;
   }
 
   try {
     const googleMaps = await loadGoogleMapsAPI(apiKey);
-    const { map } = await googleMaps.importLibrary("maps");
+    const { Map } = await googleMaps.importLibrary("maps");
     const { AdvancedMarkerElement } = await googleMaps.importLibrary("marker");
     const center = { lat: map_center.value.lat, lng: map_center.value.lng };
 
-    mapInstance = new map(mapRefElement.value, {
+    mapInstance = new Map(mapRefElement.value, {
       center,
       zoom: 11,
       mapId: "4504f8b37365c3d0",
@@ -72,15 +73,13 @@ async function initMap() {
     }
   } catch (error) {
     console.error("지도 초기화 중 오류 발생:", error);
-    if (mapRefElement.value) {
-      mapRefElement.value.innerHTML = `<p style="padding: 1em; text-align: center; color: red;">지도를 로드하는 중 오류가 발생했습니다: ${error.message}</p>`;
-    }
+    shouldRender.value = false;
   }
 }
 
 function toggleHighlight(markerView) {
   const content = markerView.content;
-  
+
   if (content.classList.contains("highlight")) {
     content.classList.remove("highlight");
     markerView.zIndex = null;
@@ -90,36 +89,76 @@ function toggleHighlight(markerView) {
   }
 }
 
+const getDisplayName = (property) => {
+  return property.name || property.place_name || property.snapshot_name || property.custom_place_name || '일정';
+};
+
+const getDisplayAddress = (property) => {
+  return property.address || property.snapshot_address || property.custom_place_address || '';
+};
+
+const appendFeature = (features, iconClass, label, value) => {
+  if (!value) return;
+
+  const feature = document.createElement("div");
+  const icon = document.createElement("i");
+  const srLabel = document.createElement("span");
+  const text = document.createElement("span");
+
+  icon.setAttribute("aria-hidden", "true");
+  icon.className = iconClass;
+  icon.title = label;
+  srLabel.classList.add("sr-only");
+  srLabel.textContent = label;
+  text.textContent = value;
+
+  feature.append(icon, srLabel, text);
+  features.appendChild(feature);
+};
+
 function buildContent(property, number) {
   const content = document.createElement("div");
   content.classList.add("property");
 
-  content.innerHTML = `
-    <div class="icon">
-        <b class="number" aria-hidden="true" title="${number+"번째여행"}">${number}</b>
-        <span class="sr-only">${property.type}</span>
-    </div>
-    <div class="details">
-        <div class="price" :v-if="property.name">${property.name}</div>
-        <div class="address" :v-if="property.address">${property.address}</div>
-        <div class="features">
-        <div :v-if="property.date">
-            <i aria-hidden="true" class="fa fa-solid fa-calendar fa-lg calendar" title="date"></i>
-            <span class="sr-only">date</span>
-            <span>${property.plan_date}</span>
-        </div>
-        <div :v-if="property.startTime">
-            <i aria-hidden="true" class="fa fa-solid fa-clock fa-lg clock" title="starttime"></i>
-            <span class="sr-only">start time</span>
-            <span>${property.start_time}</span>
-        </div>
-        <div :v-if="property.endTime">
-            <i aria-hidden="true" class="fa fa-solid fa-clock fa-lg clock" title="endtime"></i>
-            <span class="sr-only">end time</span>
-            <span>${property.end_time}</span>
-        </div>
-    </div>
-  `;
+  const icon = document.createElement("div");
+  const order = document.createElement("b");
+  const itemType = document.createElement("span");
+  const details = document.createElement("div");
+  const name = document.createElement("div");
+  const address = getDisplayAddress(property);
+  const features = document.createElement("div");
+
+  icon.classList.add("icon");
+  order.classList.add("number");
+  order.setAttribute("aria-hidden", "true");
+  order.title = `${number + 1}번째 여행`;
+  order.textContent = String(number + 1);
+  itemType.classList.add("sr-only");
+  itemType.textContent = property.item_type || property.type || 'plan';
+  icon.append(order, itemType);
+
+  details.classList.add("details");
+  name.classList.add("price");
+  name.textContent = getDisplayName(property);
+  details.appendChild(name);
+
+  if (address) {
+    const addressElement = document.createElement("div");
+    addressElement.classList.add("address");
+    addressElement.textContent = address;
+    details.appendChild(addressElement);
+  }
+
+  features.classList.add("features");
+  appendFeature(features, "fa fa-solid fa-calendar fa-lg calendar", "date", property.plan_date);
+  appendFeature(features, "fa fa-solid fa-clock fa-lg clock", "start time", property.start_time);
+  appendFeature(features, "fa fa-solid fa-clock fa-lg clock", "end time", property.end_time);
+
+  if (features.children.length > 0) {
+    details.appendChild(features);
+  }
+
+  content.append(icon, details);
   return content;
 }
 
@@ -141,6 +180,12 @@ onMounted(async () => {
     }
   }
 
+  if (tripPlansWithCoordinates.length === 0 || !apiKey) {
+    return;
+  }
+
+  shouldRender.value = true;
+  await nextTick();
   initMap();
 });
 
