@@ -1,431 +1,506 @@
 <template>
-  <div class="container mx-auto">
-    <div class="flex min-h-screen flex-col space-y-6">
-      <div class="container grid flex-1 gap-12">
-        <main class="flex w-full flex-1 flex-col overflow-hidden">
-          <div class="flex flex-col gap-4 md:gap-6">
-            <div class="grid gap-1">
-              <h1 class="text-2xl font-bold tracking-tight">목적지 관리</h1>
-              <p class="text-zinc-500 dark:text-zinc-400">여행 목적지 정보를 관리합니다.</p>
-            </div>
+  <main class="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-6 py-8 text-left">
+    <header class="flex flex-col gap-2">
+      <h1 class="text-2xl font-bold tracking-tight text-zinc-950">목적지 관리</h1>
+      <p class="text-sm text-zinc-500">여행 목적지 목록과 등록 정보를 관리합니다.</p>
+    </header>
 
-            <div class="space-y-4">
-              <div class="flex justify-between">
-                <h2 class="text-xl font-bold">목적지 목록</h2>
-                <button
-                    @click="openAddModal"
-                    class="inline-flex items-center rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800"
-                >
-                  <MapPin class="mr-2 h-4 w-4" />
-                  목적지 추가
-                </button>
-              </div>
+    <p v-if="message" class="text-sm" :class="messageType === 'error' ? 'text-red-600' : 'text-green-700'">
+      {{ message }}
+    </p>
 
-              <div class="flex items-center py-4">
-                <input
-                    v-model="searchQuery"
-                    placeholder="이름으로 검색..."
-                    class="max-w-sm rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-                />
-              </div>
-
-              <div class="rounded-md border">
-                <table class="w-full">
-                  <thead>
-                  <tr class="border-b bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/50">
-                    <th v-for="column in columns" :key="column.key" class="px-4 py-3 text-left text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                      {{ column.label }}
-                    </th>
-                    <th class="px-4 py-3 text-right text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                      작업
-                    </th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr
-                      v-for="destination in filteredDestinations"
-                      :key="destination.id"
-                      class="border-b dark:border-zinc-800"
-                  >
-                    <td class="px-4 py-3 text-sm">{{ destination.name }}</td>
-                    <td class="px-4 py-3 text-sm">{{ destination.country }}</td>
-                    <td class="px-4 py-3 text-sm">{{ destination.city }}</td>
-                    <td class="px-4 py-3 text-sm">
-                      <div class="rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
-                        {{ destination.category }}
-                      </div>
-                    </td>
-                    <td class="px-4 py-3 text-sm">
-                      <div class="flex items-center">
-                        <div class="h-2 w-24 rounded-full bg-zinc-200 dark:bg-zinc-700">
-                          <div
-                              class="h-2 rounded-full bg-amber-500"
-                              :style="{ width: `${(destination.popularity / 10) * 100}%` }"
-                          />
-                        </div>
-                        <span class="ml-2 text-sm">{{ destination.popularity }}</span>
-                      </div>
-                    </td>
-                    <td class="px-4 py-3 text-right text-sm">
-                      <div class="relative">
-                        <button @click="toggleDropdown(destination.id)" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800">
-                          <MoreHorizontal class="h-4 w-4" />
-                        </button>
-                        <div v-if="activeDropdown === destination.id" class="absolute right-0 z-10 mt-2 w-36 rounded-md border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-950">
-                          <div class="py-1 text-sm text-zinc-700 dark:text-zinc-300">
-                            <div class="border-b border-zinc-200 px-3 py-2 font-medium dark:border-zinc-800">작업</div>
-                            <button @click="openEditModal(destination)" class="flex w-full items-center px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                              <Pencil class="mr-2 h-4 w-4" />
-                              <span>편집</span>
-                            </button>
-                            <button @click="openDeleteModal(destination)" class="flex w-full items-center px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                              <Trash2 class="mr-2 h-4 w-4" />
-                              <span>삭제</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr v-if="filteredDestinations.length === 0">
-                    <td colspan="6" class="h-24 text-center text-sm text-zinc-500 dark:text-zinc-400">
-                      데이터가 없습니다.
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div class="flex items-center justify-end space-x-2 py-4">
-                <button
-                    @click="prevPage"
-                    :disabled="currentPage <= 1"
-                    class="inline-flex items-center rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
-                >
-                  이전
-                </button>
-                <button
-                    @click="nextPage"
-                    :disabled="currentPage >= totalPages"
-                    class="inline-flex items-center rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
-                >
-                  다음
-                </button>
-              </div>
-            </div>
+    <section class="grid gap-6 xl:grid-cols-[1fr_420px]">
+      <div class="overflow-hidden rounded-md border border-zinc-200 bg-white">
+        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 md:flex-row md:items-center md:justify-between">
+          <h2 class="text-base font-semibold text-zinc-950">목적지 목록</h2>
+          <div class="flex gap-2">
+            <input
+                v-model.trim="searchQuery"
+                @keyup.enter="fetchDestinations"
+                class="h-9 min-w-0 rounded-md border border-zinc-200 px-3 text-sm"
+                placeholder="이름 검색"
+            />
+            <button
+                type="button"
+                @click="fetchDestinations"
+                class="inline-flex h-9 items-center rounded-md border border-zinc-200 px-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            >
+              검색
+            </button>
+            <button
+                type="button"
+                @click="refreshAll"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                title="새로고침"
+            >
+              <RefreshCw class="h-4 w-4" />
+            </button>
           </div>
-        </main>
-      </div>
+        </div>
 
-      <!-- 목적지 추가/편집 모달 -->
-      <Teleport to="body">
-        <div v-if="isFormModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-zinc-950">
-            <div class="mb-4">
-              <h2 class="text-lg font-semibold">{{ modalTitle }}</h2>
-              <p class="text-sm text-zinc-500 dark:text-zinc-400">
-                목적지 정보를 입력하세요. 완료되면 저장 버튼을 클릭하세요.
-              </p>
-            </div>
-
-            <form @submit.prevent="submitForm" class="space-y-4">
-              <div class="space-y-2">
-                <label for="destination_name" class="text-sm font-medium">이름</label>
-                <input
-                    id="destination_name"
-                    v-model="formData.name"
-                    placeholder="목적지 이름"
-                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-                />
-                <p v-if="formErrors.name" class="text-xs text-red-500">{{ formErrors.name }}</p>
-              </div>
-
-              <div class="space-y-2">
-                <label for="destination_country" class="text-sm font-medium">국가</label>
-                <input
-                    id="destination_country"
-                    v-model="formData.country"
-                    placeholder="국가명"
-                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-                />
-                <p v-if="formErrors.country" class="text-xs text-red-500">{{ formErrors.country }}</p>
-              </div>
-
-              <div class="space-y-2">
-                <label for="destination_city" class="text-sm font-medium">도시</label>
-                <input
-                    id="destination_city"
-                    v-model="formData.city"
-                    placeholder="도시명"
-                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-                />
-                <p v-if="formErrors.city" class="text-xs text-red-500">{{ formErrors.city }}</p>
-              </div>
-
-              <div class="space-y-2">
-                <label for="destination_category" class="text-sm font-medium">카테고리</label>
-                <select
-                    id="destination_category"
-                    v-model="formData.category"
-                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-                >
-                  <option value="명소">명소</option>
-                  <option value="역사">역사</option>
-                  <option value="자연">자연</option>
-                  <option value="문화">문화</option>
-                  <option value="음식">음식</option>
-                </select>
-              </div>
-
-              <div class="space-y-2">
-                <label for="destination_rating" class="text-sm font-medium">인기도 ({{ formData.popularity.toFixed(1) }})</label>
-                <input
-                    id="destination_rating"
-                    type="range"
-                    v-model.number="formData.popularity"
-                    min="0"
-                    max="5"
-                    step="0.1"
-                    class="w-full"
-                />
-              </div>
-
-              <div class="flex justify-end space-x-2 pt-4">
+        <div v-if="isLoading" class="px-4 py-12 text-center text-sm text-zinc-500">
+          목록을 불러오는 중입니다.
+        </div>
+        <div v-else-if="destinations.length === 0" class="px-4 py-12 text-center text-sm text-zinc-500">
+          표시할 목적지가 없습니다.
+        </div>
+        <table v-else class="w-full table-fixed">
+          <thead class="border-b border-zinc-200 bg-zinc-50">
+          <tr>
+            <th class="w-44 px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">이름</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">위치</th>
+            <th class="w-36 px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">좌표</th>
+            <th class="w-28 px-4 py-3 text-right text-xs font-semibold uppercase text-zinc-500">작업</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="destination in destinations" :key="destination.id" class="border-b border-zinc-100 last:border-0">
+            <td class="px-4 py-4 align-top text-sm font-medium text-zinc-950">
+              {{ destination.name }}
+              <span v-if="!destination.imgUrl" class="mt-1 block text-xs font-semibold text-amber-700">이미지 필요</span>
+            </td>
+            <td class="px-4 py-4 align-top text-sm text-zinc-600">
+              <div>{{ destination.countryName || '-' }} {{ destination.cityName || '' }}</div>
+              <div class="mt-1 line-clamp-2 text-xs text-zinc-400">{{ destination.description || '-' }}</div>
+            </td>
+            <td class="px-4 py-4 align-top text-xs text-zinc-500">
+              <span v-if="hasMissingCoordinates(destination)" class="rounded bg-amber-100 px-2 py-1 font-semibold text-amber-800">
+                보완 필요
+              </span>
+              <span v-else>{{ destination.latitude }}, {{ destination.longitude }}</span>
+            </td>
+            <td class="px-4 py-4 align-top">
+              <div class="flex justify-end gap-2">
                 <button
                     type="button"
-                    @click="closeFormModal"
-                    class="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium dark:border-zinc-800 dark:bg-zinc-950"
+                    @click="startEdit(destination)"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                    title="수정"
                 >
-                  취소
+                  <Pencil class="h-4 w-4" />
                 </button>
                 <button
-                    type="submit"
-                    class="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800"
+                    type="button"
+                    @click="deleteDestination(destination)"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 text-red-600 hover:bg-red-50"
+                    title="삭제"
                 >
-                  저장
+                  <Trash2 class="h-4 w-4" />
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      </Teleport>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
 
-      <!-- 삭제 확인 모달 -->
-      <Teleport to="body">
-        <div v-if="isDeleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-zinc-950">
-            <h2 class="text-lg font-semibold">목적지 삭제</h2>
-            <p class="py-4 text-sm text-zinc-500 dark:text-zinc-400">
-              정말로 {{ selectedDestination?.name }} 목적지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-            </p>
-            <div class="flex justify-end space-x-2">
-              <button
-                  @click="closeDeleteModal"
-                  class="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium dark:border-zinc-800 dark:bg-zinc-950"
-              >
-                취소
-              </button>
-              <button
-                  @click="confirmDelete"
-                  class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-              >
-                삭제
-              </button>
+      <form @submit.prevent="submitForm" class="h-fit rounded-md border border-zinc-200 bg-white p-5">
+        <h2 class="text-base font-semibold text-zinc-950">
+          {{ editingDestination ? '목적지 수정' : '목적지 추가' }}
+        </h2>
+
+        <div class="mt-5 space-y-4">
+          <label class="block">
+            <span class="text-sm font-medium text-zinc-700">이름</span>
+            <input v-model.trim="form.name" required class="mt-1 h-10 w-full rounded-md border border-zinc-200 px-3 text-sm" />
+          </label>
+
+          <label class="block">
+            <span class="text-sm font-medium text-zinc-700">설명</span>
+            <textarea v-model.trim="form.description" rows="3" class="mt-1 w-full rounded-md border border-zinc-200 px-3 py-2 text-sm"></textarea>
+          </label>
+
+          <label class="block">
+            <span class="text-sm font-medium text-zinc-700">이미지 URL</span>
+            <input v-model.trim="form.imgUrl" class="mt-1 h-10 w-full rounded-md border border-zinc-200 px-3 text-sm" />
+          </label>
+
+          <label class="block">
+            <span class="text-sm font-medium text-zinc-700">이미지 파일</span>
+            <div class="mt-1 flex items-center gap-2">
+              <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  :disabled="isUploadingImage || isSaving"
+                  @change="handleImageUpload"
+                  class="block w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-zinc-800 disabled:opacity-50"
+              />
+              <span v-if="isUploadingImage" class="whitespace-nowrap text-xs font-medium text-zinc-500">업로드 중</span>
             </div>
+            <span v-if="form.imgObjectKey" class="mt-1 block truncate text-xs text-zinc-400">{{ form.imgObjectKey }}</span>
+          </label>
+
+          <label class="block">
+            <span class="text-sm font-medium text-zinc-700">국가</span>
+            <select v-model.number="form.countryId" @change="loadCitiesForCountry" required class="mt-1 h-10 w-full rounded-md border border-zinc-200 px-3 text-sm">
+              <option :value="null" disabled>국가를 선택하세요</option>
+              <option v-for="country in countries" :key="country.id" :value="country.id">{{ country.name }}</option>
+            </select>
+          </label>
+          <div class="flex gap-2">
+            <input
+                v-model.trim="newCountryName"
+                :disabled="isCreatingCountry"
+                class="h-10 min-w-0 flex-1 rounded-md border border-zinc-200 px-3 text-sm"
+                placeholder="새 국가"
+            />
+            <button
+                type="button"
+                :disabled="isCreatingCountry || !newCountryName"
+                @click="createCountry"
+                class="h-10 rounded-md border border-zinc-200 px-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-40"
+            >
+              국가 추가
+            </button>
+          </div>
+
+          <label class="block">
+            <span class="text-sm font-medium text-zinc-700">도시</span>
+            <select v-model.number="form.cityId" required class="mt-1 h-10 w-full rounded-md border border-zinc-200 px-3 text-sm">
+              <option :value="null" disabled>도시를 선택하세요</option>
+              <option v-for="city in cities" :key="city.id" :value="city.id">{{ city.name }}</option>
+            </select>
+          </label>
+          <div class="flex gap-2">
+            <input
+                v-model.trim="newCityName"
+                :disabled="isCreatingCity || !form.countryId"
+                class="h-10 min-w-0 flex-1 rounded-md border border-zinc-200 px-3 text-sm"
+                placeholder="새 도시"
+            />
+            <button
+                type="button"
+                :disabled="isCreatingCity || !form.countryId || !newCityName"
+                @click="createCity"
+                class="h-10 rounded-md border border-zinc-200 px-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-40"
+            >
+              도시 추가
+            </button>
+          </div>
+
+          <label class="block">
+            <span class="text-sm font-medium text-zinc-700">카테고리</span>
+            <select v-model.number="form.categoryId" class="mt-1 h-10 w-full rounded-md border border-zinc-200 px-3 text-sm">
+              <option :value="null">선택 안 함</option>
+              <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+            </select>
+          </label>
+
+          <div class="grid grid-cols-2 gap-3">
+            <label class="block">
+              <span class="text-sm font-medium text-zinc-700">위도</span>
+              <input v-model.number="form.latitude" type="number" step="0.000001" class="mt-1 h-10 w-full rounded-md border border-zinc-200 px-3 text-sm" />
+            </label>
+            <label class="block">
+              <span class="text-sm font-medium text-zinc-700">경도</span>
+              <input v-model.number="form.longitude" type="number" step="0.000001" class="mt-1 h-10 w-full rounded-md border border-zinc-200 px-3 text-sm" />
+            </label>
           </div>
         </div>
-      </Teleport>
-    </div>
-  </div>
+
+        <p v-if="formWarning" class="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+          {{ formWarning }}
+        </p>
+        <p class="mt-4 text-xs text-zinc-500">새 목적지는 설명, 이미지, 국가, 도시, 위도, 경도가 필요합니다.</p>
+
+        <div class="mt-5 flex justify-end gap-2">
+          <button v-if="editingDestination" type="button" @click="resetForm" class="rounded-md border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50">
+            취소
+          </button>
+          <button type="submit" :disabled="isSaving || isUploadingImage" class="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40">
+            저장
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { MoreHorizontal, Pencil, Trash2, MapPin } from 'lucide-vue-next';
-import { apiService } from "@/services/api";
+import { computed, onMounted, ref } from 'vue';
+import { Pencil, RefreshCw, Trash2 } from 'lucide-vue-next';
+import { apiService } from '@/services/api';
 
 const destinations = ref([]);
-const currentPage = ref(1);
-const pageSize = ref(5);
-const totalPages = computed(() => Math.ceil(filteredDestinations.value.length / pageSize.value));
-
-onMounted(async () => {
-  try {
-    const response = await apiService.get(`dashboard/destinations`);
-    
-    destinations.value = response;
-    
-    if (response) {
-      if (response.content) {
-        destinations.value = response.content;
-        pageSize.value = response.totalPages;
-      } else if (Array.isArray(response)) {
-        destinations.value = response;
-      } else {
-        destinations.value = response;
-      }
-    } else {
-      console.error("API 응답이 예상과 다릅니다:", response);
-      destinations.value = [];
-      pageSize.value = 0;
-    }
-  } catch (error) {
-    console.error("Error fetching destinations:", error);
-    destinations.value = [];
-    pageSize.value = 0;
-  }
-});
-
-// 테이블 컬럼 정의
-const columns = [
-  { key: 'name', label: '이름' },
-  { key: 'country', label: '국가' },
-  { key: 'city', label: '도시' },
-  { key: 'category', label: '카테고리' },
-  { key: 'reviewRating', label: '리뷰 점수' },
-];
-
-
-// 검색 상태
+const categories = ref([]);
+const countries = ref([]);
+const cities = ref([]);
 const searchQuery = ref('');
-const filteredDestinations = computed(() => {
-  if (!searchQuery.value) return destinations.value;
-  return destinations.value.filter(destination =>
-      destination.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
-});
+const isLoading = ref(false);
+const isSaving = ref(false);
+const isUploadingImage = ref(false);
+const isCreatingCountry = ref(false);
+const isCreatingCity = ref(false);
+const editingDestination = ref(null);
+const message = ref('');
+const messageType = ref('success');
+const newCountryName = ref('');
+const newCityName = ref('');
+const form = ref({});
 
-// 페이지네이션 함수
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-  }
-};
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-  }
-};
-
-// 드롭다운 메뉴 상태
-const activeDropdown = ref(null);
-const toggleDropdown = (destinationId) => {
-  activeDropdown.value = activeDropdown.value === destinationId ? null : destinationId;
-};
-
-// 모달 상태
-const isFormModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
-const modalTitle = ref('');
-const selectedDestination = ref(null);
-const formData = ref({
+const emptyForm = () => ({
   name: '',
-  country: '',
-  city: '',
-  category: '명소',
-  popularity: 5,
+  description: '',
+  imgUrl: '',
+  imgObjectKey: '',
+  countryId: null,
+  cityId: null,
+  categoryId: null,
+  latitude: null,
+  longitude: null,
 });
-const formErrors = ref({});
 
-// 모달 열기/닫기 함수
-const openAddModal = () => {
-  modalTitle.value = '목적지 추가';
-  formData.value = {
-    name: '',
-    country: '',
-    city: '',
-    category: '명소',
-    popularity: 5,
-  };
-  formErrors.value = {};
-  selectedDestination.value = null;
-  isFormModalOpen.value = true;
-  activeDropdown.value = null;
+const formWarning = computed(() => {
+  if (hasMissingCoordinates(form.value)) {
+    return editingDestination.value
+        ? '좌표가 없어 public 지도와 marker API에 표시되지 않습니다. 기존 데이터 편집은 가능하지만 위도와 경도를 보완해야 합니다.'
+        : '새 목적지에는 위도와 경도가 필요합니다.';
+  }
+  return '';
+});
+
+const fetchOptions = async () => {
+  const [categoryResponse, countryResponse] = await Promise.all([
+    apiService.get('categories'),
+    apiService.get('countries'),
+  ]);
+  categories.value = Array.isArray(categoryResponse) ? categoryResponse : [];
+  countries.value = Array.isArray(countryResponse) ? countryResponse : [];
 };
 
-const openEditModal = (destination) => {
-  modalTitle.value = '목적지 편집';
-  formData.value = { ...destination };
-  formErrors.value = {};
-  selectedDestination.value = destination;
-  isFormModalOpen.value = true;
-  activeDropdown.value = null;
-};
-
-const closeFormModal = () => {
-  isFormModalOpen.value = false;
-};
-
-const openDeleteModal = (destination) => {
-  selectedDestination.value = destination;
-  isDeleteModalOpen.value = true;
-  activeDropdown.value = null;
-};
-
-const closeDeleteModal = () => {
-  isDeleteModalOpen.value = false;
-};
-
-// 클릭 이벤트 감지하여 드롭다운 닫기
-const handleClickOutside = () => {
-  if (activeDropdown.value !== null) {
-    activeDropdown.value = null;
+const fetchDestinations = async () => {
+  isLoading.value = true;
+  message.value = '';
+  try {
+    const keyword = searchQuery.value.trim();
+    const endpoint = keyword
+        ? `destinations/search/${encodeURIComponent(keyword)}?size=200`
+        : 'destinations?size=200';
+    const response = await apiService.get(endpoint);
+    destinations.value = response?.content || [];
+  } catch (error) {
+    console.error('Destination fetch failed:', error);
+    showMessage('목적지 목록을 불러오지 못했습니다.', 'error');
+  } finally {
+    isLoading.value = false;
   }
 };
 
-// 폼 제출 처리
-const submitForm = () => {
-  formErrors.value = {};
+const refreshAll = async () => {
+  await fetchOptions();
+  await fetchDestinations();
+};
 
-  // 간단한 유효성 검사
-  if (!formData.value.name || formData.value.name.length < 2) {
-    formErrors.value.name = '이름은 2자 이상이어야 합니다.';
+const loadCitiesForCountry = async () => {
+  form.value.cityId = null;
+  cities.value = [];
+  newCityName.value = '';
+  if (!form.value.countryId) return;
+  try {
+    const response = await apiService.get(`cities/country/${form.value.countryId}?size=200`);
+    cities.value = response?.content || [];
+  } catch (error) {
+    console.error('City fetch failed:', error);
+    showMessage('도시 목록을 불러오지 못했습니다.', 'error');
   }
+};
 
-  if (!formData.value.country || formData.value.country.length < 2) {
-    formErrors.value.country = '국가명은 2자 이상이어야 합니다.';
+const createCountry = async () => {
+  if (!newCountryName.value) return;
+  isCreatingCountry.value = true;
+  message.value = '';
+  try {
+    const country = await apiService.postWithToken('countries', {
+      name: newCountryName.value,
+      description: '',
+    });
+    countries.value = [...countries.value, country];
+    form.value.countryId = country.id;
+    newCountryName.value = '';
+    await loadCitiesForCountry();
+    showMessage('국가를 추가했습니다.');
+  } catch (error) {
+    console.error('Country create failed:', error);
+    showMessage(apiErrorMessage(error, '국가를 추가하지 못했습니다.'), 'error');
+  } finally {
+    isCreatingCountry.value = false;
   }
+};
 
-  if (!formData.value.city || formData.value.city.length < 2) {
-    formErrors.value.city = '도시명은 2자 이상이어야 합니다.';
+const createCity = async () => {
+  if (!newCityName.value || !form.value.countryId) return;
+  isCreatingCity.value = true;
+  message.value = '';
+  try {
+    const city = await apiService.postWithToken('cities', {
+      name: newCityName.value,
+      description: '',
+      countryId: form.value.countryId,
+    });
+    cities.value = [...cities.value, city];
+    form.value.cityId = city.id;
+    newCityName.value = '';
+    showMessage('도시를 추가했습니다.');
+  } catch (error) {
+    console.error('City create failed:', error);
+    showMessage(apiErrorMessage(error, '도시를 추가하지 못했습니다.'), 'error');
+  } finally {
+    isCreatingCity.value = false;
   }
+};
 
-  if (Object.keys(formErrors.value).length > 0) {
+const submitForm = async () => {
+  if (isUploadingImage.value) {
+    showMessage('이미지 업로드가 끝난 뒤 저장해주세요.', 'error');
+    return;
+  }
+  const validationError = validateForm();
+  if (validationError) {
+    showMessage(validationError, 'error');
     return;
   }
 
-  if (selectedDestination.value) {
-    // 목적지 수정
-    const index = destinations.value.findIndex(d => d.id === selectedDestination.value.id);
-    if (index !== -1) {
-      destinations.value[index] = { ...selectedDestination.value, ...formData.value };
+  isSaving.value = true;
+  message.value = '';
+  try {
+    const payload = {
+      name: form.value.name,
+      description: form.value.description,
+      imgUrl: form.value.imgUrl,
+      imgObjectKey: form.value.imgObjectKey,
+      latitude: form.value.latitude,
+      longitude: form.value.longitude,
+      cityId: form.value.cityId,
+      categoryId: form.value.categoryId,
+    };
+    if (editingDestination.value) {
+      await apiService.putWithToken(`destinations/${editingDestination.value.id}`, payload);
+      showMessage('목적지 정보를 수정했습니다.');
+    } else {
+      await apiService.postWithToken('destinations', payload);
+      showMessage('목적지를 추가했습니다.');
     }
-  } else {
-    // 목적지 추가
-    const newId = (Math.max(...destinations.value.map(d => parseInt(d.id))) + 1).toString();
-    destinations.value.push({
-      id: newId,
-      ...formData.value,
-    });
+    resetForm();
+    await fetchDestinations();
+  } catch (error) {
+    console.error('Destination save failed:', error);
+    showMessage(apiErrorMessage(error, '목적지를 저장하지 못했습니다.'), 'error');
+  } finally {
+    isSaving.value = false;
   }
-
-  closeFormModal();
 };
 
-// 삭제 확인
-const confirmDelete = () => {
-  if (selectedDestination.value) {
-    destinations.value = destinations.value.filter(d => d.id !== selectedDestination.value.id);
-  }
-  closeDeleteModal();
+const validateForm = () => {
+  if (!form.value.name) return '이름이 필요합니다.';
+  if (!editingDestination.value && !form.value.description) return '새 목적지에는 설명이 필요합니다.';
+  if (!editingDestination.value && !form.value.imgUrl) return '새 목적지에는 이미지가 필요합니다.';
+  if (!form.value.countryId) return '국가를 선택해주세요.';
+  if (!form.value.cityId) return '도시를 선택해주세요.';
+  if (!editingDestination.value && hasMissingCoordinates(form.value)) return '새 목적지에는 위도와 경도가 필요합니다.';
+  return '';
 };
 
-// 컴포넌트 마운트 시 이벤트 리스너 등록
-window.addEventListener('click', handleClickOutside);
+const startEdit = async (destination) => {
+  editingDestination.value = destination;
+  form.value = {
+    ...emptyForm(),
+    ...destination,
+    countryId: destination.countryId || null,
+    cityId: destination.cityId || null,
+  };
+  if (form.value.countryId) {
+    await loadCitiesForCountry();
+    form.value.cityId = destination.cityId || null;
+  }
+  message.value = '';
+};
 
-// 컴포넌트 언마운트 시 이벤트 리스너 제거
-onUnmounted(() => {
-  window.removeEventListener('click', handleClickOutside);
+const deleteDestination = async (destination) => {
+  if (!window.confirm(`${destination.name} 목적지를 삭제하시겠습니까?`)) return;
+  try {
+    await apiService.deleteWithToken(`destinations/${destination.id}`);
+    if (editingDestination.value?.id === destination.id) {
+      resetForm();
+    }
+    showMessage('목적지를 삭제했습니다.');
+    await fetchDestinations();
+  } catch (error) {
+    console.error('Destination delete failed:', error);
+    showMessage(apiErrorMessage(error, '목적지를 삭제하지 못했습니다.'), 'error');
+  }
+};
+
+const handleImageUpload = async (event) => {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if (!file) return;
+
+  const validationError = validateImageFile(file);
+  if (validationError) {
+    showMessage(validationError, 'error');
+    return;
+  }
+
+  isUploadingImage.value = true;
+  message.value = '';
+  try {
+    const body = new FormData();
+    body.append('file', file);
+    body.append('itemType', 'DESTINATION');
+    const response = await apiService.postFormWithToken('admin/content-images', body);
+    form.value.imgUrl = response.imgUrl;
+    form.value.imgObjectKey = response.imgObjectKey;
+    showMessage('이미지를 업로드했습니다.');
+  } catch (error) {
+    console.error('Image upload failed:', error);
+    showMessage(apiErrorMessage(error, '이미지 업로드에 실패했습니다.'), 'error');
+  } finally {
+    isUploadingImage.value = false;
+  }
+};
+
+const validateImageFile = (file) => {
+  const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  if (!allowedExtensions.includes(extension) || !allowedTypes.includes(file.type)) {
+    return 'jpg, jpeg, png, webp 이미지만 업로드할 수 있습니다.';
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    return '이미지 파일은 5MB 이하여야 합니다.';
+  }
+  return '';
+};
+
+const resetForm = () => {
+  editingDestination.value = null;
+  form.value = emptyForm();
+  cities.value = [];
+  newCountryName.value = '';
+  newCityName.value = '';
+};
+
+const hasMissingCoordinates = (destination) => (
+  destination.latitude == null
+  || destination.longitude == null
+  || destination.latitude === ''
+  || destination.longitude === ''
+);
+
+const showMessage = (nextMessage, type = 'success') => {
+  message.value = nextMessage;
+  messageType.value = type;
+};
+
+const apiErrorMessage = (error, fallback) => (
+  error?.body?.message
+  || error?.body?.detail
+  || error?.message
+  || fallback
+);
+
+onMounted(async () => {
+  resetForm();
+  await refreshAll();
 });
 </script>

@@ -1,421 +1,309 @@
 <template>
-  <div class="container mx-auto px-6">
-    <div class="flex min-h-screen flex-col space-y-6">
-      <div class="container grid flex-1 gap-12">
-        <main class="flex w-full flex-1 flex-col overflow-hidden">
-          <div class="flex flex-col gap-4 md:gap-6">
-            <div class="grid gap-1">
-              <h1 class="text-2xl font-bold tracking-tight">사용자 관리</h1>
-              <p class="text-zinc-500 dark:text-zinc-400">시스템의 모든 사용자를 관리합니다.</p>
-            </div>
+  <main class="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-6 py-8 text-left">
+    <header class="flex flex-col gap-2">
+      <h1 class="text-2xl font-bold tracking-tight text-zinc-950">사용자 관리</h1>
+      <p class="text-sm text-zinc-500">사용자 계정, 권한, 잠금 상태를 관리합니다.</p>
+    </header>
 
-            <div class="space-y-4">
-              <div class="flex justify-between">
-                <h2 class="text-xl font-bold">사용자 목록</h2>
-                <button
-                    @click="openAddModal"
-                    class="inline-flex items-center rounded-md bg-amber-400 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800"
-                >
-                  <UserPlus class="mr-2 h-4 w-4" />
-                  사용자 추가
-                </button>
-              </div>
-
-              <div class="flex items-center py-4">
-                <input
-                    v-model="searchQuery"
-                    placeholder="이름으로 검색..."
-                    class="max-w-sm rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-                />
-              </div>
-
-              <div class="rounded-md border">
-                <table class="w-full">
-                  <thead>
-                  <tr class="border-b bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/50">
-                    <th v-for="column in columns" :key="column.key" class="px-4 py-3 text-center text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                      {{ column.label }}
-                    </th>
-                    <th class="px-4 py-3 text-center text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                      작업
-                    </th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr
-                      v-for="user in filteredUsers"
-                      :key="user.id"
-                      class="border-b dark:border-zinc-800"
-                  >
-                    <td class="px-4 py-3 text-sm">{{ user.name }}</td>
-                    <td class="px-4 py-3 text-sm">{{ user.email }}</td>
-                    <td class="px-4 py-3 text-sm">{{ user.role }}</td>
-                    <td class="px-4 py-3 text-sm">
-                      <div :class="`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                          user.status === '활성'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-                        }`">
-                        {{ user.status }}
-                      </div>
-                    </td>
-                    <td class="px-4 py-3 text-sm">{{ user.createdAt }}</td>
-                    <td class="px-4 py-3 text-center text-sm">
-                      <div class="relative">
-                        <button @click="toggleDropdown(user.id)" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800">
-                          <MoreHorizontal class="h-4 w-4" />
-                        </button>
-                        <div v-if="activeDropdown === user.id" class="absolute right-0 z-10 mt-2 w-36 rounded-md border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-950">
-                          <div class="py-1 text-sm text-zinc-700 dark:text-zinc-300">
-                            <div class="border-b border-zinc-200 px-3 py-2 font-medium dark:border-zinc-800">작업</div>
-                            <button @click="openEditModal(user)" class="flex w-full items-center px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                              <Pencil class="mr-2 h-4 w-4" />
-                              <span>편집</span>
-                            </button>
-                            <button @click="openDeleteModal(user)" class="flex w-full items-center px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                              <Trash2 class="mr-2 h-4 w-4" />
-                              <span>삭제</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr v-if="filteredUsers.length === 0">
-                    <td colspan="6" class="h-24 text-center text-sm text-zinc-500 dark:text-zinc-400">
-                      데이터가 없습니다.
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div class="flex items-center justify-end space-x-2 py-4">
-                <button
-                    @click="prevPage"
-                    :disabled="currentPage <= 1"
-                    class="inline-flex items-center rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
-                >
-                  이전
-                </button>
-                <button
-                    @click="nextPage"
-                    :disabled="currentPage >= totalPages"
-                    class="inline-flex items-center rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900"
-                >
-                  다음
-                </button>
-              </div>
-            </div>
-          </div>
-        </main>
+    <section class="flex flex-col gap-3 border-b border-zinc-200 pb-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-col gap-2 sm:flex-row">
+        <input
+            v-model="searchQuery"
+            @keyup.enter="fetchUsers(0)"
+            placeholder="닉네임 또는 이메일 검색"
+            class="h-10 w-full rounded-md border border-zinc-200 px-3 text-sm sm:w-72"
+        />
+        <select
+            v-model="lockedFilter"
+            @change="fetchUsers(0)"
+            class="h-10 rounded-md border border-zinc-200 px-3 text-sm"
+        >
+          <option value="">전체 상태</option>
+          <option value="false">활성</option>
+          <option value="true">잠김</option>
+        </select>
       </div>
+      <button
+          type="button"
+          @click="fetchUsers(0)"
+          class="inline-flex h-10 w-fit items-center justify-center rounded-md border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-800 hover:bg-zinc-50"
+      >
+        <RefreshCw class="mr-2 h-4 w-4" />
+        조회
+      </button>
+    </section>
 
-      <!-- 사용자 추가/편집 모달 -->
-      <Teleport to="body">
-        <div v-if="isFormModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-zinc-950">
-            <div class="mb-4">
-              <h2 class="text-lg font-semibold">{{ modalTitle }}</h2>
-              <p class="text-sm text-zinc-500 dark:text-zinc-400">
-                사용자 정보를 입력하세요. 완료되면 저장 버튼을 클릭하세요.
-              </p>
+    <p v-if="message" class="text-sm" :class="messageType === 'error' ? 'text-red-600' : 'text-green-700'">
+      {{ message }}
+    </p>
+
+    <section class="overflow-hidden rounded-md border border-zinc-200 bg-white">
+      <div v-if="isLoading" class="px-4 py-12 text-center text-sm text-zinc-500">
+        사용자 목록을 불러오는 중입니다.
+      </div>
+      <div v-else-if="users.length === 0" class="px-4 py-12 text-center text-sm text-zinc-500">
+        표시할 사용자가 없습니다.
+      </div>
+      <table v-else class="w-full table-fixed">
+        <thead class="border-b border-zinc-200 bg-zinc-50">
+        <tr>
+          <th class="w-44 px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">닉네임</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">이메일</th>
+          <th class="w-36 px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">권한</th>
+          <th class="w-28 px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">상태</th>
+          <th class="w-36 px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">가입일</th>
+          <th class="w-32 px-4 py-3 text-right text-xs font-semibold uppercase text-zinc-500">작업</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="user in users" :key="user.id" class="border-b border-zinc-100 last:border-0">
+          <td class="px-4 py-4 text-sm font-medium text-zinc-950">{{ user.nickname || '-' }}</td>
+          <td class="px-4 py-4 text-sm text-zinc-700">{{ user.email }}</td>
+          <td class="px-4 py-4 text-sm text-zinc-700">{{ displayRole(user.roles) }}</td>
+          <td class="px-4 py-4">
+            <span
+                class="inline-flex rounded-full px-2 py-1 text-xs font-semibold"
+                :class="user.locked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'"
+            >
+              {{ user.locked ? '잠김' : '활성' }}
+            </span>
+          </td>
+          <td class="px-4 py-4 text-sm text-zinc-600">{{ formatDate(user.createdAt) }}</td>
+          <td class="px-4 py-4">
+            <div class="flex justify-end gap-2">
+              <button
+                  type="button"
+                  @click="openEditModal(user)"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                  title="수정"
+              >
+                <Pencil class="h-4 w-4" />
+              </button>
+              <button
+                  type="button"
+                  @click="confirmDelete(user)"
+                  :disabled="isCurrentUser(user)"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-40"
+                  title="삭제"
+              >
+                <Trash2 class="h-4 w-4" />
+              </button>
             </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </section>
 
-            <form @submit.prevent="submitForm" class="space-y-4">
-              <div class="space-y-2">
-                <label for="user_name" class="text-sm font-medium">이름</label>
-                <input
-                    id="user_name"
-                    v-model="formData.name"
-                    placeholder="사용자 이름"
-                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-                />
-                <p v-if="formErrors.name" class="text-xs text-red-500">{{ formErrors.name }}</p>
-              </div>
+    <nav class="flex items-center justify-end gap-2">
+      <button
+          type="button"
+          @click="fetchUsers(currentPage - 1)"
+          :disabled="currentPage <= 0 || isLoading"
+          class="rounded-md border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-40"
+      >
+        이전
+      </button>
+      <span class="text-sm text-zinc-500">{{ currentPage + 1 }} / {{ Math.max(totalPages, 1) }}</span>
+      <button
+          type="button"
+          @click="fetchUsers(currentPage + 1)"
+          :disabled="currentPage + 1 >= totalPages || isLoading"
+          class="rounded-md border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-40"
+      >
+        다음
+      </button>
+    </nav>
 
-              <div class="space-y-2">
-                <label for="user_email" class="text-sm font-medium">이메일</label>
-                <input
-                    id="user_email"
-                    v-model="formData.email"
-                    placeholder="이메일 주소"
-                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-                />
-                <p v-if="formErrors.email" class="text-xs text-red-500">{{ formErrors.email }}</p>
-              </div>
+    <Teleport to="body">
+      <div v-if="isEditModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <form
+            @submit.prevent="submitEdit"
+            class="w-full max-w-md rounded-lg bg-white p-6 text-left shadow-lg"
+        >
+          <h2 class="text-lg font-semibold text-zinc-950">사용자 수정</h2>
+          <p class="mt-1 text-sm text-zinc-500">{{ selectedUser?.email }}</p>
 
-              <div class="space-y-2">
-                <label for="user_role" class="text-sm font-medium">역할</label>
-                <select
-                  id="user_role"
-                    v-model="formData.role"
-                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-                >
-                  <option value="일반 사용자">일반 사용자</option>
-                  <option value="프리미엄">프리미엄</option>
-                  <option value="관리자">관리자</option>
-                </select>
-              </div>
+          <div class="mt-6 space-y-4">
+            <label class="block">
+              <span class="text-sm font-medium text-zinc-700">권한</span>
+              <select
+                  v-model="editForm.role"
+                  :disabled="selectedUser && isCurrentUser(selectedUser)"
+                  class="mt-1 h-10 w-full rounded-md border border-zinc-200 px-3 text-sm"
+              >
+                <option value="USER">일반 사용자</option>
+                <option value="ADMIN">관리자</option>
+              </select>
+            </label>
 
-              <div class="space-y-2">
-                <label for="user_status" class="text-sm font-medium">상태</label>
-                <select
-                    id="user_status"
-                    v-model="formData.status"
-                    class="w-full rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
-                >
-                  <option value="활성">활성</option>
-                  <option value="비활성">비활성</option>
-                </select>
-              </div>
+            <label class="block">
+              <span class="text-sm font-medium text-zinc-700">상태</span>
+              <select
+                  v-model="editForm.locked"
+                  :disabled="selectedUser && isCurrentUser(selectedUser)"
+                  class="mt-1 h-10 w-full rounded-md border border-zinc-200 px-3 text-sm"
+              >
+                <option :value="false">활성</option>
+                <option :value="true">잠김</option>
+              </select>
+            </label>
 
-              <div class="flex justify-end space-x-2 pt-4">
-                <button
-                    type="button"
-                    @click="closeFormModal"
-                    class="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium dark:border-zinc-800 dark:bg-zinc-950"
-                >
-                  취소
-                </button>
-                <button
-                    type="submit"
-                    class="rounded-md bg-amber-400 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800"
-                >
-                  저장
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </Teleport>
-
-      <!-- 삭제 확인 모달 -->
-      <Teleport to="body">
-        <div v-if="isDeleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-zinc-950">
-            <h2 class="text-lg font-semibold">사용자 삭제</h2>
-            <p class="py-4 text-sm text-zinc-500 dark:text-zinc-400">
-              정말로 {{ selectedUser?.name }} 사용자를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            <p v-if="selectedUser && isCurrentUser(selectedUser)" class="text-xs text-amber-700">
+              자기 자신의 관리자 권한과 활성 상태는 이 화면에서 변경할 수 없습니다.
             </p>
-            <div class="flex justify-end space-x-2">
-              <button
-                  @click="closeDeleteModal"
-                  class="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium dark:border-zinc-800 dark:bg-zinc-950"
-              >
-                취소
-              </button>
-              <button
-                  @click="confirmDelete"
-                  class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-              >
-                삭제
-              </button>
-            </div>
           </div>
-        </div>
-      </Teleport>
-    </div>
-  </div>
+
+          <div class="mt-6 flex justify-end gap-2">
+            <button
+                type="button"
+                @click="closeEditModal"
+                class="rounded-md border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            >
+              취소
+            </button>
+            <button
+                type="submit"
+                :disabled="isSaving"
+                class="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-40"
+            >
+              저장
+            </button>
+          </div>
+        </form>
+      </div>
+    </Teleport>
+  </main>
 </template>
 
 <script setup>
-import {ref, computed, onUnmounted} from 'vue';
-import { MoreHorizontal, Pencil, Trash2, UserPlus } from 'lucide-vue-next';
+import { onMounted, ref } from 'vue';
+import { Pencil, RefreshCw, Trash2 } from 'lucide-vue-next';
+import { apiService } from '@/services/api';
+import { useAuthStore } from '@/stores/useAuthStore';
 
-// 사용자 데이터
-const users = ref([
-  {
-    id: "1",
-    name: "김민수",
-    email: "minsu.kim@example.com",
-    role: "일반 사용자",
-    status: "활성",
-    createdAt: "2023-01-15",
-  },
-  {
-    id: "2",
-    name: "이지은",
-    email: "jieun.lee@example.com",
-    role: "프리미엄",
-    status: "활성",
-    createdAt: "2023-02-20",
-  },
-  {
-    id: "3",
-    name: "박준호",
-    email: "junho.park@example.com",
-    role: "일반 사용자",
-    status: "비활성",
-    createdAt: "2023-03-10",
-  },
-  {
-    id: "4",
-    name: "최유진",
-    email: "yujin.choi@example.com",
-    role: "프리미엄",
-    status: "활성",
-    createdAt: "2023-04-05",
-  },
-  {
-    id: "5",
-    name: "정다운",
-    email: "dawn.jung@example.com",
-    role: "일반 사용자",
-    status: "활성",
-    createdAt: "2023-05-12",
-  },
-]);
-
-// 테이블 컬럼 정의
-const columns = [
-  { key: 'name', label: '이름' },
-  { key: 'email', label: '이메일' },
-  { key: 'role', label: '역할' },
-  { key: 'status', label: '상태' },
-  { key: 'createdAt', label: '가입일' },
-];
-
-// 페이지네이션 상태
-const currentPage = ref(1);
-const pageSize = ref(5);
-const totalPages = computed(() => Math.ceil(filteredUsers.value.length / pageSize.value));
-
-// 검색 상태
+const authStore = useAuthStore();
+const users = ref([]);
+const currentPage = ref(0);
+const totalPages = ref(0);
+const pageSize = 10;
 const searchQuery = ref('');
-const filteredUsers = computed(() => {
-  if (!searchQuery.value) return users.value;
-  return users.value.filter(user =>
-      user.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
-});
-
-// 페이지네이션 함수
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-  }
-};
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-  }
-};
-
-// 드롭다운 메뉴 상태
-const activeDropdown = ref(null);
-const toggleDropdown = (userId) => {
-  activeDropdown.value = activeDropdown.value === userId ? null : userId;
-};
-
-// 모달 상태
-const isFormModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
-const modalTitle = ref('');
+const lockedFilter = ref('');
+const isLoading = ref(false);
+const isSaving = ref(false);
+const isEditModalOpen = ref(false);
 const selectedUser = ref(null);
-const formData = ref({
-  name: '',
-  email: '',
-  role: '일반 사용자',
-  status: '활성',
-});
-const formErrors = ref({});
+const editForm = ref({ role: 'USER', locked: false });
+const message = ref('');
+const messageType = ref('success');
 
-// 모달 열기/닫기 함수
-const openAddModal = () => {
-  modalTitle.value = '사용자 추가';
-  formData.value = {
-    name: '',
-    email: '',
-    role: '일반 사용자',
-    status: '활성',
-  };
-  formErrors.value = {};
-  selectedUser.value = null;
-  isFormModalOpen.value = true;
-  activeDropdown.value = null;
+const buildEndpoint = (page) => {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(pageSize),
+  });
+  if (searchQuery.value.trim()) {
+    params.set('search', searchQuery.value.trim());
+  }
+  if (lockedFilter.value !== '') {
+    params.set('locked', lockedFilter.value);
+  }
+  return `admin/users?${params.toString()}`;
+};
+
+const fetchUsers = async (page = 0) => {
+  isLoading.value = true;
+  message.value = '';
+  try {
+    const response = await apiService.getWithToken(buildEndpoint(page));
+    users.value = response?.content || [];
+    currentPage.value = response?.number ?? page;
+    totalPages.value = response?.totalPages ?? 0;
+  } catch (error) {
+    console.error('Admin users fetch failed:', error);
+    users.value = [];
+    showMessage('사용자 목록을 불러오지 못했습니다.', 'error');
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const openEditModal = (user) => {
-  modalTitle.value = '사용자 편집';
-  formData.value = { ...user };
-  formErrors.value = {};
   selectedUser.value = user;
-  isFormModalOpen.value = true;
-  activeDropdown.value = null;
+  editForm.value = {
+    role: user.roles?.includes('ROLE_ADMIN') ? 'ADMIN' : 'USER',
+    locked: Boolean(user.locked),
+  };
+  isEditModalOpen.value = true;
 };
 
-const closeFormModal = () => {
-  isFormModalOpen.value = false;
+const closeEditModal = () => {
+  isEditModalOpen.value = false;
+  selectedUser.value = null;
 };
 
-const openDeleteModal = (user) => {
-  selectedUser.value = user;
-  isDeleteModalOpen.value = true;
-  activeDropdown.value = null;
-};
+const submitEdit = async () => {
+  if (!selectedUser.value) return;
 
-const closeDeleteModal = () => {
-  isDeleteModalOpen.value = false;
-};
-
-// 클릭 이벤트 감지하여 드롭다운 닫기
-const handleClickOutside = () => {
-  if (activeDropdown.value !== null) {
-    activeDropdown.value = null;
+  isSaving.value = true;
+  message.value = '';
+  try {
+    const currentRole = selectedUser.value.roles?.includes('ROLE_ADMIN') ? 'ADMIN' : 'USER';
+    if (editForm.value.role !== currentRole) {
+      await apiService.patchWithToken(`admin/users/${selectedUser.value.id}/role`, { role: editForm.value.role });
+    }
+    if (editForm.value.locked !== Boolean(selectedUser.value.locked)) {
+      await apiService.patchWithToken(`admin/users/${selectedUser.value.id}/status`, { locked: editForm.value.locked });
+    }
+    showMessage('사용자 정보를 저장했습니다.');
+    closeEditModal();
+    await fetchUsers(currentPage.value);
+  } catch (error) {
+    console.error('Admin user update failed:', error);
+    showMessage(error?.body?.message || '사용자 정보를 저장하지 못했습니다.', 'error');
+  } finally {
+    isSaving.value = false;
   }
 };
 
-// 폼 제출 처리
-const submitForm = () => {
-  formErrors.value = {};
-
-  // 간단한 유효성 검사
-  if (!formData.value.name || formData.value.name.length < 2) {
-    formErrors.value.name = '이름은 2자 이상이어야 합니다.';
+const confirmDelete = async (user) => {
+  if (isCurrentUser(user)) {
+    showMessage('자기 자신의 관리자 계정은 삭제할 수 없습니다.', 'error');
+    return;
   }
-
-  if (!formData.value.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.value.email)) {
-    formErrors.value.email = '유효한 이메일 주소를 입력해주세요.';
-  }
-
-  if (Object.keys(formErrors.value).length > 0) {
+  if (!window.confirm(`${user.nickname || user.email} 사용자를 삭제하시겠습니까?`)) {
     return;
   }
 
-  if (selectedUser.value) {
-    // 사용자 수정
-    const index = users.value.findIndex(u => u.id === selectedUser.value.id);
-    if (index !== -1) {
-      users.value[index] = { ...selectedUser.value, ...formData.value };
-    }
-  } else {
-    // 사용자 추가
-    const newId = (Math.max(...users.value.map(u => parseInt(u.id))) + 1).toString();
-    users.value.push({
-      id: newId,
-      ...formData.value,
-      createdAt: new Date().toISOString().split('T')[0],
-    });
+  try {
+    await apiService.deleteWithToken(`admin/users/${user.id}`);
+    showMessage('사용자를 삭제했습니다.');
+    await fetchUsers(currentPage.value);
+  } catch (error) {
+    console.error('Admin user delete failed:', error);
+    showMessage(error?.body?.message || '사용자를 삭제하지 못했습니다.', 'error');
   }
-
-  closeFormModal();
 };
 
-// 삭제 확인
-const confirmDelete = () => {
-  if (selectedUser.value) {
-    users.value = users.value.filter(u => u.id !== selectedUser.value.id);
-  }
-  closeDeleteModal();
+const isCurrentUser = (user) => String(user.id) === String(authStore.userId);
+
+const displayRole = (roles = []) => roles.includes('ROLE_ADMIN') ? '관리자' : '일반 사용자';
+
+const formatDate = (value) => {
+  if (!value) return '-';
+  return new Date(value).toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
 };
 
-// 컴포넌트 마운트 시 이벤트 리스너 등록
-window.addEventListener('click', handleClickOutside);
+const showMessage = (nextMessage, type = 'success') => {
+  message.value = nextMessage;
+  messageType.value = type;
+};
 
-// 컴포넌트 언마운트 시 이벤트 리스너 제거
-onUnmounted(() => {
-  window.removeEventListener('click', handleClickOutside);
+onMounted(() => {
+  fetchUsers();
 });
 </script>

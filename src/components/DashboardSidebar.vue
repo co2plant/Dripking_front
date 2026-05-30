@@ -34,28 +34,38 @@
 </template>
 
 <script setup>
-import { LayoutDashboard, Users, Map, Plane, LogOut } from 'lucide-vue-next';
+import { LayoutDashboard, Users, Map, Tags, Flag, FileText, LogOut } from 'lucide-vue-next';
 
 const items = [
   {
-    path: '/',
+    path: '/dashboard',
     title: '대시보드',
     icon: LayoutDashboard,
   },
   {
-    path: '/users',
+    path: '/userDashboard',
     title: '사용자',
     icon: Users,
   },
   {
-    path: '/destinations',
+    path: '/destinationDashboard',
     title: '목적지',
     icon: Map,
   },
   {
-    path: '/trips',
-    title: '여행',
-    icon: Plane,
+    path: '/categoryDashboard',
+    title: '카테고리',
+    icon: Tags,
+  },
+  {
+    path: '/reviewModeration',
+    title: '리뷰 신고',
+    icon: Flag,
+  },
+  {
+    path: '/productsFormView',
+    title: '콘텐츠',
+    icon: FileText,
   },
 ];
 </script>
