@@ -8,35 +8,16 @@
 
     <!-- 프로필 수정 폼 -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- 왼쪽 사이드바 - 프로필 이미지 및 메뉴 -->
+      <!-- 왼쪽 사이드바 - 프로필 및 메뉴 -->
       <div class="lg:col-span-1">
         <div class="bg-white rounded-lg shadow p-6 mb-6">
           <div class="flex flex-col items-center">
-            <div class="relative mb-4">
+            <div class="mb-4">
               <div class="w-32 h-32 rounded-full overflow-hidden bg-zinc-200 border-4 border-amber-400">
-                <img
-                    v-if="userProfile.profileImage"
-                    :src="userProfile.profileImage"
-                    alt="프로필 이미지"
-                    class="w-full h-full object-cover"
-                />
-                <user-icon v-else class="w-full h-full p-6 text-zinc-400" />
+                <user-icon class="w-full h-full p-6 text-zinc-400" />
               </div>
-              <button
-                  @click="triggerFileInput"
-                  class="absolute bottom-0 right-0 bg-amber-400 hover:bg-amber-500 text-zinc-900 rounded-full p-2 shadow-md"
-              >
-                <camera-icon class="w-5 h-5" />
-              </button>
-              <input
-                  type="file"
-                  ref="fileInput"
-                  accept="image/*"
-                  class="hidden"
-                  @change="handleImageUpload"
-              />
             </div>
-            <h2 class="text-xl font-bold text-zinc-900">{{ userProfile.name }}</h2>
+            <h2 class="text-xl font-bold text-zinc-900">{{ userProfile.nickname || '사용자' }}</h2>
             <p class="text-zinc-600">{{ userProfile.email }}</p>
           </div>
 
@@ -65,30 +46,16 @@
           <div v-if="activeTab === 'profile'" class="p-6 space-y-6">
             <h3 class="text-xl font-bold text-zinc-900 mb-4 pb-2 border-b border-zinc-200">기본 정보</h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label for="user_name" class="block text-lg font-medium text-zinc-900 mb-2">
-                  이름
-                </label>
-                <input
-                    id="user_name"
-                    v-model="userProfile.name"
-                    type="text"
-                    class="w-full py-1 px-4 rounded-2xl border-zinc-300 bg-zinc-100 focus:border-amber-500 focus:ring-amber-500"
-                />
-              </div>
-
-              <div>
-                <label for="user_nickname" class="block text-lg font-medium text-zinc-900 mb-2">
-                  닉네임
-                </label>
-                <input
-                    id="user_nickname"
-                    v-model="userProfile.nickname"
-                    type="text"
-                    class="w-full py-1 px-4 rounded-2xl border-zinc-300 bg-zinc-100 focus:border-amber-500 focus:ring-amber-500"
-                />
-              </div>
+            <div>
+              <label for="user_nickname" class="block text-lg font-medium text-zinc-900 mb-2">
+                닉네임
+              </label>
+              <input
+                  id="user_nickname"
+                  v-model="userProfile.nickname"
+                  type="text"
+                  class="w-full py-1 px-4 rounded-2xl border-zinc-300 bg-zinc-100 focus:border-amber-500 focus:ring-amber-500"
+              />
             </div>
 
             <div>
@@ -132,7 +99,7 @@
                   type="password"
                   class="w-full py-1 px-4 rounded-2xl border-zinc-300 bg-zinc-100 focus:border-amber-500 focus:ring-amber-500"
               />
-              <p class="text-xs text-zinc-500 mt-1">8자 이상, 영문, 숫자, 특수문자를 포함해주세요.</p>
+              <p class="text-xs text-zinc-500 mt-1">16자 이상 32자 이하로 입력해주세요.</p>
             </div>
 
             <div>
@@ -170,7 +137,6 @@ import {useAuthStore} from "@/stores/useAuthStore";
 
 import {
   User as UserIcon,
-  Camera as CameraIcon,
   UserCircle as UserCircleIcon,
   Lock as LockIcon,
 } from 'lucide-vue-next'
@@ -185,9 +151,6 @@ const tabs = [
 
 // 활성 탭 상태
 const activeTab = ref('profile')
-
-// 파일 입력 참조
-const fileInput = ref(null)
 
 // 사용자 프로필 데이터
 const userProfile = ref({
@@ -209,27 +172,33 @@ const passwordForm = ref({
   confirmPassword: ''
 })
 
-// 파일 입력 트리거
-const triggerFileInput = () => {
-  fileInput.value.click()
-}
-
-// 이미지 업로드 처리
-const handleImageUpload = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      userProfile.value.profileImage = e.target.result
-    }
-    reader.readAsDataURL(file)
-  }
-}
-
 // 변경사항 저장
-const saveChanges = () => {
-  // 여기에 API 호출 또는 저장 로직 구현
-  alert('변경사항이 저장되었습니다.')
+const saveChanges = async () => {
+  if (activeTab.value === 'profile') {
+    const result = await authStore.updateProfile(userProfile.value)
+    if (!result.success) {
+      alert(result.error || '프로필 수정에 실패했습니다.')
+      return
+    }
+
+    userProfile.value.nickname = result.data?.nickname || userProfile.value.nickname
+    userProfile.value.email = result.data?.email || userProfile.value.email
+    alert('프로필이 변경되었습니다.')
+    return
+  }
+
+  const result = await authStore.changePassword(passwordForm.value)
+  if (!result.success) {
+    alert(result.error || '비밀번호 변경에 실패했습니다.')
+    return
+  }
+
+  passwordForm.value = {
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  }
+  alert('비밀번호가 변경되었습니다.')
 }
 </script>
 
@@ -258,4 +227,3 @@ select:focus {
   transition-duration: 150ms;
 }
 </style>
-

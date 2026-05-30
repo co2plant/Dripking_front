@@ -8,13 +8,17 @@ export const useAuthStore = defineStore('auth', () => {
         signIn,
         signUp,
         signOut,
+        updateProfile,
+        changePassword,
         getUserData,
         initAuth,
         isAuthenticated,
         userId,
         userNickName,
         userEmail,
-        userRole
+        userRole,
+        userRoles,
+        isAdmin
     } = useAuth();
 
     return {
@@ -23,12 +27,16 @@ export const useAuthStore = defineStore('auth', () => {
         signIn,
         signUp,
         signOut,
+        updateProfile,
+        changePassword,
         getUserData,
         initAuth,
         isAuthenticated,
         userId,
         userNickName,
         userEmail,
-        userRole
+        userRole,
+        userRoles,
+        isAdmin
     };
 });

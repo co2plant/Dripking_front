@@ -1,4 +1,5 @@
 import { ref, reactive, computed } from 'vue';
+import { useWishStore } from '@/stores/useWishStore';
 
 // API 엔드포인트 상수 정의
 const API_BASE_URL = process.env.VUE_APP_API_URL;
@@ -55,7 +56,10 @@ export function useAuth() {
         isSignedIn.value = isAuthenticated();
 
         if (isSignedIn.value) {
-            await getUserData();
+            const result = await getUserData();
+            if (!result.success) {
+                signOut();
+            }
         }
     };
 
@@ -104,7 +108,13 @@ export function useAuth() {
             localStorage.setItem('Authorization', authToken);
             isSignedIn.value = true;
 
-            await getUserData();
+            const userDataResult = await getUserData();
+            if (!userDataResult.success) {
+                return { success: false, error: userDataResult.error };
+            }
+            await useWishStore().syncLocalWishlistToServer();
+            const { useTripStore } = await import('@/stores/useTripStore');
+            await useTripStore().syncLocalTripsAndPlansToServer();
 
             return { success: true };
         } catch (err) {
@@ -153,13 +163,49 @@ export function useAuth() {
         Object.keys(user).forEach(key => delete user[key]);
     };
 
+    const updateProfile = async (profileForm) => {
+        const nickname = profileForm.nickname?.trim();
+        if (!nickname) {
+            return { success: false, error: '닉네임을 입력해주세요.' };
+        }
+
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/user/profile`,
+                createRequestConfig('PATCH', true, { nickname })
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const fieldErrors = errorData.fieldErrors || {};
+                const firstFieldError = Object.values(fieldErrors)[0];
+                throw new Error(firstFieldError || errorData.message || errorData.error || '프로필 수정에 실패했습니다.');
+            }
+
+            const profileStatus = await response.json();
+            const userData = profileStatus.data || {};
+            Object.assign(user, userData);
+            return { success: true, data: userData };
+        } catch (err) {
+            console.error('Profile update error:', err);
+            return {
+                success: false, error: err.message
+            };
+        }
+    };
+
 
     const changePassword = async (passwordForm) => {
-        // 폼에 있는 것들이 맞는지 확인
-        // 현재 비밀번호가 맞는지 확인
-        if(this.passwordForm.newPassword === passwordForm.confirmPassword){
-            throw new Error('새 비밀번호가 일치하지 않습니다.');
+        if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+            return { success: false, error: '비밀번호 정보를 모두 입력해주세요.' };
         }
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            return { success: false, error: '새 비밀번호가 일치하지 않습니다.' };
+        }
+        if (passwordForm.newPassword.length < 16 || passwordForm.newPassword.length > 32) {
+            return { success: false, error: '비밀번호는 16자 이상 32자 이하이어야 합니다.' };
+        }
+
         try{
             const response = await fetch(
                 `${API_BASE_URL}/user/changePassword`, 
@@ -168,7 +214,9 @@ export function useAuth() {
 
             if(!response.ok){
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || '비밀번호 변경에 실패했습니다.');
+                const fieldErrors = errorData.fieldErrors || {};
+                const firstFieldError = Object.values(fieldErrors)[0];
+                throw new Error(firstFieldError || errorData.message || errorData.error || '비밀번호 변경에 실패했습니다.');
             }
 
             return { success: true};
@@ -197,6 +245,14 @@ export function useAuth() {
             }
 
             const userStatus = await response.json();
+            if (!userStatus.success) {
+                signOut();
+                return {
+                    success: false,
+                    error: userStatus.message || '사용자가 인증되지 않았습니다.'
+                };
+            }
+
             const userData = userStatus.data || {};
 
             // 반응형 객체 업데이트
@@ -205,6 +261,7 @@ export function useAuth() {
             return { success: true, data: userData };
         } catch (err) {
             console.error('Getting user info error:', err);
+            signOut();
             return {
                 success: false, error: err.message
             };
@@ -215,7 +272,9 @@ export function useAuth() {
     const userId = computed(() => user.id || null);
     const userNickName = computed(() => user.nickname || '');
     const userEmail = computed(() => user.email || '');
+    const userRoles = computed(() => Array.isArray(user.roles) ? user.roles : user.roles ? [user.roles.authority || user.roles] : []);
     const userRole = computed(() => Array.isArray(user.roles) ? user.roles[0] || '' : user.roles?.authority || '');
+    const isAdmin = computed(() => userRoles.value.includes('ROLE_ADMIN'));
 
     return {
         user,
@@ -223,6 +282,7 @@ export function useAuth() {
         signIn,
         signUp,
         signOut,
+        updateProfile,
         changePassword,
         getUserData,
         initAuth,
@@ -232,6 +292,8 @@ export function useAuth() {
         userId,
         userNickName,
         userEmail,
-        userRole
+        userRole,
+        userRoles,
+        isAdmin
     };
 }
