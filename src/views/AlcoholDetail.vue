@@ -2,13 +2,13 @@
   <div class="bg-white">
     <div class="container mx-auto px-4 py-8">
       <Card
-          :target_id="target_id"
-          :itemType="itemType"
+          :target-id="targetId"
+          :item-type="itemType"
       >
       </Card>
       <VerticalReviewList
-          :target_id="target_id"
-          :reviewType="itemType">
+          :target-id="targetId"
+          :item-type="itemType">
       </VerticalReviewList>
     </div>
   </div>
@@ -20,7 +20,7 @@ import {useRoute} from "vue-router";
 import VerticalReviewList from "@/components/VerticalReviewList.vue";
 
 const route = useRoute();
-const target_id = route.params.id;
+const targetId = route.params.id;
 const itemType = 'ALCOHOL';
 
 </script>

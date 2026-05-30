@@ -1,88 +1,80 @@
 <template>
-  <div class="w-full max-w-4xl mx-auto p-4">
-    <div class="flex flex-wrap gap-4 justify-between p-4">
+  <div class="mx-auto w-full max-w-4xl px-4 py-6">
+    <div class="mb-3 grid grid-cols-3 gap-2 rounded-md border border-zinc-200 bg-white p-1">
       <button
           v-for="item in searchItem"
           :key="item.value"
-          @click="toggleSelection(item.value)"
+          type="button"
+          @click="selectedType = item.value"
           :class="[
-          'px-8 py-3 rounded-lg border-2 transition-all duration-200',
-          'focus:outline-none focus:ring-2 focus:ring-amber-500',
-          isSelected(item.value)
-            ? 'text-amber-600 border-amber-600'
-            : 'bg-white text-gray-900 border-gray-200 hover:border-amber-600',
-          item.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-        ]"
-          :disabled="item.disabled"
+            'h-10 rounded px-3 text-sm font-medium transition-colors',
+            selectedType === item.value ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-100'
+          ]"
       >
         {{ item.label }}
       </button>
     </div>
-    <form :action="urlStr" method="GET" class="px-4" role="search" autocomplete="off" accept-charset="UTF-8">
-      <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
-      <div class="relative mb-4">
-        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-          <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-          </svg>
+    <form @submit.prevent="submitSearch" role="search" autocomplete="off">
+      <label for="catalog-search" class="sr-only">검색</label>
+      <div class="flex gap-2">
+        <div class="relative min-w-0 flex-1">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <Search class="h-4 w-4 text-zinc-400" />
+          </div>
+          <input
+              v-model.trim="keyword"
+              type="search"
+              id="catalog-search"
+              class="h-11 w-full rounded-md border border-zinc-200 bg-white pl-9 pr-3 text-sm text-zinc-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              placeholder="이름으로 검색"
+              required
+          />
         </div>
-        <input type="text" name="searchKeyword" id="default-search" class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-amber-500 focus:border-amber-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-amber-500 dark:focus:border-amber-500" placeholder="검색" required />
+        <button type="submit" class="h-11 rounded-md bg-amber-400 px-5 text-sm font-semibold text-zinc-950 hover:bg-amber-500">
+          검색
+        </button>
       </div>
-      <button type="submit" class="text-white w-full bg-amber-400 hover:bg-amber-600 focus:ring-4 focus:outline-none focus:ring-amber-400 font-medium rounded-lg text-sm px-4 py-2 dark:bg-amber-600 dark:hover:bg-amber-700 dark:focus:ring-amber-800">Search</button>
     </form>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
+import { Search } from 'lucide-vue-next'
 import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()
 
 const searchItem = [
-  { value: 'distillery', label: 'Distillery' },
-  { value: 'destination', label: 'Destination' },
-  { value: 'alcohol', label: 'Alcohol' },
+  { value: 'alcohol', label: '술' },
+  { value: 'distillery', label: '양조장' },
+  { value: 'destination', label: '여행지' },
 ]
 
-const selectedItem = ref(new Set())
+const allowedTypes = searchItem.map(item => item.value)
+const selectedType = ref(allowedTypes.includes(route.params.dtype) ? route.params.dtype : 'alcohol')
+const keyword = ref(typeof route.query.searchKeyword === 'string' ? route.query.searchKeyword : '')
 
-let urlStr= null
-
-// URL 파라미터에서 초기 선택값 가져오기
-onMounted(() => {
-  const dtypeParam = route.query.dType
-  if (dtypeParam) {
-    const initialSelections = dtypeParam.split(',')
-    selectedItem.value = new Set(initialSelections)
+watch(() => route.params.dtype, (nextType) => {
+  if (allowedTypes.includes(nextType)) {
+    selectedType.value = nextType
   }
 })
 
-const toggleSelection = (value) => {
-  selectedItem.value.clear()
-  selectedItem.value.add(value)
-  // URL 파라미터 업데이트
-  updateUrlParams()
-  updateUrlStr()
-}
+watch(() => route.query.searchKeyword, (nextKeyword) => {
+  keyword.value = typeof nextKeyword === 'string' ? nextKeyword : ''
+})
 
-const isSelected = (value) => {
-  return selectedItem.value.has(value)
-}
-
-const updateUrlParams = () => {
-  const selectedValues = Array.from(selectedItem.value)
+const submitSearch = () => {
+  const nextKeyword = keyword.value.trim()
+  if (!nextKeyword) return
   router.push({
+    name: 'searchList',
+    params: { dtype: selectedType.value },
     query: {
-      ...route.query,
-      dtype: selectedValues.length > 0 ? selectedValues.join(',') : undefined
+      searchKeyword: nextKeyword
     }
   })
 }
-
-const updateUrlStr = () => {
-  urlStr = "http://localhost:3000/search/" + Array.from(selectedItem.value) + "/"
-}
-
 </script>

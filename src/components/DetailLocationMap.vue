@@ -27,7 +27,7 @@ const props = defineProps({
     type: String,
     required: true
   },
-  target_id: {
+  targetId: {
     type: [String, Number],
     required: true
   }
@@ -61,9 +61,9 @@ const initMap = async (item, position) => {
   }
 
   const googleMaps = await loadGoogleMapsAPI(apiKey);
-  const { map } = await googleMaps.importLibrary("maps");
+  const { Map } = await googleMaps.importLibrary("maps");
   const { AdvancedMarkerElement } = await googleMaps.importLibrary("marker");
-  const mapInstance = new map(mapRefElement.value, {
+  const mapInstance = new Map(mapRefElement.value, {
     center: position,
     zoom: 13,
     mapId: "4504f8b37365c3d0",
@@ -85,7 +85,7 @@ onMounted(async () => {
   }
 
   try {
-    const item = await apiService.get(`${resource}/${props.target_id}`);
+    const item = await apiService.get(`${resource}/${props.targetId}`);
     const position = getValidCoordinates(item);
 
     shouldRender.value = true;

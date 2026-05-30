@@ -33,6 +33,7 @@
               required
           ></textarea>
         </div>
+        <p v-if="submitError" class="mb-4 text-sm text-red-600">{{ submitError }}</p>
         <div class="flex justify-end">
           <button
               type="submit"
@@ -45,7 +46,7 @@
     </div>
     <!-- Blur Overlay for Non-logged in Users -->
     <div
-        v-if="!authStore.isSignedIn"
+        v-if="!isAuthenticated"
         class="absolute inset-0 backdrop-blur-md bg-white/30 rounded-lg flex flex-col items-center justify-center gap-4 z-10"
     >
       <p class="text-lg font-medium text-zinc-900">리뷰를 작성하려면 로그인이 필요합니다</p>
@@ -64,18 +65,18 @@
 </template>
 
 <script setup>
-import {ref, defineProps, defineEmits, onMounted} from 'vue'
+import {computed, ref, defineProps, defineEmits, watch} from 'vue'
 import Modal from "@/components/Modal.vue";
 import AuthenticationForm from "@/components/Authentication/AuthenticationForm.vue";
 import {apiService} from "@/services/api";
 import {useAuthStore} from "@/stores/useAuthStore";
 
 const props = defineProps({
-  target_id: {
-    type: Number,
+  targetId: {
+    type: [Number, String],
     required: true
   },
-  reviewType: {
+  itemType: {
     type: String,
     required: true
   },
@@ -94,15 +95,29 @@ const emit = defineEmits(['reviewSubmitted'])
 const rating = ref(props.reviewToEdit ? props.reviewToEdit.rating : 0)
 const content = ref(props.reviewToEdit ? props.reviewToEdit.contents : '')
 const isEditing = ref(!!props.reviewToEdit)
+const submitError = ref('')
+const isAuthenticated = computed(() => authStore.isSignedIn || authStore.isAuthenticated())
+
+watch(
+    () => props.reviewToEdit,
+    (nextReview) => {
+      rating.value = nextReview ? nextReview.rating : 0
+      content.value = nextReview ? nextReview.contents : ''
+      isEditing.value = !!nextReview
+      submitError.value = ''
+    },
+    { immediate: true }
+)
 
 const setRating = (value) => {
   rating.value = value
 }
 
 const submitReview = async () => {
+  submitError.value = ''
   const reviewData = {
-    targetId: props.target_id,
-    itemType: props.reviewType,
+    targetId: props.targetId,
+    itemType: props.itemType,
     rating: rating.value,
     contents: content.value
   }
@@ -118,23 +133,18 @@ const submitReview = async () => {
       await apiService.postWithToken(url, reviewData)
     }
 
-    // 폼 초기화
-    rating.value = 0
-    content.value = ''
-    isEditing.value = false
+    if(!isEditing.value){
+      rating.value = 0
+      content.value = ''
+    }
 
     // 부모 컴포넌트에 리뷰가 제출되었음을 알림
     emit('reviewSubmitted')
   } catch (error) {
     console.error('리뷰 제출 중 오류 발생:', error)
-    // 에러 처리 로직 추가
+    submitError.value = '리뷰 저장에 실패했습니다. 잠시 후 다시 시도해주세요.'
   }
 }
-
-const isAuthenticated = ref(false);
-
-onMounted(() => {
-})
 
 const showAuthModal = ref(false)
 </script>

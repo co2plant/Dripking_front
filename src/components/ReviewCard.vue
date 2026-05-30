@@ -72,13 +72,28 @@
       </span>
     </div>
 
-    <!-- 수정 버튼 추가 -->
-    <div v-if="canEdit" class="mt-4 self-end">
+    <!-- 수정/삭제/신고 액션 -->
+    <div v-if="canEdit || canDelete || canReport" class="mt-4 self-end flex items-center gap-3">
       <button
+          v-if="canEdit"
           @click="$emit('editReview', review.id)"
           class="text-sm text-blue-600 hover:text-blue-800"
       >
         수정
+      </button>
+      <button
+          v-if="canDelete"
+          @click="$emit('deleteReview', review.id)"
+          class="text-sm text-zinc-600 hover:text-zinc-900"
+      >
+        삭제
+      </button>
+      <button
+          v-if="canReport"
+          @click="$emit('reportReview', review.id)"
+          class="text-sm text-red-600 hover:text-red-800"
+      >
+        신고
       </button>
     </div>
   </div>
@@ -94,6 +109,14 @@ defineProps({
     required: true,
   },
   canEdit: {
+    type: Boolean,
+    default: false,
+  },
+  canDelete: {
+    type: Boolean,
+    default: false,
+  },
+  canReport: {
     type: Boolean,
     default: false,
   }
@@ -122,7 +145,7 @@ const getContent = (content) => {
   return String(content);
 }
 
-defineEmits(['editReview'])
+defineEmits(['editReview', 'deleteReview', 'reportReview'])
 </script>
 
 <style scoped>

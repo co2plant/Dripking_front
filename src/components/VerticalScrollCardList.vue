@@ -1,5 +1,16 @@
 <template>
   <div class="relative max-w-5xl mx-auto px-4" ref="listContainer">
+    <div class="mb-5 flex justify-end">
+      <label class="flex items-center gap-2 text-sm font-medium text-zinc-700">
+        정렬
+        <select v-model="sortValue" class="h-9 rounded-md border border-zinc-200 bg-white px-3 text-sm">
+          <option v-if="supportsPopularitySort" value="popularity">인기순</option>
+          <option value="id,desc">최신순</option>
+          <option value="rating,desc">평점순</option>
+          <option value="name,asc">이름순</option>
+        </select>
+      </label>
+    </div>
     <section class="space-y-8">
       <div v-for="item in items" :key="item.id"
            class="bg-white rounded-lg shadow-sm overflow-hidden transition-transform duration-300 hover:shadow-lg">
@@ -14,11 +25,14 @@
                 class="absolute inset-0 bg-zinc-900 bg-opacity-0 transition-all duration-300 group-hover:bg-opacity-20"></div>
           </div>
           <div class="md:w-2/3 p-6 flex flex-col justify-between group">
-            <div @click="emit('view-details', item)" class="cursor-pointer">
+            <div @click="handleViewDetails(item)" class="cursor-pointer">
               <h4 class="text-2xl font-bold text-zinc-900 transform transition-transform duration-300">{{
                   item.name
                 }}</h4>
               <p class="text-zinc-900 transition-all">{{ item.description }}</p>
+              <p v-if="item.popularityScore !== undefined" class="mt-2 text-sm font-medium text-amber-700">
+                인기 점수 {{ item.popularityScore }} · {{ item.popularityEventCount }}개 신호
+              </p>
               <p class="text-xl font-bold text-zinc-900">{{ item.date }}</p>
             </div>
             <button
@@ -82,14 +96,22 @@
         다시 시도
       </button>
     </div>
+
+    <div
+        v-if="!isLoading && !error && items.length === 0 && !hasMore"
+        class="rounded-md border border-zinc-200 bg-white px-4 py-10 text-center text-sm text-zinc-500"
+    >
+      표시할 항목이 없습니다.
+    </div>
   </div>
 </template>
 
 <script setup>
-import  {defineProps, defineEmits, ref, onMounted, onUnmounted, watch} from 'vue'
+import  {computed, defineProps, defineEmits, ref, onMounted, onUnmounted, watch} from 'vue'
 import {useWishStore} from "@/stores/useWishStore";
 import {apiService} from "@/services/api";
 import {getValidCoordinateBounds} from "@/utils/coordinates";
+import {recordInteractionEvent} from "@/services/interactionEvents";
 
 const wishStore = useWishStore();
 
@@ -106,6 +128,11 @@ const props = defineProps({
     type: Object,
     required: false,
     default: null
+  },
+  searchKeyword: {
+    type: String,
+    required: false,
+    default: ''
   }
 })
 
@@ -115,6 +142,12 @@ const itemTypeEnum = {
   ALCOHOL: 'alcohols'
 }
 
+const popularityEndpoints = {
+  DISTILLERY: 'recommendations/popular-distilleries',
+  DESTINATION: 'recommendations/popular-destinations',
+  ALCOHOL: 'recommendations/popular-alcohols'
+}
+
 const emit = defineEmits(['view-details'])
 
 const items = ref([])
@@ -122,6 +155,7 @@ const isLoading = ref(false)
 const error = ref(null)
 const currentPage = ref(0)
 const hasMore = ref(true)
+const sortValue = ref('id,desc')
 const listContainer = ref(null)
 const nextPageIndicator = ref(null)
 const showNextPageIndicator = ref(false)
@@ -129,7 +163,17 @@ const canFetchMore = ref(true)
 const listEndMarker = ref(null)
 const getImageUrl = (item) => item.imgUrl || item.img_url
 const PAGE_SIZE = 10
-const SORT_PARAM = 'id,desc'
+
+const supportsPopularitySort = computed(() => {
+  const searchKeyword = props.searchKeyword.trim()
+  const coordinateBounds = getValidCoordinateBounds(props.coordinateBounds)
+  return Boolean(popularityEndpoints[props.itemType]) && !searchKeyword && !coordinateBounds && !props.selectedItem
+})
+
+const handleViewDetails = (item) => {
+  recordInteractionEvent(props.itemType, item.id, 'LIST_CARD_CLICK');
+  emit('view-details', item);
+}
 
 const buildQueryString = (params) => {
   const query = new URLSearchParams();
@@ -148,9 +192,14 @@ const buildItemsEndpoint = () => {
   const params = {
     page: currentPage.value,
     size: PAGE_SIZE,
-    sort: SORT_PARAM,
+    sort: sortValue.value,
   }
+  const searchKeyword = props.searchKeyword.trim()
   const coordinateBounds = getValidCoordinateBounds(props.coordinateBounds)
+
+  if (searchKeyword) {
+    return `${resource}/search/${encodeURIComponent(searchKeyword)}?${buildQueryString(params)}`
+  }
 
   if (coordinateBounds && ['destinations', 'distilleries'].includes(resource)) {
     return `${resource}/latlng?${buildQueryString({...params, ...coordinateBounds})}`
@@ -165,6 +214,14 @@ const buildItemsEndpoint = () => {
   return `${resource}?${buildQueryString(params)}`
 }
 
+const normalizePopularItem = (item) => ({
+  ...item,
+  id: item.targetId,
+  imgUrl: item.imgUrl,
+  popularityScore: item.score,
+  popularityEventCount: item.eventCount
+})
+
 // Fetch items from the API
 const fetchItems = async () => {
   if (!hasMore.value || isLoading.value || !canFetchMore.value) return
@@ -174,8 +231,16 @@ const fetchItems = async () => {
   canFetchMore.value = false
 
   try {
-    const response = await apiService.get(buildItemsEndpoint())
+    if (sortValue.value === 'popularity' && supportsPopularitySort.value) {
+      const endpoint = `${popularityEndpoints[props.itemType]}?window=all&limit=50`
+      const response = await apiService.get(endpoint)
+      items.value = Array.isArray(response) ? response.map(normalizePopularItem) : []
+      hasMore.value = false
+      showNextPageIndicator.value = false
+      return
+    }
 
+    const response = await apiService.get(buildItemsEndpoint())
     items.value = [...items.value, ...response.content]
     hasMore.value = !response.last
     currentPage.value++
@@ -199,6 +264,11 @@ const fetchItems = async () => {
 }
 
 const resetItems = () => {
+  if (sortValue.value === 'popularity' && !supportsPopularitySort.value) {
+    sortValue.value = 'id,desc'
+    return
+  }
+
   hasMore.value=true
   canFetchMore.value = true
   currentPage.value = 0
@@ -213,6 +283,20 @@ watch(() => props.selectedItem, () => {
 watch(() => props.coordinateBounds, () => {
   resetItems();
 }, {deep: true})
+
+watch(() => props.searchKeyword, () => {
+  resetItems();
+})
+
+watch(supportsPopularitySort, (isSupported) => {
+  if (!isSupported && sortValue.value === 'popularity') {
+    sortValue.value = 'id,desc'
+  }
+})
+
+watch(sortValue, () => {
+  resetItems();
+})
 
 const retryLoading = () => {
   error.value = null;

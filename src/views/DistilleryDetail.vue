@@ -2,21 +2,21 @@
   <div class="bg-white">
     <div class="container mx-auto px-4 py-8">
       <Card
-          :itemType="itemType"
-          :target_id="target_id"
+          :item-type="itemType"
+          :target-id="targetId"
       />
       <DetailLocationMap
-          :target_id="target_id"
-          :itemType="itemType"
+          :target-id="targetId"
+          :item-type="itemType"
       />
       <Horizontal-scroll-card-list
           :title="'생산하는 술'"
           :toName="'alcoholDetail'"
-          :urlStr="'alcohols?distilleryId='+target_id">
+          :urlStr="'alcohols?distilleryId='+targetId">
       </Horizontal-scroll-card-list>
       <VerticalReviewList
-          :target_id="target_id"
-          :reviewType="itemType">
+          :target-id="targetId"
+          :item-type="itemType">
       </VerticalReviewList>
     </div>
   </div>
@@ -30,7 +30,7 @@ import VerticalReviewList from "@/components/VerticalReviewList.vue";
 import DetailLocationMap from "@/components/DetailLocationMap.vue";
 
 const route = useRoute();
-const target_id = route.params.id;
+const targetId = route.params.id;
 const itemType = 'DISTILLERY';
 </script>
 

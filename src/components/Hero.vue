@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <section class="relative h-screen flex items-center justify-center overflow-hidden">
+  <section class="relative min-h-[82vh] flex items-center justify-center overflow-hidden">
     <div class="absolute inset-0 z-0">
       <img src="../assets/hero-background.png" alt="Traditional Korean alcoholic drinks" class="w-full h-full object-cover" />
       <div class="absolute inset-0 bg-zinc-900/60"></div>
