@@ -10,7 +10,14 @@ const buildUrl = (endpoint) => {
 
 const parseResponseBody = async (response) => {
     const text = await response.text();
-    const body = text ? JSON.parse(text) : null;
+    let body = null;
+    if (text) {
+        try {
+            body = JSON.parse(text);
+        } catch {
+            body = { message: text };
+        }
+    }
 
     if (!response.ok) {
         const error = new Error(`API request failed with status ${response.status}`);
@@ -61,6 +68,34 @@ export const apiService = {
         return parseResponseBody(response);
     },
 
+    async postFormWithToken(endpoint, formData){
+        const response = await fetch(buildUrl(endpoint), {
+            method: 'POST',
+            headers: {
+                'Authorization' : localStorage.getItem('Authorization')
+            },
+            body: formData
+        });
+        return parseResponseBody(response);
+    },
+
+    async postWithOptionalToken(endpoint, data){
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        const authorization = localStorage.getItem('Authorization');
+        if (authorization) {
+            headers.Authorization = authorization;
+        }
+
+        const response = await fetch(buildUrl(endpoint), {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(data)
+        });
+        return parseResponseBody(response);
+    },
+
     async put(endpoint, data){
         const response = await fetch(buildUrl(endpoint), {
             method: 'PUT',
@@ -75,6 +110,18 @@ export const apiService = {
     async putWithToken(endpoint, data){
         const response = await fetch(buildUrl(endpoint), {
             method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization' : localStorage.getItem('Authorization')
+            },
+            body: JSON.stringify(data)
+        });
+        return parseResponseBody(response);
+    },
+
+    async patchWithToken(endpoint, data){
+        const response = await fetch(buildUrl(endpoint), {
+            method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization' : localStorage.getItem('Authorization')
