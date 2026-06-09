@@ -86,14 +86,23 @@
                      :data-item-id="item.id"
                      :data-item-trip-id="item.trip_id"
                      class="flex items-center my-3 p-4 bg-amber-100 rounded-lg">
-                  <img :src="item.img_url" :alt="item.name" class="w-20 h-20 object-cover rounded">
-                  <div class="flex-1">
-                    <h5 class="font-bold text-zinc-900 line-clamp-1">{{ item.name }}</h5>
-                    <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
-                  </div>
                   <button
-                      @click="wishStore.toggleWishlist(item, item.itemType)"
-                      class="text-zinc-900 hover:text-red-500 transition-colors"
+                      type="button"
+                      :disabled="!getDetailRouteForItem(item)"
+                      @click="openWishlistItem(item)"
+                      class="flex min-w-0 flex-1 items-center gap-4 rounded text-left transition-colors disabled:cursor-default"
+                      :class="getDetailRouteForItem(item) ? 'cursor-pointer hover:bg-amber-200' : ''"
+                  >
+                    <img :src="item.img_url" :alt="item.name" class="w-20 h-20 shrink-0 object-cover rounded">
+                    <div class="min-w-0 flex-1">
+                      <h5 class="font-bold text-zinc-900 line-clamp-1">{{ item.name }}</h5>
+                      <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
+                    </div>
+                  </button>
+                  <button
+                      type="button"
+                      @click.stop="wishStore.toggleWishlist(item, item.itemType)"
+                      class="ml-3 shrink-0 text-zinc-900 hover:text-red-500 transition-colors"
                   >
                     <TrashIcon class="h-5 w-5"/>
                   </button>
@@ -120,11 +129,14 @@
 <script setup>
 import {onMounted, onUnmounted, ref} from 'vue';
 import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next';
+import {useRouter} from 'vue-router';
 import {useTripStore} from "@/stores/useTripStore";
 import {useWishStore} from "@/stores/useWishStore";
 import {usePlanStore} from "@/stores/usePlanStore";
 import {useAuthStore} from "@/stores/useAuthStore";
+import {getDetailRouteForItem} from "@/utils/detailRoutes";
 
+const router = useRouter();
 const tripStore = useTripStore();
 const wishStore = useWishStore();
 const planStore = usePlanStore();
@@ -149,6 +161,14 @@ const comparePlanOrder = (a, b) => {
 const getTripPlans = (tripId) => planStore.Plans
     .filter(plan => String(plan.trip_id) === String(tripId))
     .sort(comparePlanOrder)
+
+const openWishlistItem = async (item) => {
+  const detailRoute = getDetailRouteForItem(item)
+  if (!detailRoute) return
+
+  isWishlistOpen.value = false
+  await router.push(detailRoute)
+}
 
 onMounted(async () => {
   await tripStore.loadTrips();

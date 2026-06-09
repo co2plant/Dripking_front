@@ -86,12 +86,25 @@
               >
                 <div class="flex items-center justify-between">
                   <span class="text-zinc-900">{{ item.name }}</span>
-                  <button
-                      @click="addWishItemToPlan(item)"
-                      class="text-amber-400 hover:text-amber-500"
-                  >
-                    <plus-icon class="w-5 h-5" />
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button
+                        v-if="getDetailRouteForItem(item)"
+                        type="button"
+                        @click.stop="openWishlistItem(item)"
+                        class="text-zinc-500 hover:text-zinc-900"
+                        aria-label="상세 보기"
+                        title="상세 보기"
+                    >
+                      <external-link-icon class="w-5 h-5" />
+                    </button>
+                    <button
+                        type="button"
+                        @click.stop="addWishItemToPlan(item)"
+                        class="text-amber-400 hover:text-amber-500"
+                    >
+                      <plus-icon class="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
                 <p class="text-sm text-zinc-500 mt-1 line-clamp-2">{{ item.description }}</p>
               </div>
@@ -236,7 +249,7 @@
 
 <script setup>
 import {ref, onMounted, computed, onUnmounted} from 'vue';
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 
 import dragula from 'dragula';
 import 'dragula/dist/dragula.min.css';
@@ -248,6 +261,7 @@ import {usePlanStore} from "@/stores/usePlanStore";
 import {useWishStore} from "@/stores/useWishStore";
 import Plan from "@/composables/Entity/Plan";
 import {normalizeCoordinates} from "@/utils/coordinates";
+import {getDetailRouteForItem} from "@/utils/detailRoutes";
 import {
   Plus as PlusIcon,
   Calendar as CalendarIcon,
@@ -255,11 +269,13 @@ import {
   MapPin as MapPinIcon,
   Edit as EditIcon,
   Trash as TrashIcon,
-  GripVertical as GrabIcon
+  GripVertical as GrabIcon,
+  ExternalLink as ExternalLinkIcon
 } from 'lucide-vue-next'
 
 
 const route = useRoute()
+const router = useRouter()
 const wishStore = useWishStore();
 const planStore = usePlanStore();
 // 상태 관리
@@ -328,6 +344,13 @@ const persistCurrentPlanOrder = async () => {
   return reordered
 }
 
+const openWishlistItem = async (item) => {
+  const detailRoute = getDetailRouteForItem(item)
+  if (!detailRoute) return
+
+  await router.push(detailRoute)
+}
+
 // Dragula 설정
 onMounted(async () => {
   await planStore.loadPlans(route.params.id);
@@ -336,7 +359,7 @@ onMounted(async () => {
   drake = dragula([wishlistContainer.value, planContainer.value], {
     copy: (el, source) => source === wishlistContainer.value,
     accepts: (el, target) => target === planContainer.value,
-    moves: (el) => !el.classList.contains('non-draggable')
+    moves: (el, source, handle) => !el.classList.contains('non-draggable') && !handle.closest('button')
   }).on('drop', async (el, target, source) => {
     if (target === planContainer.value) {
       if (source === wishlistContainer.value) {
