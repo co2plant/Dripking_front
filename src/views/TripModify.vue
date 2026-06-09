@@ -99,7 +99,7 @@
                     </button>
                     <button
                         type="button"
-                        @click.stop="addWishItemToPlan(item)"
+                        @click.stop="handleAddWishItemToPlan(item)"
                         class="text-amber-400 hover:text-amber-500"
                     >
                       <plus-icon class="w-5 h-5" />
@@ -351,6 +351,13 @@ const openWishlistItem = async (item) => {
   await router.push(detailRoute)
 }
 
+const handleAddWishItemToPlan = async (item) => {
+  const addedPlan = await addWishItemToPlan(item)
+  if (addedPlan) {
+    editPlan(addedPlan)
+  }
+}
+
 // Dragula 설정
 onMounted(async () => {
   await planStore.loadPlans(route.params.id);
@@ -359,7 +366,7 @@ onMounted(async () => {
   drake = dragula([wishlistContainer.value, planContainer.value], {
     copy: (el, source) => source === wishlistContainer.value,
     accepts: (el, target) => target === planContainer.value,
-    moves: (el, source, handle) => !el.classList.contains('non-draggable') && !handle.closest('button')
+    moves: (el, source, handle) => !el.classList.contains('non-draggable') && !handle?.closest('button')
   }).on('drop', async (el, target, source) => {
     if (target === planContainer.value) {
       if (source === wishlistContainer.value) {
@@ -516,8 +523,13 @@ const addWishItemToPlan = async (item) => {
       .build();
   currentPlan.value.sort_order = nextSortOrder()
   const addedPlan = await planStore.addPlan(currentPlan.value)
-  currentPlan.value = addedPlan || currentPlan.value
-  return currentPlan.value
+  if (!addedPlan) {
+    alert('위시리스트 항목을 일정에 추가하지 못했습니다. 잠시 후 다시 시도해주세요.')
+    return null
+  }
+
+  currentPlan.value = addedPlan
+  return addedPlan
 }
 
 </script>

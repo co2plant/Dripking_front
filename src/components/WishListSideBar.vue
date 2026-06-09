@@ -23,7 +23,8 @@
          class="fixed inset-0 bg-black bg-opacity-50 z-50"
          @click="isWishlistOpen = false">
       <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white p-6"
-           @click.stop>
+           @click.stop
+           ref="sidebarPanel">
         <div class="flex justify-between items-center mb-6">
           <h4 class="text-xl font-bold text-zinc-900">Wishlist</h4>
           <XIcon
@@ -53,6 +54,7 @@
                      :key="item.id"
                      :data-item-id="item.id"
                      :data-item-trip-id="item.trip_id"
+                     :data-plan-id="item.id"
                      class="flex items-center my-3 p-4 bg-amber-100 rounded-lg">
                   <img :src="item.img_url" :alt="item.name" class="w-20 h-20 object-cover rounded">
                   <div class="flex-1">
@@ -84,25 +86,28 @@
                 <div v-for="item in wishStore.WishItems"
                      :key="item.id"
                      :data-item-id="item.id"
+                     :data-item-type="item.itemType"
                      :data-item-trip-id="item.trip_id"
                      class="flex items-center my-3 p-4 bg-amber-100 rounded-lg">
+                  <img :src="item.img_url" :alt="item.name" class="w-20 h-20 shrink-0 object-cover rounded">
+                  <div class="min-w-0 flex-1 px-4">
+                    <h5 class="font-bold text-zinc-900 line-clamp-1">{{ item.name }}</h5>
+                    <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
+                  </div>
                   <button
+                      v-if="getDetailRouteForItem(item)"
                       type="button"
-                      :disabled="!getDetailRouteForItem(item)"
-                      @click="openWishlistItem(item)"
-                      class="flex min-w-0 flex-1 items-center gap-4 rounded text-left transition-colors disabled:cursor-default"
-                      :class="getDetailRouteForItem(item) ? 'cursor-pointer hover:bg-amber-200' : ''"
+                      @click.stop="openWishlistItem(item)"
+                      class="mr-3 shrink-0 text-zinc-600 hover:text-zinc-900 transition-colors"
+                      aria-label="상세 보기"
+                      title="상세 보기"
                   >
-                    <img :src="item.img_url" :alt="item.name" class="w-20 h-20 shrink-0 object-cover rounded">
-                    <div class="min-w-0 flex-1">
-                      <h5 class="font-bold text-zinc-900 line-clamp-1">{{ item.name }}</h5>
-                      <p class="text-zinc-600 line-clamp-2">{{ item.description }}</p>
-                    </div>
+                    <ExternalLinkIcon class="h-5 w-5"/>
                   </button>
                   <button
                       type="button"
                       @click.stop="wishStore.toggleWishlist(item, item.itemType)"
-                      class="ml-3 shrink-0 text-zinc-900 hover:text-red-500 transition-colors"
+                      class="shrink-0 text-zinc-900 hover:text-red-500 transition-colors"
                   >
                     <TrashIcon class="h-5 w-5"/>
                   </button>
@@ -127,13 +132,17 @@
 </template>
 
 <script setup>
-import {onMounted, onUnmounted, ref} from 'vue';
-import {ShoppingCartIcon, XIcon, TrashIcon} from 'lucide-vue-next';
+import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
+import {ShoppingCartIcon, XIcon, TrashIcon, ExternalLink as ExternalLinkIcon} from 'lucide-vue-next';
 import {useRouter} from 'vue-router';
+import dragula from 'dragula';
+import 'dragula/dist/dragula.min.css';
 import {useTripStore} from "@/stores/useTripStore";
 import {useWishStore} from "@/stores/useWishStore";
 import {usePlanStore} from "@/stores/usePlanStore";
 import {useAuthStore} from "@/stores/useAuthStore";
+import Plan from "@/composables/Entity/Plan";
+import {normalizeCoordinates} from "@/utils/coordinates";
 import {getDetailRouteForItem} from "@/utils/detailRoutes";
 
 const router = useRouter();
@@ -142,6 +151,8 @@ const wishStore = useWishStore();
 const planStore = usePlanStore();
 const authStore = useAuthStore();
 const isWishlistOpen = ref(false);
+const sidebarPanel = ref(null);
+let drake = null;
 
 const sortOrderValue = (plan) => {
   const sortOrder = Number(plan.sort_order)
@@ -162,6 +173,16 @@ const getTripPlans = (tripId) => planStore.Plans
     .filter(plan => String(plan.trip_id) === String(tripId))
     .sort(comparePlanOrder)
 
+const nextSortOrderForTrip = (tripId) => {
+  const sortOrders = getTripPlans(tripId)
+      .map(plan => Number(plan.sort_order))
+      .filter(Number.isFinite)
+  if (sortOrders.length === 0) {
+    return getTripPlans(tripId).length
+  }
+  return Math.max(...sortOrders) + 1
+}
+
 const openWishlistItem = async (item) => {
   const detailRoute = getDetailRouteForItem(item)
   if (!detailRoute) return
@@ -169,6 +190,72 @@ const openWishlistItem = async (item) => {
   isWishlistOpen.value = false
   await router.push(detailRoute)
 }
+
+const findTrip = (tripId) => tripStore.Trips.find(trip => String(trip.id) === String(tripId))
+
+const addWishlistItemToTrip = async (item, tripId) => {
+  if (!item || !tripId) return null
+
+  const trip = findTrip(tripId)
+  const coordinates = normalizeCoordinates(item)
+  const plan = new Plan()
+      .setName(item.name)
+      .setDescription(item.description)
+      .setPlanDate(trip?.start_date || new Date().toISOString().slice(0, 10))
+      .setStartTime('09:00')
+      .setEndTime('18:00')
+      .setPlaceId(item.id)
+      .setTripId(tripId)
+      .setLatitude(coordinates.latitude)
+      .setLongitude(coordinates.longitude)
+      .setPlaceName(item.name || null)
+      .setAddress(item.address || null)
+      .setItemType(item.itemType)
+      .build()
+
+  plan.sort_order = nextSortOrderForTrip(tripId)
+  const addedPlan = await planStore.addPlan(plan)
+  if (!addedPlan) {
+    alert('위시리스트 항목을 일정에 추가하지 못했습니다. 잠시 후 다시 시도해주세요.')
+  }
+  return addedPlan
+}
+
+const destroyWishlistDrag = () => {
+  drake?.destroy()
+  drake = null
+}
+
+const initWishlistDrag = async () => {
+  await nextTick()
+  destroyWishlistDrag()
+
+  const containers = Array.from(sidebarPanel.value?.querySelectorAll('.dragula-container') || [])
+  if (containers.length < 2) return
+
+  drake = dragula(containers, {
+    copy: (el, source) => source.dataset.tripId === '-1',
+    accepts: (el, target, source) => source.dataset.tripId === '-1' && target.dataset.tripId !== '-1',
+    moves: (el, source, handle) => source.dataset.tripId === '-1' && !handle?.closest('button'),
+  }).on('drop', async (el, target, source) => {
+    if (!target || source.dataset.tripId !== '-1') return
+
+    const item = wishStore.WishItems.find(wishItem =>
+        String(wishItem.id) === String(el.dataset.itemId) && wishItem.itemType === el.dataset.itemType
+    )
+    await addWishlistItemToTrip(item, target.dataset.tripId)
+    el.remove()
+  })
+}
+
+watch(isWishlistOpen, async (isOpen) => {
+  if (isOpen) {
+    await initWishlistDrag()
+    return
+  }
+
+  destroyWishlistDrag()
+})
 
 onMounted(async () => {
   await tripStore.loadTrips();
@@ -180,9 +267,13 @@ onMounted(async () => {
     await planStore.loadPlans();
   }
   await wishStore.loadWishlist();
+  if (isWishlistOpen.value) {
+    await initWishlistDrag()
+  }
 });
 
 onUnmounted(() => {
+  destroyWishlistDrag()
   wishStore.WishItems = wishStore.sortWishlist();
   wishStore.saveWishlist();
 })
