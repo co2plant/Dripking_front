@@ -34,6 +34,22 @@
         </div>
         <div class="h-full overflow-auto">
           <div v-if="wishStore.WishItems.length" class="space-y-4 wrapper">
+            <div
+                v-if="tripStore.Trips.length === 0"
+                class="grid grid-cols-1 items-center gap-3 p-4 bg-gray-50 rounded-lg"
+            >
+              <span class="font-bold text-zinc-900">여행 계획</span>
+              <p class="text-sm text-zinc-600">
+                위시리스트 항목을 일정에 넣으려면 먼저 여행 날짜와 국가를 선택해 여행을 생성해주세요.
+              </p>
+              <router-link
+                  :to="{ name: 'destinationList' }"
+                  @click="isWishlistOpen = false"
+                  class="inline-flex justify-center rounded-full bg-amber-400 px-6 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-amber-500"
+              >
+                여행 생성하러 가기
+              </router-link>
+            </div>
             <div v-for="item_trip in tripStore.Trips"
                  :key="item_trip.id"
                  :id="item_trip.id"
