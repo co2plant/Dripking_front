@@ -1,10 +1,10 @@
 <script setup>
 import VerticalScrollCardList from "@/components/VerticalScrollCardList.vue";
-import CategoryNavigation from "@/components/CategoryNavigation.vue";
 import router from "@/router";
 import {onMounted, ref} from "vue";
 import WishListSideBar from "@/components/WishListSideBar.vue";
 import {apiService} from "@/services/api";
+import ChipFilterBar from "@/components/ChipFilterBar.vue";
 
 const categories = ref([]);
 const selectedCategory = ref(0)
@@ -14,7 +14,7 @@ const handleViewDetails = (item) => {
 }
 
 const selectCategory = (categoryId) => {
-  selectedCategory.value = categoryId
+  selectedCategory.value = Number(categoryId) || 0
 }
 
 onMounted(async () => {
@@ -27,17 +27,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-zinc-900 mb-8">
-      <span class="inline-block bg-amber-400 w-20 h-1"></span>
-      주류 목록
-      <span class="inline-block bg-amber-400 w-20 h-1"></span>
-    </h1>
-    <CategoryNavigation
-        :categories="categories"
-        :selectedCategory="selectedCategory"
-        @select-category="selectCategory"
-    />
+  <div class="py-8">
+    <div class="mx-auto max-w-5xl px-4">
+      <h1 class="mb-8 text-3xl font-bold text-zinc-900">
+        <span class="inline-block h-1 w-20 bg-amber-400"></span>
+        주류 목록
+        <span class="inline-block h-1 w-20 bg-amber-400"></span>
+      </h1>
+      <ChipFilterBar
+          v-model:selected-value="selectedCategory"
+          label="카테고리"
+          :items="categories"
+          @select="selectCategory"
+      />
+    </div>
     <WishListSideBar />
     <VerticalScrollCardList
         itemType="ALCOHOL"
