@@ -90,7 +90,7 @@ import {useAuthStore} from '@/stores/useAuthStore'
 
 const navigation = [
       {name: 'Discover', href: '/destinationList'},
-      {name: 'Trips', href: '#'},
+      {name: 'Trips', href: '/trips/new'},
       {name: 'Alcohol', href: '/alcoholList'},
       {name: 'More', href: '#'},
 ]
