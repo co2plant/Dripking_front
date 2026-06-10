@@ -43,7 +43,7 @@
                 위시리스트 항목을 일정에 넣으려면 먼저 여행 날짜와 국가를 선택해 여행을 생성해주세요.
               </p>
               <router-link
-                  :to="{ name: 'destinationList' }"
+                  :to="{ name: 'tripCreate' }"
                   @click="isWishlistOpen = false"
                   class="inline-flex justify-center rounded-full bg-amber-400 px-6 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-amber-500"
               >
