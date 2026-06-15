@@ -9,13 +9,22 @@
           <div class="bg-white rounded-lg shadow p-4 flex flex-col h-[600px] overflow-auto">
             <div class="flex min-h-[60px] justify-between items-center">
               <h1 class="text-2xl font-bold text-zinc-900">여행 일정</h1>
-              <button
-                  @click="openNewPlanModal"
-                  class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-zinc-900 rounded-lg flex items-center"
-              >
-                <plus-icon class="w-5 h-5 mr-2" />
-                새 일정 추가
-              </button>
+              <div class="flex flex-wrap justify-end gap-2">
+                <router-link
+                    :to="{ name: 'tripNearby', params: { id: route.params.id } }"
+                    class="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-lg flex items-center"
+                >
+                  <crosshair-icon class="w-5 h-5 mr-2" />
+                  주변 탐색
+                </router-link>
+                <button
+                    @click="openNewPlanModal"
+                    class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-zinc-900 rounded-lg flex items-center"
+                >
+                  <plus-icon class="w-5 h-5 mr-2" />
+                  새 일정 추가
+                </button>
+              </div>
             </div>
 
             <div class="space-y-4 overflow-y-auto flex-grow min-h-[300px]" ref="planContainer">
@@ -270,7 +279,8 @@ import {
   Edit as EditIcon,
   Trash as TrashIcon,
   GripVertical as GrabIcon,
-  ExternalLink as ExternalLinkIcon
+  ExternalLink as ExternalLinkIcon,
+  Crosshair as CrosshairIcon
 } from 'lucide-vue-next'
 
 

@@ -9,6 +9,7 @@ import AlcoholDetail from "@/views/AlcoholDetail.vue";
 import SearchedList from "@/views/SearchedList.vue";
 import TripCreate from "@/views/TripCreate.vue";
 import TripModify from "@/views/TripModify.vue";
+import TripNearby from "@/views/TripNearby.vue";
 import EditUserDetail from "@/views/EditUserDetail.vue"
 import Dashboard from "@/views/admin/Dashboard.vue";
 import UserDashboard from "@/views/admin/UserDashboard.vue";
@@ -32,6 +33,7 @@ const routes = [
     { path: '/search/:dtype', name: 'searchList', component: SearchedList, meta:{requiredGuest : true}}, //현재는 미사용(검색기능 추가 시 사용할 예정)
     { path: '/trips/new', name:'tripCreate', component: TripCreate, meta:{requiredGuest : true}},
     { path: '/trip/:id', name:'tripModify', component: TripModify, meta:{requiredGuest : true}, props:true},
+    { path: '/trip/:id/nearby', name:'tripNearby', component: TripNearby, meta:{requiredGuest : true}, props:true},
     { path: '/editUserDetail', name:'editUserDetail', component: EditUserDetail, meta:{requiredUser : true}},
     { path: '/dashboard', name:'dashboard', component: Dashboard, meta:{requiredAdmin : true}},
     { path: '/userDashboard', name:'userDashboard', component: UserDashboard, meta:{requiredAdmin : true}},

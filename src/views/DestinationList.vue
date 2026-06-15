@@ -4,22 +4,17 @@ import router from "@/router";
 import {onMounted, ref} from "vue";
 import WishListSideBar from "@/components/WishListSideBar.vue";
 import {apiService} from "@/services/api";
-import NearbyPositionFilter from "@/components/NearbyPositionFilter.vue";
 import ListLocationMap from "@/components/ListLocationMap.vue";
 import ChipFilterBar from "@/components/ChipFilterBar.vue";
 
 const countries = ref([]);
 const selectedCountry = ref(0);
-const coordinateBounds = ref(null);
 
 const handleViewDetails = (item) => {
   router.push({ name: 'destinationDetail', params: { id: item.id } })
 }
 const selectCountry = (countryId) => {
   selectedCountry.value = Number(countryId) || 0
-}
-const updateCoordinateBounds = (bounds) => {
-  coordinateBounds.value = bounds
 }
 
 onMounted(async () => {
@@ -61,14 +56,10 @@ onMounted(async () => {
         itemType="DESTINATION"
         detailRouteName="destinationDetail"
     />
-    <NearbyPositionFilter
-        @update-coordinate-bounds="updateCoordinateBounds"
-    />
     <WishListSideBar />
     <VerticalScrollCardList
         itemType="DESTINATION"
         :selectedItem="selectedCountry"
-        :coordinateBounds="coordinateBounds"
         @view-details="handleViewDetails"
     />
   </div>
