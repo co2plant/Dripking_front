@@ -35,15 +35,31 @@
               </p>
               <p class="text-xl font-bold text-zinc-900">{{ item.date }}</p>
             </div>
-            <button
-                @click="wishStore.toggleWishlist(item, props.itemType)"
-                class="w-full py-2 rounded-full font-medium transition-colors"
-                :class="wishStore.isInWishlist(item, props.itemType)
-                    ? 'bg-zinc-900 text-white duration-600 hover:bg-amber-400 hover:text-zinc-900 hover:scale-102'
-                    : 'bg-amber-400 text-zinc-900 duration-600 hover:bg-zinc-900 hover:text-white hover:scale-102'"
-            >
-              {{ wishStore.isInWishlist(item, props.itemType) ? 'Remove from Wishlist' : 'Add to Wishlist' }}
-            </button>
+            <div class="mt-5 grid gap-2" :class="props.showPlanActions ? 'sm:grid-cols-2' : ''">
+              <button
+                  v-if="props.showPlanActions"
+                  type="button"
+                  @click="handleAddToPlan(item)"
+                  :disabled="isPlanActionDisabled(item)"
+                  class="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md px-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  :class="isItemPlanned(item)
+                      ? 'bg-zinc-100 text-zinc-500'
+                      : 'bg-zinc-950 text-white hover:bg-zinc-800'"
+              >
+                <calendar-plus-icon class="h-4 w-4" />
+                {{ getPlanActionLabel(item) }}
+              </button>
+              <button
+                  type="button"
+                  @click="wishStore.toggleWishlist(item, props.itemType)"
+                  class="inline-flex h-10 w-full items-center justify-center rounded-md px-3 text-sm font-semibold transition-colors"
+                  :class="wishStore.isInWishlist(item, props.itemType)
+                      ? 'bg-zinc-900 text-white hover:bg-amber-400 hover:text-zinc-900'
+                      : 'bg-amber-400 text-zinc-900 hover:bg-zinc-900 hover:text-white'"
+              >
+                {{ wishStore.isInWishlist(item, props.itemType) ? 'Remove from Wishlist' : 'Add to Wishlist' }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -108,6 +124,7 @@
 
 <script setup>
 import  {computed, defineProps, defineEmits, ref, onMounted, onUnmounted, watch} from 'vue'
+import {CalendarPlus as CalendarPlusIcon} from 'lucide-vue-next';
 import {useWishStore} from "@/stores/useWishStore";
 import {apiService} from "@/services/api";
 import {getValidCoordinateBounds} from "@/utils/coordinates";
@@ -133,6 +150,21 @@ const props = defineProps({
     type: String,
     required: false,
     default: ''
+  },
+  showPlanActions: {
+    type: Boolean,
+    required: false,
+    default: false
+  },
+  plannedItemKeys: {
+    type: Array,
+    required: false,
+    default: () => []
+  },
+  addingItemKey: {
+    type: String,
+    required: false,
+    default: ''
   }
 })
 
@@ -148,7 +180,7 @@ const popularityEndpoints = {
   ALCOHOL: 'recommendations/popular-alcohols'
 }
 
-const emit = defineEmits(['view-details'])
+const emit = defineEmits(['view-details', 'add-to-plan'])
 
 const items = ref([])
 const isLoading = ref(false)
@@ -170,9 +202,28 @@ const supportsPopularitySort = computed(() => {
   return Boolean(popularityEndpoints[props.itemType]) && !searchKeyword && !coordinateBounds && !props.selectedItem
 })
 
+const plannedItemKeySet = computed(() => new Set(props.plannedItemKeys))
+
+const getItemKey = (item) => `${props.itemType}:${item.id}`
+
+const isItemPlanned = (item) => plannedItemKeySet.value.has(getItemKey(item))
+
+const isPlanActionDisabled = (item) => isItemPlanned(item) || props.addingItemKey === getItemKey(item)
+
+const getPlanActionLabel = (item) => {
+  if (props.addingItemKey === getItemKey(item)) {
+    return '추가 중'
+  }
+  return isItemPlanned(item) ? '추가됨' : '일정 추가'
+}
+
 const handleViewDetails = (item) => {
   recordInteractionEvent(props.itemType, item.id, 'LIST_CARD_CLICK');
   emit('view-details', item);
+}
+
+const handleAddToPlan = (item) => {
+  emit('add-to-plan', item)
 }
 
 const buildQueryString = (params) => {

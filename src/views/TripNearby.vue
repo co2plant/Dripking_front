@@ -82,6 +82,14 @@
 
       <NearbyPositionFilter @update-coordinate-bounds="updateCoordinateBounds" />
 
+      <p
+          v-if="addPlanFeedback"
+          role="status"
+          class="mx-auto max-w-5xl rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-zinc-800"
+      >
+        {{ addPlanFeedback }}
+      </p>
+
       <div
           v-if="!coordinateBounds"
           class="mx-auto max-w-5xl rounded-md border border-zinc-200 bg-zinc-50 px-5 py-10 text-center text-sm text-zinc-500"
@@ -94,14 +102,18 @@
           :key="activeItemType"
           :itemType="activeItemType"
           :coordinateBounds="coordinateBounds"
+          :showPlanActions="true"
+          :plannedItemKeys="plannedItemKeys"
+          :addingItemKey="addingItemKey"
           @view-details="handleViewDetails"
+          @add-to-plan="handleAddToPlan"
       />
     </section>
   </div>
 </template>
 
 <script setup>
-import {computed, markRaw, onMounted, ref} from 'vue';
+import {computed, markRaw, onMounted, onUnmounted, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {
   ArrowLeft as ArrowLeftIcon,
@@ -112,15 +124,22 @@ import {
 } from 'lucide-vue-next';
 import NearbyPositionFilter from '@/components/NearbyPositionFilter.vue';
 import VerticalScrollCardList from '@/components/VerticalScrollCardList.vue';
+import Plan from '@/composables/Entity/Plan';
 import {useTripStore} from '@/stores/useTripStore';
+import {usePlanStore} from '@/stores/usePlanStore';
+import {normalizeCoordinates} from '@/utils/coordinates';
 
 const route = useRoute();
 const router = useRouter();
 const tripStore = useTripStore();
+const planStore = usePlanStore();
 const trip = ref(null);
 const isLoading = ref(true);
 const coordinateBounds = ref(null);
 const activeItemType = ref('DESTINATION');
+const addingItemKey = ref('');
+const addPlanFeedback = ref('');
+let feedbackTimer = null;
 
 const nearbyTypes = [
   {value: 'DESTINATION', label: '여행지', routeName: 'destinationDetail', icon: markRaw(MapPinIcon)},
@@ -148,12 +167,58 @@ const isTripInProgress = computed(() => {
   return startDate <= today.value && today.value <= endDate;
 });
 
+const defaultPlanDate = computed(() => {
+  const startDate = normalizeDate(trip.value?.start_date);
+  const endDate = normalizeDate(trip.value?.end_date);
+  if (startDate && endDate && startDate <= today.value && today.value <= endDate) {
+    return today.value;
+  }
+  return startDate || today.value;
+});
+
+const tripPlans = computed(() => planStore.Plans.filter(plan => String(plan.trip_id) === String(route.params.id)));
+
+const getPlanTargetId = (plan) => plan.target_id ?? plan.targetId ?? plan.place_id ?? plan.placeId;
+
+const getPlanItemKey = (plan) => {
+  const itemType = plan.item_type ?? plan.itemType;
+  const targetId = getPlanTargetId(plan);
+  if (!itemType || targetId === null || targetId === undefined) return null;
+  return `${itemType}:${targetId}`;
+};
+
+const plannedItemKeys = computed(() => tripPlans.value.map(getPlanItemKey).filter(Boolean));
+
+const nextSortOrder = () => {
+  const sortOrders = tripPlans.value
+      .map(plan => Number(plan.sort_order))
+      .filter(Number.isFinite);
+  if (sortOrders.length === 0) {
+    return tripPlans.value.length;
+  }
+  return Math.max(...sortOrders) + 1;
+};
+
 const activeType = computed(() => nearbyTypes.find(type => type.value === activeItemType.value) || nearbyTypes[0]);
 const activeTypeLabel = computed(() => activeType.value.label);
 const currentRadiusLabel = computed(() => {
   if (!coordinateBounds.value) return '';
   return '주변 결과';
 });
+
+const showAddPlanFeedback = (message) => {
+  addPlanFeedback.value = message;
+  if (feedbackTimer) {
+    clearTimeout(feedbackTimer);
+  }
+  feedbackTimer = setTimeout(() => {
+    addPlanFeedback.value = '';
+  }, 3000);
+};
+
+const getItemTargetId = (item) => item.targetId ?? item.target_id ?? item.id;
+
+const getItemKey = (item) => `${activeItemType.value}:${getItemTargetId(item)}`;
 
 const selectItemType = (itemType) => {
   activeItemType.value = itemType;
@@ -167,10 +232,63 @@ const handleViewDetails = (item) => {
   router.push({name: activeType.value.routeName, params: {id: item.id}});
 };
 
+const handleAddToPlan = async (item) => {
+  const itemKey = getItemKey(item);
+  if (plannedItemKeys.value.includes(itemKey)) {
+    showAddPlanFeedback('이미 일정에 추가된 항목입니다.');
+    return;
+  }
+
+  if (addingItemKey.value) return;
+
+  addingItemKey.value = itemKey;
+  const coordinates = normalizeCoordinates(item);
+  const plan = new Plan()
+      .setName(item.name)
+      .setDescription(item.description)
+      .setPlanDate(defaultPlanDate.value)
+      .setStartTime('09:00')
+      .setEndTime('10:00')
+      .setTargetId(getItemTargetId(item))
+      .setTripId(route.params.id)
+      .setLatitude(coordinates.latitude)
+      .setLongitude(coordinates.longitude)
+      .setPlaceName(item.name || null)
+      .setAddress(item.address || null)
+      .setItemType(activeItemType.value)
+      .build();
+
+  plan.sort_order = nextSortOrder();
+  plan.img_url = item.imgUrl || item.img_url || null;
+
+  let addedPlan = null;
+  try {
+    addedPlan = await planStore.addPlan(plan);
+  } finally {
+    addingItemKey.value = '';
+  }
+
+  if (!addedPlan) {
+    showAddPlanFeedback('일정을 추가하지 못했습니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+
+  showAddPlanFeedback(`${item.name} 항목을 일정에 추가했습니다.`);
+};
+
 onMounted(async () => {
   isLoading.value = true;
   await tripStore.loadTrips();
   trip.value = tripStore.findTripById(route.params.id) || null;
+  if (trip.value) {
+    await planStore.loadPlans(route.params.id);
+  }
   isLoading.value = false;
+});
+
+onUnmounted(() => {
+  if (feedbackTimer) {
+    clearTimeout(feedbackTimer);
+  }
 });
 </script>
