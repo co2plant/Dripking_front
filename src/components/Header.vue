@@ -14,7 +14,7 @@
             <Bars3Icon class="size-6" aria-hidden="true" />
           </button>
         </div>
-        <div class="hidden lg:flex lg:gap-x-12">
+        <div class="hidden lg:flex lg:gap-x-8 xl:gap-x-12">
           <a v-for="item in navigation" :key="item.name" :href="item.href" class="text-sm/6 font-semibold text-zinc-900">{{ item.name }}</a>
         </div>
         <div v-if="authStore.isSignedIn" class="hidden lg:flex lg:flex-1 lg:justify-end">
@@ -92,6 +92,7 @@ const navigation = [
       {name: 'Discover', href: '/destinationList'},
       {name: 'Trips', href: '/trips/new'},
       {name: 'Alcohol', href: '/alcoholList'},
+      {name: 'Tasting Notes', href: '/tasting-notes'},
       {name: 'More', href: '#'},
 ]
 

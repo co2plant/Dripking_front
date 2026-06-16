@@ -6,6 +6,14 @@
           :item-type="itemType"
       >
       </Card>
+      <div class="mb-8 flex justify-end">
+        <router-link
+            :to="{ name: 'tastingNotes', query: { alcoholId: targetId } }"
+            class="inline-flex items-center justify-center rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
+        >
+          테이스팅 노트 작성
+        </router-link>
+      </div>
       <VerticalReviewList
           :target-id="targetId"
           :item-type="itemType">

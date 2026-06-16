@@ -17,6 +17,7 @@
             <router-link class="hover:text-zinc-950" to="/destinationList">여행지</router-link>
             <router-link class="hover:text-zinc-950" to="/distilleryList">양조장</router-link>
             <router-link class="hover:text-zinc-950" to="/alcoholList">술</router-link>
+            <router-link class="hover:text-zinc-950" to="/tasting-notes">테이스팅 노트</router-link>
             <router-link class="hover:text-zinc-950" to="/trips/new">여행 만들기</router-link>
           </nav>
         </div>
