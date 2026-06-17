@@ -118,6 +118,9 @@
         <p v-if="alcoholLoadError" class="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
           {{ alcoholLoadError }}
         </p>
+        <p v-if="tagLoadError" class="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          {{ tagLoadError }}
+        </p>
 
         <div class="mt-6 grid gap-4">
           <div
@@ -323,6 +326,11 @@ import {computed, onMounted, ref, watch} from 'vue';
 import {useRoute} from 'vue-router';
 import {CheckIcon, PencilSquareIcon, TrashIcon, XMarkIcon} from '@heroicons/vue/24/outline';
 import {apiService} from '@/services/api';
+import {
+  buildTastingNoteTagGroups,
+  DEFAULT_TASTING_NOTE_TAG_GROUPS,
+  TASTING_NOTE_RATING_FIELDS
+} from '@/constants/tastingNotes';
 
 const STORAGE_KEY = 'dripking:tasting-notes';
 
@@ -332,6 +340,7 @@ const alcohols = ref([]);
 const notes = ref([]);
 const isLoadingAlcohols = ref(false);
 const alcoholLoadError = ref('');
+const tagLoadError = ref('');
 const formError = ref('');
 const editingId = ref('');
 const searchText = ref('');
@@ -358,31 +367,8 @@ const createBlankForm = () => ({
 
 const form = ref(createBlankForm());
 
-const ratingFields = [
-  {key: 'appearance', label: '색/질감'},
-  {key: 'aroma', label: '향'},
-  {key: 'palate', label: '맛'},
-  {key: 'finish', label: '여운'},
-  {key: 'overall', label: '총점'}
-];
-
-const tagGroups = [
-  {
-    field: 'aromaTags',
-    label: '향 표현',
-    options: ['과일', '꽃', '곡물', '견과', '향신료', '허브', '나무', '훈연']
-  },
-  {
-    field: 'palateTags',
-    label: '맛 표현',
-    options: ['단맛', '산미', '쓴맛', '감칠맛', '바디감', '탄산감', '매운맛', '깔끔함']
-  },
-  {
-    field: 'finishTags',
-    label: '여운 표현',
-    options: ['짧음', '긴 여운', '드라이', '달콤함', '따뜻함', '부드러움', '묵직함']
-  }
-];
+const ratingFields = TASTING_NOTE_RATING_FIELDS;
+const tagGroups = ref(DEFAULT_TASTING_NOTE_TAG_GROUPS);
 
 const createId = () => `note-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -445,6 +431,19 @@ const loadAlcohols = async () => {
     alcoholLoadError.value = '술 목록을 불러오지 못했습니다. 이름은 직접 입력할 수 있습니다.';
   } finally {
     isLoadingAlcohols.value = false;
+  }
+};
+
+const loadTagGroups = async () => {
+  tagLoadError.value = '';
+
+  try {
+    const response = await apiService.get('tags');
+    tagGroups.value = buildTastingNoteTagGroups(Array.isArray(response) ? response : []);
+  } catch (error) {
+    console.error('테이스팅 태그를 불러오지 못했습니다.', error);
+    tagGroups.value = DEFAULT_TASTING_NOTE_TAG_GROUPS;
+    tagLoadError.value = '태그 목록을 불러오지 못했습니다. 기본 태그로 표시합니다.';
   }
 };
 
@@ -634,7 +633,10 @@ watch(
 
 onMounted(async () => {
   loadNotes();
-  await loadAlcohols();
+  await Promise.all([
+    loadAlcohols(),
+    loadTagGroups()
+  ]);
   await applyRouteAlcohol();
 });
 </script>
