@@ -61,53 +61,66 @@
     </section>
 
     <section v-else class="space-y-6">
-      <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 md:flex-row md:items-center md:justify-between">
-        <div class="inline-flex rounded-md border border-zinc-200 bg-white p-1">
-          <button
-              v-for="type in nearbyTypes"
-              :key="type.value"
-              type="button"
-              class="inline-flex h-10 items-center justify-center gap-2 rounded px-4 text-sm font-semibold transition-colors"
-              :class="activeItemType === type.value ? 'bg-zinc-950 text-white' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-950'"
-              @click="selectItemType(type.value)"
-          >
-            <component :is="type.icon" class="h-4 w-4" />
-            {{ type.label }}
-          </button>
-        </div>
-        <p v-if="coordinateBounds" class="text-sm text-zinc-500">
-          {{ activeTypeLabel }} {{ currentRadiusLabel }}
-        </p>
-      </div>
-
-      <NearbyPositionFilter @update-coordinate-bounds="updateCoordinateBounds" />
+      <NearbyPositionFilter
+          @location-selected="handleLocationSelected"
+          @location-cleared="clearLocationCheck"
+      />
 
       <p
-          v-if="addPlanFeedback"
+          v-if="locationCheckMessage"
           role="status"
-          class="mx-auto max-w-5xl rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-zinc-800"
+          class="mx-auto max-w-5xl rounded-md border px-4 py-3 text-sm font-medium"
+          :class="locationStatusClass"
       >
-        {{ addPlanFeedback }}
+        {{ locationCheckMessage }}
       </p>
 
       <div
-          v-if="!coordinateBounds"
+          v-if="!isLocationVerified"
           class="mx-auto max-w-5xl rounded-md border border-zinc-200 bg-zinc-50 px-5 py-10 text-center text-sm text-zinc-500"
       >
-        위치 기준이 설정되면 주변 목록이 표시됩니다.
+        현재 위치가 확인되면 주변 목록이 표시됩니다.
       </div>
 
-      <VerticalScrollCardList
-          v-else
-          :key="activeItemType"
-          :itemType="activeItemType"
-          :coordinateBounds="coordinateBounds"
-          :showPlanActions="true"
-          :plannedItemKeys="plannedItemKeys"
-          :addingItemKey="addingItemKey"
-          @view-details="handleViewDetails"
-          @add-to-plan="handleAddToPlan"
-      />
+      <template v-else>
+        <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 md:flex-row md:items-center md:justify-between">
+          <div class="inline-flex rounded-md border border-zinc-200 bg-white p-1">
+            <button
+                v-for="type in nearbyTypes"
+                :key="type.value"
+                type="button"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded px-4 text-sm font-semibold transition-colors"
+                :class="activeItemType === type.value ? 'bg-zinc-950 text-white' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-950'"
+                @click="selectItemType(type.value)"
+            >
+              <component :is="type.icon" class="h-4 w-4" />
+              {{ type.label }}
+            </button>
+          </div>
+          <p v-if="coordinateBounds" class="text-sm text-zinc-500">
+            {{ activeTypeLabel }} {{ currentRadiusLabel }}
+          </p>
+        </div>
+
+        <p
+            v-if="addPlanFeedback"
+            role="status"
+            class="mx-auto max-w-5xl rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-zinc-800"
+        >
+          {{ addPlanFeedback }}
+        </p>
+
+        <VerticalScrollCardList
+            :key="activeItemType"
+            :itemType="activeItemType"
+            :coordinateBounds="coordinateBounds"
+            :showPlanActions="true"
+            :plannedItemKeys="plannedItemKeys"
+            :addingItemKey="addingItemKey"
+            @view-details="handleViewDetails"
+            @add-to-plan="handleAddToPlan"
+        />
+      </template>
     </section>
   </div>
 </template>
@@ -127,7 +140,13 @@ import VerticalScrollCardList from '@/components/VerticalScrollCardList.vue';
 import Plan from '@/composables/Entity/Plan';
 import {useTripStore} from '@/stores/useTripStore';
 import {usePlanStore} from '@/stores/usePlanStore';
-import {normalizeCoordinates} from '@/utils/coordinates';
+import {apiService} from '@/services/api';
+import {
+  getCoordinateBoundsFromCenter,
+  getDistanceKm,
+  getValidCoordinates,
+  normalizeCoordinates,
+} from '@/utils/coordinates';
 
 const route = useRoute();
 const router = useRouter();
@@ -136,10 +155,15 @@ const planStore = usePlanStore();
 const trip = ref(null);
 const isLoading = ref(true);
 const coordinateBounds = ref(null);
+const verifiedPosition = ref(null);
+const locationCheckStatus = ref('idle');
+const locationCheckMessage = ref('');
 const activeItemType = ref('DESTINATION');
 const addingItemKey = ref('');
 const addPlanFeedback = ref('');
 let feedbackTimer = null;
+
+const TRIP_AREA_RADIUS_KM = 50;
 
 const nearbyTypes = [
   {value: 'DESTINATION', label: '여행지', routeName: 'destinationDetail', icon: markRaw(MapPinIcon)},
@@ -178,6 +202,25 @@ const defaultPlanDate = computed(() => {
 
 const tripPlans = computed(() => planStore.Plans.filter(plan => String(plan.trip_id) === String(route.params.id)));
 
+const tripPlanLocations = computed(() => tripPlans.value
+    .map((plan) => {
+      const coordinates = getValidCoordinates({
+        latitude: plan.latitude ?? plan.snapshot_latitude,
+        longitude: plan.longitude ?? plan.snapshot_longitude,
+      });
+
+      if (coordinates === null) {
+        return null;
+      }
+
+      return {
+        name: plan.place_name || plan.snapshot_name || plan.name || '일정 장소',
+        latitude: coordinates.lat,
+        longitude: coordinates.lng,
+      };
+    })
+    .filter(Boolean));
+
 const getPlanTargetId = (plan) => plan.target_id ?? plan.targetId ?? plan.place_id ?? plan.placeId;
 
 const getPlanItemKey = (plan) => {
@@ -206,6 +249,20 @@ const currentRadiusLabel = computed(() => {
   return '주변 결과';
 });
 
+const isLocationVerified = computed(() => locationCheckStatus.value === 'verified' && coordinateBounds.value !== null);
+
+const locationStatusClass = computed(() => {
+  if (locationCheckStatus.value === 'verified') {
+    return 'border-emerald-200 bg-emerald-50 text-emerald-800';
+  }
+
+  if (locationCheckStatus.value === 'checking') {
+    return 'border-sky-200 bg-sky-50 text-sky-800';
+  }
+
+  return 'border-red-200 bg-red-50 text-red-700';
+});
+
 const showAddPlanFeedback = (message) => {
   addPlanFeedback.value = message;
   if (feedbackTimer) {
@@ -224,8 +281,157 @@ const selectItemType = (itemType) => {
   activeItemType.value = itemType;
 };
 
-const updateCoordinateBounds = (bounds) => {
-  coordinateBounds.value = bounds;
+const buildQueryString = (params) => {
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
+      query.set(key, value);
+    }
+  });
+
+  return query.toString();
+};
+
+const getTripCountryId = () => trip.value?.country_id ?? trip.value?.countryId;
+
+const getTripCountryName = () => trip.value?.country ?? trip.value?.countryName ?? trip.value?.country_name;
+
+const normalizeText = (value) => String(value || '').trim().toLowerCase();
+
+const formatDistance = (distanceKm) => {
+  if (distanceKm < 1) {
+    return `${Math.round(distanceKm * 1000)}m`;
+  }
+
+  return `${distanceKm.toFixed(1)}km`;
+};
+
+const isDestinationInTripCountry = (destination) => {
+  const tripCountryId = getTripCountryId();
+  const destinationCountryId = destination.countryId ?? destination.country_id;
+  if (tripCountryId !== null && tripCountryId !== undefined && destinationCountryId !== null && destinationCountryId !== undefined) {
+    return String(destinationCountryId) === String(tripCountryId);
+  }
+
+  const tripCountryName = normalizeText(getTripCountryName());
+  const destinationCountryName = normalizeText(destination.countryName ?? destination.country_name ?? destination.country);
+  return tripCountryName !== '' && destinationCountryName !== '' && destinationCountryName === tripCountryName;
+};
+
+const findNearbyTripCountryDestination = async (location) => {
+  if (!getTripCountryId() && !getTripCountryName()) {
+    return null;
+  }
+
+  const bounds = getCoordinateBoundsFromCenter({
+    latitude: location.latitude,
+    longitude: location.longitude,
+    radiusKm: Math.max(TRIP_AREA_RADIUS_KM, Number(location.radiusKm) || 0),
+  });
+
+  if (bounds === null) {
+    return null;
+  }
+
+  try {
+    const response = await apiService.get(`destinations/latlng?${buildQueryString({
+      ...bounds,
+      page: 0,
+      size: 20,
+      sort: 'id,desc',
+    })}`);
+    const destinations = Array.isArray(response?.content) ? response.content : [];
+    return destinations.find(isDestinationInTripCountry) || null;
+  } catch (error) {
+    console.error('Error checking nearby destination country:', error);
+    return null;
+  }
+};
+
+const findNearestPlanLocation = (location) => {
+  return tripPlanLocations.value.reduce((nearest, planLocation) => {
+    const distanceKm = getDistanceKm(location, planLocation);
+    if (distanceKm === null) {
+      return nearest;
+    }
+
+    if (nearest === null || distanceKm < nearest.distanceKm) {
+      return {
+        ...planLocation,
+        distanceKm,
+      };
+    }
+
+    return nearest;
+  }, null);
+};
+
+const verifyTripLocation = async (location) => {
+  const countryDestination = await findNearbyTripCountryDestination(location);
+  if (countryDestination) {
+    return {
+      success: true,
+      message: `${countryDestination.name} 주변으로 확인되어 주변 추천을 불러옵니다.`,
+    };
+  }
+
+  const nearestPlanLocation = findNearestPlanLocation(location);
+  if (nearestPlanLocation && nearestPlanLocation.distanceKm <= TRIP_AREA_RADIUS_KM) {
+    return {
+      success: true,
+      message: `${nearestPlanLocation.name}에서 ${formatDistance(nearestPlanLocation.distanceKm)} 거리로 확인되어 주변 추천을 불러옵니다.`,
+    };
+  }
+
+  if (nearestPlanLocation) {
+    return {
+      success: false,
+      message: `현재 위치가 가장 가까운 일정 장소(${nearestPlanLocation.name})에서 ${formatDistance(nearestPlanLocation.distanceKm)} 떨어져 있습니다. 여행지 근처에서 다시 위치를 공유해주세요.`,
+    };
+  }
+
+  if (getTripCountryName()) {
+    return {
+      success: false,
+      message: `현재 위치 주변에서 ${getTripCountryName()} 여행지로 확인되는 장소를 찾지 못했습니다. 여행지 근처에서 다시 위치를 공유해주세요.`,
+    };
+  }
+
+  return {
+    success: false,
+    message: '여행 국가나 좌표가 있는 일정이 없어 현재 위치를 여행 중으로 확인할 수 없습니다.',
+  };
+};
+
+const handleLocationSelected = async (location) => {
+  locationCheckStatus.value = 'checking';
+  locationCheckMessage.value = '현재 위치를 여행 정보와 대조하는 중입니다.';
+  coordinateBounds.value = null;
+  verifiedPosition.value = null;
+
+  const verification = await verifyTripLocation(location);
+
+  if (!verification.success) {
+    locationCheckStatus.value = 'outside';
+    locationCheckMessage.value = verification.message;
+    return;
+  }
+
+  verifiedPosition.value = {
+    latitude: location.latitude,
+    longitude: location.longitude,
+  };
+  coordinateBounds.value = location.bounds;
+  locationCheckStatus.value = 'verified';
+  locationCheckMessage.value = verification.message;
+};
+
+const clearLocationCheck = () => {
+  coordinateBounds.value = null;
+  verifiedPosition.value = null;
+  locationCheckStatus.value = 'idle';
+  locationCheckMessage.value = '';
 };
 
 const handleViewDetails = (item) => {
