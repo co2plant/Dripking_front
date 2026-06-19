@@ -7,6 +7,10 @@ export const parseCoordinate = (value) => {
   return Number.isFinite(coordinate) ? coordinate : null;
 };
 
+const EARTH_RADIUS_KM = 6371;
+
+const toRadians = (value) => value * (Math.PI / 180);
+
 export const getValidCoordinates = (source) => {
   const lat = parseCoordinate(source?.latitude);
   const lng = parseCoordinate(source?.longitude);
@@ -23,6 +27,25 @@ export const getValidCoordinates = (source) => {
 };
 
 export const hasValidCoordinates = (source) => getValidCoordinates(source) !== null;
+
+export const getDistanceKm = (sourceA, sourceB) => {
+  const coordinatesA = getValidCoordinates(sourceA);
+  const coordinatesB = getValidCoordinates(sourceB);
+
+  if (coordinatesA === null || coordinatesB === null) {
+    return null;
+  }
+
+  const latDistance = toRadians(coordinatesB.lat - coordinatesA.lat);
+  const lngDistance = toRadians(coordinatesB.lng - coordinatesA.lng);
+  const startLat = toRadians(coordinatesA.lat);
+  const endLat = toRadians(coordinatesB.lat);
+
+  const haversine = Math.sin(latDistance / 2) ** 2
+    + Math.cos(startLat) * Math.cos(endLat) * Math.sin(lngDistance / 2) ** 2;
+
+  return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+};
 
 export const normalizeCoordinates = (source) => {
   const coordinates = getValidCoordinates(source);
