@@ -29,6 +29,13 @@ const parseResponseBody = async (response) => {
     return body;
 };
 
+export const resolveApiErrorMessage = (error, fallbackMessage = '요청을 처리하지 못했습니다.') => {
+    return error?.body?.error?.message
+        || error?.body?.message
+        || error?.message
+        || fallbackMessage;
+};
+
 export const apiService = {
     async get(endpoint){
         const response = await fetch(buildUrl(endpoint));
