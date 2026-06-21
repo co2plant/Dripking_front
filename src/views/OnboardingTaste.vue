@@ -23,6 +23,9 @@
           <div v-if="isLoadingCategories" class="mt-4 rounded-md bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500">
             카테고리를 불러오는 중입니다.
           </div>
+          <div v-else-if="categories.length === 0" class="mt-4 rounded-md border border-zinc-200 bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500">
+            표시할 카테고리가 없습니다.
+          </div>
           <div v-else class="mt-4 grid gap-3 sm:grid-cols-2">
             <button
                 v-for="category in categories"
@@ -186,21 +189,40 @@ const resetSelection = () => {
   feedbackType.value = 'idle';
 };
 
+const applyProfileSelection = () => {
+  selectedCategories.value = [...tasteProfileStore.profile.categories];
+  selectedFlavorTags.value = [...tasteProfileStore.profile.flavorTags];
+};
+
 const loadInitialData = async () => {
   isLoadingCategories.value = true;
+  feedbackMessage.value = '';
+  feedbackType.value = 'idle';
+
   try {
-    const [categoryResponse] = await Promise.all([
-      apiService.get('categories'),
-      tasteProfileStore.loadProfile(),
-    ]);
+    const categoryResponse = await apiService.get('categories');
     categories.value = Array.isArray(categoryResponse) ? categoryResponse : [];
-    selectedCategories.value = [...tasteProfileStore.profile.categories];
-    selectedFlavorTags.value = [...tasteProfileStore.profile.flavorTags];
   } catch (error) {
-    feedbackMessage.value = resolveApiErrorMessage(error, '취향 설정을 불러오지 못했습니다.');
+    categories.value = [];
+    feedbackMessage.value = resolveApiErrorMessage(
+        error,
+        '카테고리를 불러오지 못했습니다. PostgreSQL과 백엔드 dev 서버가 실행 중인지 확인해주세요.'
+    );
     feedbackType.value = 'error';
+    return;
   } finally {
     isLoadingCategories.value = false;
+  }
+
+  const profileResult = await tasteProfileStore.loadProfile();
+  if (profileResult.success) {
+    applyProfileSelection();
+    return;
+  }
+
+  if (localStorage.getItem('Authorization')) {
+    feedbackMessage.value = profileResult.error;
+    feedbackType.value = 'error';
   }
 };
 

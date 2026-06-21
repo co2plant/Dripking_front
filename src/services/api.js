@@ -30,9 +30,15 @@ const parseResponseBody = async (response) => {
 };
 
 export const resolveApiErrorMessage = (error, fallbackMessage = '요청을 처리하지 못했습니다.') => {
+    const message = error?.message || '';
+    const isNetworkError = error instanceof TypeError
+        && (message.includes('Failed to fetch')
+            || message.includes('NetworkError')
+            || message.includes('Load failed'));
+
     return error?.body?.error?.message
         || error?.body?.message
-        || error?.message
+        || (isNetworkError ? 'API 서버에 연결할 수 없습니다. 백엔드 실행 상태와 API 주소 설정을 확인해주세요.' : message)
         || fallbackMessage;
 };
 
