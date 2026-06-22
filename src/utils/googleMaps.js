@@ -22,7 +22,7 @@ export const loadGoogleMapsAPI = (apiKey) => {
     };
 
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=${callbackName}&libraries=maps,marker`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=${callbackName}&libraries=maps,marker,places`;
     script.async = true;
     script.defer = true;
     script.onerror = (error) => {
