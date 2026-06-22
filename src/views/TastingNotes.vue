@@ -151,21 +151,21 @@
             <article
                 v-for="note in selectedAlcoholPastNotes"
                 :key="`selected-${note.id}`"
-                class="rounded-md border border-zinc-200 px-4 py-3"
+                class="rounded-md border border-zinc-200 px-4 py-3 text-left"
             >
               <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div class="min-w-0">
+                <div class="min-w-0 flex-1 text-left">
                   <div class="flex flex-wrap items-center gap-2">
                     <p class="truncate text-sm font-bold text-zinc-950">{{ note.alcoholName }}</p>
                     <span class="rounded bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">
                       총점 {{ note.overall }} / 5
                     </span>
                   </div>
-                  <p class="mt-1 text-sm text-zinc-500">
+                  <p class="mt-1 text-left text-sm text-zinc-500">
                     {{ formatDisplayDate(note.tastedAt) }}
                     <span v-if="note.place"> · {{ note.place }}</span>
                   </p>
-                  <p v-if="note.memo" class="mt-2 line-clamp-2 text-sm leading-6 text-zinc-700">{{ note.memo }}</p>
+                  <p v-if="note.memo" class="mt-2 line-clamp-2 text-left text-sm leading-6 text-zinc-700">{{ note.memo }}</p>
                 </div>
                 <button
                     type="button"
@@ -403,17 +403,17 @@
           <article
               v-for="note in filteredNotes"
               :key="note.id"
-              class="rounded-md border border-zinc-200 bg-white p-5 shadow-sm"
+              class="rounded-md border border-zinc-200 bg-white p-5 text-left shadow-sm"
           >
             <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div class="min-w-0">
+              <div class="min-w-0 flex-1 text-left">
                 <div class="flex flex-wrap items-center gap-2">
                   <h3 class="truncate text-lg font-bold text-zinc-950">{{ note.alcoholName }}</h3>
                   <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">
                     총점 {{ note.overall }} / 5
                   </span>
                 </div>
-                <p class="mt-1 text-sm text-zinc-500">
+                <p class="mt-1 text-left text-sm text-zinc-500">
                   {{ formatDisplayDate(note.tastedAt) }}
                   <span v-if="note.place"> · {{ note.place }}</span>
                 </p>
@@ -455,10 +455,10 @@
               </span>
             </div>
 
-            <p v-if="note.pairing" class="mt-4 text-sm text-zinc-700">
+            <p v-if="note.pairing" class="mt-4 text-left text-sm text-zinc-700">
               <span class="font-semibold text-zinc-950">페어링</span> {{ note.pairing }}
             </p>
-            <p v-if="note.memo" class="mt-3 whitespace-pre-line text-sm leading-6 text-zinc-700">
+            <p v-if="note.memo" class="mt-3 whitespace-pre-line text-left text-sm leading-6 text-zinc-700">
               {{ note.memo }}
             </p>
           </article>
