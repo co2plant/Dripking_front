@@ -29,6 +29,7 @@
               id="content"
               v-model="content"
               rows="4"
+              :maxlength="REVIEW_TEXT_SECURITY_RULES.contents.maxLength"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
               required
           ></textarea>
@@ -68,8 +69,9 @@
 import {computed, ref, defineProps, defineEmits, watch} from 'vue'
 import Modal from "@/components/Modal.vue";
 import AuthenticationForm from "@/components/Authentication/AuthenticationForm.vue";
-import {apiService} from "@/services/api";
+import {apiService, resolveApiErrorMessage} from "@/services/api";
 import {useAuthStore} from "@/stores/useAuthStore";
+import {REVIEW_TEXT_SECURITY_RULES, validatePlainTextInput} from "@/utils/textInputSecurity";
 
 const props = defineProps({
   targetId: {
@@ -115,11 +117,19 @@ const setRating = (value) => {
 
 const submitReview = async () => {
   submitError.value = ''
+  const contentValidation = validatePlainTextInput(content.value, REVIEW_TEXT_SECURITY_RULES.contents)
+
+  if (!contentValidation.isValid) {
+    submitError.value = contentValidation.errors[0]
+    return
+  }
+
+  content.value = contentValidation.value
   const reviewData = {
     targetId: props.targetId,
     itemType: props.itemType,
     rating: rating.value,
-    contents: content.value
+    contents: contentValidation.value
   }
 
   try {
@@ -142,7 +152,7 @@ const submitReview = async () => {
     emit('reviewSubmitted')
   } catch (error) {
     console.error('리뷰 제출 중 오류 발생:', error)
-    submitError.value = '리뷰 저장에 실패했습니다. 잠시 후 다시 시도해주세요.'
+    submitError.value = resolveApiErrorMessage(error, '리뷰 저장에 실패했습니다. 잠시 후 다시 시도해주세요.')
   }
 }
 
