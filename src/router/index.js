@@ -32,7 +32,7 @@ const routes = [
     { path: '/distillery/:id', name: 'distilleryDetail', component: DistilleryDetail, meta:{requiredGuest : true} },
     { path: '/alcoholList', name: 'alcoholList', component : AlcoholList, meta:{requiredGuest : true} },
     { path: '/alcohol/:id', name: 'alcoholDetail', component: AlcoholDetail, meta:{requiredGuest : true} },
-    { path: '/tasting-notes', name: 'tastingNotes', component: TastingNotes, meta:{requiredGuest : true} },
+    { path: '/tasting-notes', name: 'tastingNotes', component: TastingNotes, meta:{requiredUser : true} },
     { path: '/onboarding/taste', name:'onboardingTaste', component: OnboardingTaste, meta:{requiredUser : true}},
     { path: '/search/:dtype', name: 'searchList', component: SearchedList, meta:{requiredGuest : true}}, //현재는 미사용(검색기능 추가 시 사용할 예정)
     { path: '/trips/new', name:'tripCreate', component: TripCreate, meta:{requiredGuest : true}},

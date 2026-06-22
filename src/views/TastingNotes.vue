@@ -341,7 +341,8 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                   type="button"
-                  class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100"
+                  class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="isSavingNote"
                   @click="resetForm"
               >
                 <XMarkIcon class="h-4 w-4" aria-hidden="true" />
@@ -349,10 +350,11 @@
               </button>
               <button
                   type="submit"
-                  class="inline-flex items-center justify-center gap-2 rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
+                  class="inline-flex items-center justify-center gap-2 rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500"
+                  :disabled="isSavingNote"
               >
                 <CheckIcon class="h-4 w-4" aria-hidden="true" />
-                {{ editingId ? '수정 저장' : '노트 저장' }}
+                {{ isSavingNote ? '저장 중' : editingId ? '수정 저장' : '노트 저장' }}
               </button>
             </div>
           </div>
@@ -394,7 +396,15 @@
           </label>
         </div>
 
-        <div v-if="filteredNotes.length === 0" class="mt-4 rounded-md border border-dashed border-zinc-300 bg-white px-5 py-12 text-center">
+        <p v-if="noteLoadError" class="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          {{ noteLoadError }}
+        </p>
+
+        <div v-if="isLoadingNotes" class="mt-4 rounded-md border border-zinc-200 bg-white px-5 py-10 text-center text-sm text-zinc-500">
+          테이스팅 기록을 불러오는 중입니다.
+        </div>
+
+        <div v-else-if="filteredNotes.length === 0" class="mt-4 rounded-md border border-dashed border-zinc-300 bg-white px-5 py-12 text-center">
           <p class="text-base font-semibold text-zinc-900">저장된 테이스팅 노트가 없습니다.</p>
           <p class="mt-2 text-sm text-zinc-500">첫 잔의 향과 여운을 남겨보세요.</p>
         </div>
@@ -429,11 +439,12 @@
                 </button>
                 <button
                     type="button"
-                    class="inline-flex items-center gap-1 rounded-md border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
+                    class="inline-flex items-center gap-1 rounded-md border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    :disabled="isDeletingNoteId === note.id"
                     @click="deleteNote(note.id)"
                 >
                   <TrashIcon class="h-4 w-4" aria-hidden="true" />
-                  삭제
+                  {{ isDeletingNoteId === note.id ? '삭제 중' : '삭제' }}
                 </button>
               </div>
             </div>
@@ -581,7 +592,7 @@ import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue';
 import {useRoute} from 'vue-router';
 import {CheckIcon, MagnifyingGlassIcon, MapPinIcon, PencilSquareIcon, TrashIcon, XMarkIcon} from '@heroicons/vue/24/outline';
 import PlaceMapPicker from '@/components/PlaceMapPicker.vue';
-import {apiService} from '@/services/api';
+import {apiService, resolveApiErrorMessage} from '@/services/api';
 import {
   buildTastingNoteTagGroups,
   DEFAULT_TASTING_NOTE_TAG_GROUPS,
@@ -593,7 +604,6 @@ import {
   validateTastingNoteTextFields
 } from '@/utils/textInputSecurity';
 
-const STORAGE_KEY = 'dripking:tasting-notes';
 const ALCOHOL_SEARCH_PAGE_SIZE = 40;
 const NOTE_STEP_KEYS = ['alcohol', 'history', 'details', 'impressions'];
 const noteSteps = [
@@ -612,8 +622,11 @@ const route = useRoute();
 const formSection = ref(null);
 const alcohols = ref([]);
 const notes = ref([]);
+const isLoadingNotes = ref(false);
 const isLoadingAlcohols = ref(false);
 const isLoadingMoreAlcohols = ref(false);
+const isSavingNote = ref(false);
+const isDeletingNoteId = ref(null);
 const hasMoreAlcohols = ref(false);
 const isAlcoholModalOpen = ref(false);
 const isPlacePickerOpen = ref(false);
@@ -622,6 +635,7 @@ const alcoholSearchPage = ref(0);
 const alcoholSearchText = ref('');
 const alcoholLoadError = ref('');
 const tagLoadError = ref('');
+const noteLoadError = ref('');
 const formError = ref('');
 const editingId = ref('');
 const activeNoteStep = ref('alcohol');
@@ -653,8 +667,6 @@ const form = ref(createBlankForm());
 
 const ratingFields = TASTING_NOTE_RATING_FIELDS;
 const tagGroups = ref(DEFAULT_TASTING_NOTE_TAG_GROUPS);
-
-const createId = () => `note-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const normalizeNumber = (value, fallback = 3) => {
   const numericValue = Number(value);
@@ -737,40 +749,60 @@ const mergeAlcoholResults = (currentAlcohols, nextAlcohols) => {
 
 let alcoholSearchDebounceId = null;
 let alcoholSearchRequestId = 0;
+let noteLoadRequestId = 0;
 
-const normalizeNote = (note) => ({
-  id: note.id || createId(),
-  alcoholId: note.alcoholId ? String(note.alcoholId) : '',
-  alcoholName: note.alcoholName || '',
-  tastedAt: note.tastedAt || today(),
-  place: note.place || '',
-  placeLat: normalizeOptionalCoordinate(note.placeLat ?? note.placeLatitude ?? note.latitude),
-  placeLng: normalizeOptionalCoordinate(note.placeLng ?? note.placeLongitude ?? note.longitude),
-  appearance: normalizeNumber(note.appearance),
-  aroma: normalizeNumber(note.aroma),
-  palate: normalizeNumber(note.palate),
-  finish: normalizeNumber(note.finish),
-  overall: normalizeNumber(note.overall),
-  aromaTags: normalizeTags(note.aromaTags),
-  palateTags: normalizeTags(note.palateTags),
-  finishTags: normalizeTags(note.finishTags),
-  pairing: normalizePlainTextInput(note.pairing, TASTING_NOTE_TEXT_SECURITY_RULES.pairing),
-  memo: normalizePlainTextInput(note.memo, TASTING_NOTE_TEXT_SECURITY_RULES.memo),
-  createdAt: note.createdAt || new Date().toISOString(),
-  updatedAt: note.updatedAt || note.createdAt || new Date().toISOString()
-});
-
-const persistNotes = () => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes.value));
+const normalizeNoteResponse = (response) => {
+  return Array.isArray(response?.content)
+      ? response.content
+      : Array.isArray(response)
+          ? response
+          : [];
 };
 
-const loadNotes = () => {
+const normalizeNote = (note) => {
+  const place = typeof note.place === 'object' && note.place !== null ? note.place : {};
+  return {
+    id: note.id,
+    alcoholId: note.alcoholId ? String(note.alcoholId) : '',
+    alcoholName: note.alcoholName || '',
+    tastedAt: note.tastedAt || today(),
+    place: typeof note.place === 'string' ? note.place : place.name || note.placeName || '',
+    placeLat: normalizeOptionalCoordinate(place.lat ?? note.placeLat ?? note.placeLatitude ?? note.latitude),
+    placeLng: normalizeOptionalCoordinate(place.lng ?? note.placeLng ?? note.placeLongitude ?? note.longitude),
+    appearance: normalizeNumber(note.appearance),
+    aroma: normalizeNumber(note.aroma),
+    palate: normalizeNumber(note.palate),
+    finish: normalizeNumber(note.finish),
+    overall: normalizeNumber(note.overall),
+    aromaTags: normalizeTags(note.aromaTags),
+    palateTags: normalizeTags(note.palateTags),
+    finishTags: normalizeTags(note.finishTags),
+    pairing: normalizePlainTextInput(note.pairing, TASTING_NOTE_TEXT_SECURITY_RULES.pairing),
+    memo: normalizePlainTextInput(note.memo, TASTING_NOTE_TEXT_SECURITY_RULES.memo),
+    photoCount: Number(note.photoCount || 0),
+    primaryPhoto: note.primaryPhoto || null,
+    createdAt: note.createdAt || new Date().toISOString(),
+    updatedAt: note.updatedAt || note.createdAt || new Date().toISOString()
+  };
+};
+
+const loadNotes = async () => {
+  const requestId = ++noteLoadRequestId;
+  isLoadingNotes.value = true;
+  noteLoadError.value = '';
   try {
-    const savedNotes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    notes.value = Array.isArray(savedNotes) ? savedNotes.map(normalizeNote) : [];
+    const response = await apiService.getWithToken('tasting-notes?size=100&sort=recent');
+    if (requestId !== noteLoadRequestId) return;
+    notes.value = normalizeNoteResponse(response).map(normalizeNote);
   } catch (error) {
     console.error('테이스팅 노트를 불러오지 못했습니다.', error);
+    if (requestId !== noteLoadRequestId) return;
     notes.value = [];
+    noteLoadError.value = resolveApiErrorMessage(error, '테이스팅 기록을 불러오지 못했습니다.');
+  } finally {
+    if (requestId === noteLoadRequestId) {
+      isLoadingNotes.value = false;
+    }
   }
 };
 
@@ -1023,7 +1055,32 @@ const selectedAlcoholPastNotes = computed(() => {
       .sort((firstNote, secondNote) => String(secondNote.tastedAt).localeCompare(String(firstNote.tastedAt)));
 });
 
-const saveNote = () => {
+const buildNotePayload = (textValues) => ({
+  alcoholId: form.value.alcoholId ? Number(form.value.alcoholId) : null,
+  alcoholName: form.value.alcoholName,
+  tastedAt: form.value.tastedAt,
+  place: {
+    name: form.value.place || null,
+    lat: normalizeOptionalCoordinate(form.value.placeLat),
+    lng: normalizeOptionalCoordinate(form.value.placeLng)
+  },
+  ratings: {
+    appearance: normalizeNumber(form.value.appearance),
+    aroma: normalizeNumber(form.value.aroma),
+    palate: normalizeNumber(form.value.palate),
+    finish: normalizeNumber(form.value.finish),
+    overall: normalizeNumber(form.value.overall)
+  },
+  tags: {
+    aroma: normalizeTags(form.value.aromaTags),
+    palate: normalizeTags(form.value.palateTags),
+    finish: normalizeTags(form.value.finishTags)
+  },
+  pairing: textValues.pairing || null,
+  memo: textValues.memo || null
+});
+
+const saveNote = async () => {
   formError.value = '';
 
   if (!form.value.alcoholName.trim()) {
@@ -1043,25 +1100,25 @@ const saveNote = () => {
     return;
   }
 
-  const now = new Date().toISOString();
-  const existingNote = editingId.value
-      ? notes.value.find((note) => note.id === editingId.value)
-      : null;
+  isSavingNote.value = true;
 
-  const nextNote = normalizeNote({
-    ...form.value,
-    ...textValidation.values,
-    id: editingId.value || createId(),
-    createdAt: existingNote?.createdAt || now,
-    updatedAt: now
-  });
+  try {
+    const payload = buildNotePayload(textValidation.values);
+    const response = editingId.value
+        ? await apiService.patchWithToken(`tasting-notes/${editingId.value}`, payload)
+        : await apiService.postWithToken('tasting-notes', payload);
+    const savedNote = normalizeNote(response);
 
-  notes.value = editingId.value
-      ? notes.value.map((note) => note.id === editingId.value ? nextNote : note)
-      : [nextNote, ...notes.value];
-
-  persistNotes();
-  resetForm();
+    notes.value = editingId.value
+        ? notes.value.map((note) => note.id === editingId.value ? savedNote : note)
+        : [savedNote, ...notes.value];
+    resetForm();
+  } catch (error) {
+    console.error('테이스팅 노트를 저장하지 못했습니다.', error);
+    formError.value = resolveApiErrorMessage(error, '테이스팅 기록을 저장하지 못했습니다.');
+  } finally {
+    isSavingNote.value = false;
+  }
 };
 
 const handleNoteSubmit = () => {
@@ -1098,13 +1155,24 @@ const editNote = (note) => {
   formSection.value?.scrollIntoView({behavior: 'smooth', block: 'start'});
 };
 
-const deleteNote = (noteId) => {
+const deleteNote = async (noteId) => {
   if (!window.confirm('이 테이스팅 노트를 삭제할까요?')) return;
-  notes.value = notes.value.filter((note) => note.id !== noteId);
-  persistNotes();
 
-  if (editingId.value === noteId) {
-    resetForm();
+  isDeletingNoteId.value = noteId;
+  noteLoadError.value = '';
+
+  try {
+    await apiService.deleteWithToken(`tasting-notes/${noteId}`);
+    notes.value = notes.value.filter((note) => note.id !== noteId);
+
+    if (editingId.value === noteId) {
+      resetForm();
+    }
+  } catch (error) {
+    console.error('테이스팅 노트를 삭제하지 못했습니다.', error);
+    noteLoadError.value = resolveApiErrorMessage(error, '테이스팅 기록을 삭제하지 못했습니다.');
+  } finally {
+    isDeletingNoteId.value = null;
   }
 };
 
@@ -1200,8 +1268,8 @@ watch(alcoholSearchText, () => {
 });
 
 onMounted(async () => {
-  loadNotes();
   await Promise.all([
+    loadNotes(),
     loadAlcohols(),
     loadTagGroups()
   ]);
