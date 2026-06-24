@@ -117,6 +117,12 @@ const setRating = (value) => {
 
 const submitReview = async () => {
   submitError.value = ''
+  const normalizedRating = Number(rating.value)
+  if (!Number.isInteger(normalizedRating) || normalizedRating < 1 || normalizedRating > 5) {
+    submitError.value = '평점을 선택해주세요.'
+    return
+  }
+
   const contentValidation = validatePlainTextInput(content.value, REVIEW_TEXT_SECURITY_RULES.contents)
 
   if (!contentValidation.isValid) {
@@ -128,7 +134,7 @@ const submitReview = async () => {
   const reviewData = {
     targetId: props.targetId,
     itemType: props.itemType,
-    rating: rating.value,
+    rating: normalizedRating,
     contents: contentValidation.value
   }
 
