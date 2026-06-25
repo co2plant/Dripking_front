@@ -58,6 +58,19 @@ export const apiService = {
         return parseResponseBody(response);
     },
 
+    async getWithOptionalToken(endpoint){
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        const authorization = localStorage.getItem('Authorization');
+        if (authorization) {
+            headers.Authorization = authorization;
+        }
+
+        const response = await fetch(buildUrl(endpoint), {headers});
+        return parseResponseBody(response);
+    },
+
     async post(endpoint, data){
         const response = await fetch(buildUrl(endpoint), {
             method: 'POST',
