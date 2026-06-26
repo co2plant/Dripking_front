@@ -9,6 +9,7 @@ import AlcoholDetail from "@/views/AlcoholDetail.vue";
 import TastingNotes from "@/views/TastingNotes.vue";
 import SearchedList from "@/views/SearchedList.vue";
 import OnboardingTaste from "@/views/OnboardingTaste.vue";
+import CourseCreate from "@/views/CourseCreate.vue";
 import TripCreate from "@/views/TripCreate.vue";
 import TripModify from "@/views/TripModify.vue";
 import TripNearby from "@/views/TripNearby.vue";
@@ -34,6 +35,7 @@ const routes = [
     { path: '/alcohol/:id', name: 'alcoholDetail', component: AlcoholDetail, meta:{requiredGuest : true} },
     { path: '/tasting-notes', name: 'tastingNotes', component: TastingNotes, meta:{requiredUser : true} },
     { path: '/onboarding/taste', name:'onboardingTaste', component: OnboardingTaste, meta:{requiredUser : true}},
+    { path: '/courses/new', name:'courseCreate', component: CourseCreate, meta:{requiredGuest : true}},
     { path: '/search/:dtype', name: 'searchList', component: SearchedList, meta:{requiredGuest : true}}, //현재는 미사용(검색기능 추가 시 사용할 예정)
     { path: '/trips/new', name:'tripCreate', component: TripCreate, meta:{requiredGuest : true}},
     { path: '/trip/:id', name:'tripModify', component: TripModify, meta:{requiredGuest : true}, props:true},

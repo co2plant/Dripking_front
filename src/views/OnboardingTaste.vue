@@ -8,10 +8,10 @@
           <p class="mt-2 text-sm text-zinc-600">좋아하는 주류와 맛을 골라주세요.</p>
         </div>
         <router-link
-            :to="{ name: 'tripCreate' }"
+            :to="{ name: 'courseCreate' }"
             class="inline-flex h-10 items-center justify-center rounded-md border border-zinc-200 px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
         >
-          여행 만들기
+          AI 코스 만들기
         </router-link>
       </div>
     </section>
@@ -122,6 +122,7 @@ import {computed, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {Check as CheckIcon, RotateCcw as RotateCcwIcon, Save as SaveIcon} from 'lucide-vue-next';
 import {apiService, resolveApiErrorMessage} from '@/services/api';
+import {FLAVOR_TAG_OPTIONS} from '@/constants/tasteOptions';
 import {useTasteProfileStore} from '@/stores/useTasteProfileStore';
 
 const router = useRouter();
@@ -133,16 +134,7 @@ const isLoadingCategories = ref(false);
 const feedbackMessage = ref('');
 const feedbackType = ref('idle');
 
-const flavorTagOptions = [
-  {value: 'peaty', label: '피트'},
-  {value: 'sweet', label: '달콤함'},
-  {value: 'fresh', label: '산뜻함'},
-  {value: 'rich', label: '묵직함'},
-  {value: 'fruity', label: '과일향'},
-  {value: 'smoky', label: '스모키'},
-  {value: 'light-body', label: '가벼운 바디'},
-  {value: 'full-body', label: '풀 바디'},
-];
+const flavorTagOptions = FLAVOR_TAG_OPTIONS;
 
 const selectedCount = computed(() => selectedCategories.value.length + selectedFlavorTags.value.length);
 
@@ -242,7 +234,7 @@ const saveProfile = async () => {
 
   feedbackMessage.value = '취향 설정을 저장했습니다.';
   feedbackType.value = 'success';
-  await router.push({name: 'tripCreate'});
+  await router.push({name: 'courseCreate'});
 };
 
 onMounted(loadInitialData);

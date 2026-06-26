@@ -90,7 +90,8 @@ import {useAuthStore} from '@/stores/useAuthStore'
 
 const navigation = [
       {name: 'Discover', href: '/destinationList'},
-      {name: 'Trips', href: '/trips/new'},
+      {name: 'AI 코스', href: '/courses/new'},
+      {name: '내 여행', href: '/trips/new'},
       {name: 'Alcohol', href: '/alcoholList'},
       {name: 'Tasting Notes', href: '/tasting-notes'},
       {name: 'More', href: '#'},

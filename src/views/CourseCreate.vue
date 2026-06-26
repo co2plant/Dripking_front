@@ -1,0 +1,401 @@
+<template>
+  <main class="mx-auto max-w-7xl px-4 py-8 text-left">
+    <section class="mb-8 border-b border-zinc-200 pb-6">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="text-sm font-semibold text-amber-600">Course Autopilot</p>
+          <h1 class="mt-2 text-3xl font-bold text-zinc-950">AI 코스 만들기</h1>
+          <p class="mt-2 text-sm text-zinc-600">기간, 지역, 취향, 위시리스트를 조합해 코스 생성 요청을 준비합니다.</p>
+        </div>
+        <router-link
+            :to="{ name: 'tripCreate' }"
+            class="inline-flex h-10 items-center justify-center rounded-md border border-zinc-200 px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+        >
+          여행 만들기
+        </router-link>
+      </div>
+    </section>
+
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <form class="grid gap-6" @submit.prevent="prepareCourseDraft">
+        <section class="rounded-md border border-zinc-200 bg-white p-6 shadow-sm">
+          <div class="mb-5 flex items-center gap-2">
+            <calendar-days-icon class="h-5 w-5 text-amber-600" />
+            <h2 class="text-base font-bold text-zinc-950">기간</h2>
+          </div>
+          <div class="grid gap-4 md:grid-cols-2">
+            <label class="grid gap-2">
+              <span class="text-sm font-semibold text-zinc-900">출발일</span>
+              <input
+                  v-model="courseDraftStore.draft.startDate"
+                  type="date"
+                  :min="today"
+                  class="h-11 rounded-md border border-zinc-200 px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                  @change="syncEndDate"
+              />
+            </label>
+            <label class="grid gap-2">
+              <span class="text-sm font-semibold text-zinc-900">도착일</span>
+              <input
+                  v-model="courseDraftStore.draft.endDate"
+                  type="date"
+                  :min="courseDraftStore.draft.startDate || today"
+                  class="h-11 rounded-md border border-zinc-200 px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                  @change="courseDraftStore.clearPreparedPayload"
+              />
+            </label>
+          </div>
+        </section>
+
+        <section class="rounded-md border border-zinc-200 bg-white p-6 shadow-sm">
+          <div class="mb-5 flex items-center gap-2">
+            <map-pin-icon class="h-5 w-5 text-amber-600" />
+            <h2 class="text-base font-bold text-zinc-950">지역</h2>
+          </div>
+          <div class="grid gap-4 md:grid-cols-[minmax(0,240px)_minmax(0,1fr)]">
+            <label class="grid gap-2">
+              <span class="text-sm font-semibold text-zinc-900">국가</span>
+              <select
+                  v-model.number="courseDraftStore.draft.countryId"
+                  class="h-11 rounded-md border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                  @change="syncCountryFromSelection"
+              >
+                <option :value="0">국가 선택</option>
+                <option v-for="country in countries" :key="country.id" :value="country.id">
+                  {{ country.name }}
+                </option>
+              </select>
+            </label>
+            <label class="grid gap-2">
+              <span class="text-sm font-semibold text-zinc-900">지역 힌트</span>
+              <input
+                  v-model.trim="courseDraftStore.draft.regionHint"
+                  type="text"
+                  maxlength="40"
+                  placeholder="예: 제주, 교토, 도쿄"
+                  class="h-11 rounded-md border border-zinc-200 px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                  @input="courseDraftStore.clearPreparedPayload"
+              />
+            </label>
+          </div>
+        </section>
+
+        <section class="rounded-md border border-zinc-200 bg-white p-6 shadow-sm">
+          <div class="mb-5 flex items-center gap-2">
+            <sparkles-icon class="h-5 w-5 text-amber-600" />
+            <h2 class="text-base font-bold text-zinc-950">취향</h2>
+          </div>
+          <div v-if="isLoadingBaseData" class="rounded-md bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500">
+            취향 선택지를 불러오는 중입니다.
+          </div>
+          <div v-else class="grid gap-6">
+            <fieldset>
+              <legend class="text-sm font-semibold text-zinc-900">주류 카테고리</legend>
+              <div v-if="categories.length === 0" class="mt-3 rounded-md border border-zinc-200 bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500">
+                표시할 카테고리가 없습니다.
+              </div>
+              <div v-else class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <button
+                    v-for="category in categories"
+                    :key="category.id"
+                    type="button"
+                    class="flex min-h-16 items-start justify-between gap-3 rounded-md border px-4 py-3 text-left transition-colors"
+                    :class="isCategorySelected(category.id) ? 'border-amber-400 bg-amber-50 text-zinc-950' : 'border-zinc-200 bg-white text-zinc-700 hover:border-amber-300'"
+                    @click="courseDraftStore.toggleCategory(category.id)"
+                >
+                  <span>
+                    <span class="block text-sm font-semibold">{{ category.name }}</span>
+                    <span class="mt-1 line-clamp-2 block text-xs text-zinc-500">{{ category.description || '설명 없음' }}</span>
+                  </span>
+                  <check-icon v-if="isCategorySelected(category.id)" class="h-5 w-5 shrink-0 text-amber-600" />
+                </button>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend class="text-sm font-semibold text-zinc-900">맛 태그</legend>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button
+                    v-for="tag in flavorTagOptions"
+                    :key="tag.value"
+                    type="button"
+                    class="inline-flex h-10 items-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors"
+                    :class="isFlavorTagSelected(tag.value) ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400'"
+                    @click="courseDraftStore.toggleFlavorTag(tag.value)"
+                >
+                  <check-icon v-if="isFlavorTagSelected(tag.value)" class="h-4 w-4" />
+                  {{ tag.label }}
+                </button>
+              </div>
+            </fieldset>
+          </div>
+        </section>
+
+        <section class="rounded-md border border-zinc-200 bg-white p-6 shadow-sm">
+          <div class="mb-5 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <heart-icon class="h-5 w-5 text-amber-600" />
+              <h2 class="text-base font-bold text-zinc-950">위시리스트</h2>
+            </div>
+            <span class="rounded bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600">{{ selectedWishlistCount }}</span>
+          </div>
+
+          <div v-if="isLoadingWishlist" class="rounded-md bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500">
+            위시리스트를 불러오는 중입니다.
+          </div>
+          <div v-else-if="wishlistItems.length === 0" class="rounded-md border border-zinc-200 bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500">
+            담아둔 항목이 없습니다.
+          </div>
+          <div v-else class="grid max-h-[420px] gap-3 overflow-y-auto pr-1">
+            <label
+                v-for="item in wishlistItems"
+                :key="`${item.itemType}-${item.targetId || item.id}`"
+                class="grid cursor-pointer grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-md border p-3 transition-colors"
+                :class="wishlistItemId(item) ? (isWishlistSelected(item) ? 'border-amber-400 bg-amber-50' : 'border-zinc-200 bg-white hover:border-amber-300') : 'cursor-not-allowed border-zinc-200 bg-zinc-50 opacity-70'"
+            >
+              <input
+                  type="checkbox"
+                  class="sr-only"
+                  :disabled="!wishlistItemId(item)"
+                  :checked="isWishlistSelected(item)"
+                  @change="toggleWishlistSelection(item)"
+              />
+              <div class="h-16 w-16 overflow-hidden rounded-md bg-zinc-100">
+                <img v-if="item.imgUrl" :src="item.imgUrl" :alt="item.name" class="h-full w-full object-cover" />
+              </div>
+              <span class="min-w-0">
+                <span class="mb-1 inline-flex rounded bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-600">{{ displayItemType(item.itemType) }}</span>
+                <span class="block truncate text-sm font-semibold text-zinc-950">{{ item.name || '이름 없음' }}</span>
+                <span class="mt-1 line-clamp-1 block text-xs text-zinc-500">{{ item.address || item.description || '위치 정보 없음' }}</span>
+              </span>
+              <span v-if="isWishlistSelected(item)" class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-zinc-950">
+                <check-icon class="h-4 w-4" />
+              </span>
+              <span v-else-if="!wishlistItemId(item)" class="text-xs font-semibold text-zinc-500">동기화 필요</span>
+            </label>
+          </div>
+        </section>
+
+        <div v-if="courseDraftStore.validationErrors.length" class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p v-for="error in courseDraftStore.validationErrors" :key="error">{{ error }}</p>
+        </div>
+
+        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button
+              type="button"
+              class="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-zinc-200 px-5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+              @click="resetDraft"
+          >
+            <rotate-ccw-icon class="h-4 w-4" />
+            초기화
+          </button>
+          <button
+              type="submit"
+              class="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-amber-400 px-5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-amber-500"
+          >
+            <wand-sparkles-icon class="h-4 w-4" />
+            생성 요청 준비
+          </button>
+        </div>
+      </form>
+
+      <aside class="h-fit rounded-md border border-zinc-200 bg-zinc-50 p-5">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-base font-bold text-zinc-950">요청 요약</h2>
+          <span class="rounded bg-white px-2 py-1 text-xs font-semibold text-zinc-600">{{ courseDraftStore.durationDays || 0 }}일</span>
+        </div>
+
+        <dl class="mt-5 grid gap-4 text-sm">
+          <div>
+            <dt class="text-xs font-semibold uppercase text-zinc-500">Dates</dt>
+            <dd class="mt-1 font-medium text-zinc-900">{{ courseDraftStore.draft.startDate }} ~ {{ courseDraftStore.draft.endDate }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold uppercase text-zinc-500">Region</dt>
+            <dd class="mt-1 font-medium text-zinc-900">{{ courseDraftStore.draft.countryName || '국가 미선택' }}</dd>
+            <dd v-if="courseDraftStore.draft.regionHint" class="mt-1 text-zinc-600">{{ courseDraftStore.draft.regionHint }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold uppercase text-zinc-500">Taste</dt>
+            <dd class="mt-2 flex flex-wrap gap-2">
+              <span v-for="name in selectedCategoryNames" :key="`category-${name}`" class="rounded bg-white px-2 py-1 text-xs font-medium text-zinc-700">{{ name }}</span>
+              <span v-for="label in selectedFlavorLabels" :key="`tag-${label}`" class="rounded bg-white px-2 py-1 text-xs font-medium text-zinc-700">{{ label }}</span>
+              <span v-if="selectedCategoryNames.length === 0 && selectedFlavorLabels.length === 0" class="text-sm text-zinc-500">선택 없음</span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold uppercase text-zinc-500">Wishlist</dt>
+            <dd class="mt-1 font-medium text-zinc-900">{{ selectedWishlistCount }}개 선택</dd>
+          </div>
+        </dl>
+
+        <div v-if="courseDraftStore.preparedPayload" class="mt-5 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+          <p class="font-semibold">요청 준비 완료</p>
+          <p class="mt-1">생성 API 연결 단계에서 이 payload를 전송합니다.</p>
+        </div>
+
+        <div v-if="errorMessage" class="mt-5 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {{ errorMessage }}
+        </div>
+      </aside>
+    </div>
+  </main>
+</template>
+
+<script setup>
+import {computed, onMounted, ref} from 'vue';
+import {
+  CalendarDays as CalendarDaysIcon,
+  Check as CheckIcon,
+  Heart as HeartIcon,
+  MapPin as MapPinIcon,
+  RotateCcw as RotateCcwIcon,
+  Sparkles as SparklesIcon,
+  WandSparkles as WandSparklesIcon,
+} from 'lucide-vue-next';
+import {apiService, resolveApiErrorMessage} from '@/services/api';
+import {FLAVOR_TAG_OPTIONS} from '@/constants/tasteOptions';
+import {useAuthStore} from '@/stores/useAuthStore';
+import {useCourseDraftStore} from '@/stores/useCourseDraftStore';
+import {useTasteProfileStore} from '@/stores/useTasteProfileStore';
+import {useWishStore} from '@/stores/useWishStore';
+
+const authStore = useAuthStore();
+const courseDraftStore = useCourseDraftStore();
+const tasteProfileStore = useTasteProfileStore();
+const wishStore = useWishStore();
+
+const categories = ref([]);
+const countries = ref([]);
+const isLoadingBaseData = ref(false);
+const isLoadingWishlist = ref(false);
+const errorMessage = ref('');
+const flavorTagOptions = FLAVOR_TAG_OPTIONS;
+
+const formatDateInput = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const today = computed(() => formatDateInput(new Date()));
+
+const selectedCountry = computed(() => countries.value
+    .find(country => Number(country.id) === Number(courseDraftStore.draft.countryId)));
+
+const wishlistItems = computed(() => wishStore.WishItems);
+
+const selectedWishlistCount = computed(() => courseDraftStore.draft.wishlistItemIds.length);
+
+const selectedCategoryNames = computed(() => categories.value
+    .filter(category => courseDraftStore.draft.categories.includes(Number(category.id)))
+    .map(category => category.name));
+
+const selectedFlavorLabels = computed(() => flavorTagOptions
+    .filter(tag => courseDraftStore.draft.flavorTags.includes(tag.value))
+    .map(tag => tag.label));
+
+const displayItemType = (itemType) => ({
+  ALCOHOL: '술',
+  DESTINATION: '여행지',
+  DISTILLERY: '양조장',
+  PLACE: '장소',
+}[itemType] || itemType);
+
+const wishlistItemId = (item) => {
+  const id = Number(item?.wishlistItemId);
+  return Number.isFinite(id) ? id : null;
+};
+
+const isCategorySelected = (categoryId) => courseDraftStore.draft.categories.includes(Number(categoryId));
+
+const isFlavorTagSelected = (tag) => courseDraftStore.draft.flavorTags.includes(tag);
+
+const isWishlistSelected = (item) => {
+  const id = wishlistItemId(item);
+  return id !== null && courseDraftStore.draft.wishlistItemIds.includes(id);
+};
+
+const toggleWishlistSelection = (item) => {
+  const id = wishlistItemId(item);
+  if (id !== null) {
+    courseDraftStore.toggleWishlistItem(id);
+  }
+};
+
+const syncCountryFromSelection = () => {
+  courseDraftStore.setCountry(selectedCountry.value);
+};
+
+const syncEndDate = () => {
+  if (!courseDraftStore.draft.endDate || courseDraftStore.draft.endDate < courseDraftStore.draft.startDate) {
+    courseDraftStore.draft.endDate = courseDraftStore.draft.startDate;
+  }
+  courseDraftStore.clearPreparedPayload();
+};
+
+const loadBaseData = async () => {
+  isLoadingBaseData.value = true;
+  try {
+    const [categoryResponse, countryResponse] = await Promise.all([
+      apiService.get('categories'),
+      apiService.get('countries'),
+    ]);
+    categories.value = Array.isArray(categoryResponse) ? categoryResponse : [];
+    countries.value = Array.isArray(countryResponse) ? countryResponse : [];
+  } catch (error) {
+    categories.value = [];
+    countries.value = [];
+    errorMessage.value = resolveApiErrorMessage(error, '코스 생성 선택지를 불러오지 못했습니다.');
+  } finally {
+    isLoadingBaseData.value = false;
+  }
+};
+
+const loadTasteProfile = async () => {
+  await authStore.initAuth();
+  if (!authStore.isAuthenticated()) {
+    return;
+  }
+
+  const result = await tasteProfileStore.loadProfile();
+  if (result.success) {
+    courseDraftStore.setTaste(tasteProfileStore.profile.categories, tasteProfileStore.profile.flavorTags);
+  }
+};
+
+const loadWishlist = async () => {
+  isLoadingWishlist.value = true;
+  try {
+    await wishStore.loadWishlist();
+    const availableIds = wishlistItems.value.map(wishlistItemId).filter(id => id !== null);
+    courseDraftStore.setWishlistItemIds(courseDraftStore.draft.wishlistItemIds.filter(id => availableIds.includes(id)));
+  } catch (error) {
+    errorMessage.value = resolveApiErrorMessage(error, '위시리스트를 불러오지 못했습니다.');
+  } finally {
+    isLoadingWishlist.value = false;
+  }
+};
+
+const prepareCourseDraft = () => {
+  syncCountryFromSelection();
+  courseDraftStore.prepareGenerateRequest();
+};
+
+const resetDraft = () => {
+  courseDraftStore.resetDraft({
+    startDate: today.value,
+    endDate: today.value,
+  });
+};
+
+onMounted(async () => {
+  resetDraft();
+  await Promise.all([
+    loadBaseData(),
+    loadTasteProfile(),
+    loadWishlist(),
+  ]);
+});
+</script>
