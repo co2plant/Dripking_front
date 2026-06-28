@@ -256,9 +256,24 @@
             <span v-if="generationResult.regionHint"> · {{ generationResult.regionHint }}</span>
           </p>
         </div>
-        <span class="w-fit rounded bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600">
-          {{ generatedPlanCount }}개 항목
-        </span>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <span class="w-fit rounded bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600">
+            {{ generatedPlanCount }}개 항목
+          </span>
+          <button
+              type="button"
+              :disabled="isSavingCourse || generatedPlanCount === 0"
+              class="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500"
+              @click="saveGeneratedCourse"
+          >
+            <save-icon class="h-4 w-4" />
+            {{ isSavingCourse ? '저장 중...' : '내 여행으로 저장' }}
+          </button>
+        </div>
+      </div>
+
+      <div v-if="isSavingCourse" class="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+        생성된 코스를 여행과 일정으로 저장하는 중입니다.
       </div>
 
       <div v-if="generatedPlanCount === 0" class="mt-5 rounded-md bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500">
@@ -311,25 +326,34 @@
 
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue';
+import {useRouter} from 'vue-router';
 import {
   CalendarDays as CalendarDaysIcon,
   Check as CheckIcon,
   Heart as HeartIcon,
   MapPin as MapPinIcon,
   RotateCcw as RotateCcwIcon,
+  Save as SaveIcon,
   Sparkles as SparklesIcon,
   WandSparkles as WandSparklesIcon,
 } from 'lucide-vue-next';
+import Plan from '@/composables/Entity/Plan';
+import Trip from '@/composables/Entity/Trip';
 import {apiService, resolveApiErrorMessage} from '@/services/api';
 import {FLAVOR_TAG_OPTIONS} from '@/constants/tasteOptions';
 import {useAuthStore} from '@/stores/useAuthStore';
 import {useCourseDraftStore} from '@/stores/useCourseDraftStore';
+import {usePlanStore} from '@/stores/usePlanStore';
 import {useTasteProfileStore} from '@/stores/useTasteProfileStore';
+import {useTripStore} from '@/stores/useTripStore';
 import {useWishStore} from '@/stores/useWishStore';
 
+const router = useRouter();
 const authStore = useAuthStore();
 const courseDraftStore = useCourseDraftStore();
+const planStore = usePlanStore();
 const tasteProfileStore = useTasteProfileStore();
+const tripStore = useTripStore();
 const wishStore = useWishStore();
 
 const categories = ref([]);
@@ -337,6 +361,7 @@ const countries = ref([]);
 const isLoadingBaseData = ref(false);
 const isLoadingWishlist = ref(false);
 const isGeneratingCourse = ref(false);
+const isSavingCourse = ref(false);
 const errorMessage = ref('');
 const generationSuccessMessage = ref('');
 const generationResult = ref(null);
@@ -385,6 +410,23 @@ const displayPlanSource = (source) => ({
   WISHLIST: '위시리스트',
   RECOMMENDATION: '추천',
 }[source] || source);
+
+const planStartTime = (order) => {
+  const baseHour = 9;
+  const hour = Math.min(21, baseHour + Math.max(0, Number(order || 1) - 1) * 2);
+  return `${String(hour).padStart(2, '0')}:00`;
+};
+
+const planEndTime = (order) => {
+  const [hour] = planStartTime(order).split(':').map(Number);
+  return `${String(Math.min(22, hour + 1)).padStart(2, '0')}:00`;
+};
+
+const courseTripName = () => {
+  const regionHint = generationResult.value?.regionHint || courseDraftStore.draft.regionHint;
+  const countryName = generationResult.value?.countryName || courseDraftStore.draft.countryName;
+  return regionHint ? `${countryName} ${regionHint} AI 코스` : `${countryName} AI 코스`;
+};
 
 const clearGenerationState = () => {
   generationResult.value = null;
@@ -491,6 +533,65 @@ const generateCourse = async () => {
     errorMessage.value = resolveApiErrorMessage(error, '코스를 생성하지 못했습니다.');
   } finally {
     isGeneratingCourse.value = false;
+  }
+};
+
+const saveGeneratedCourse = async () => {
+  errorMessage.value = '';
+  await authStore.initAuth();
+  if (!authStore.isAuthenticated()) {
+    errorMessage.value = '생성된 코스를 저장하려면 로그인해주세요.';
+    return;
+  }
+  if (!generationResult.value || generatedPlanCount.value === 0) {
+    errorMessage.value = '저장할 생성 결과가 없습니다.';
+    return;
+  }
+
+  isSavingCourse.value = true;
+  try {
+    const trip = new Trip()
+        .setName(courseTripName())
+        .setDescription('AI 코스 생성 결과로 만든 여행입니다.')
+        .setStartDate(generationResult.value.startDate)
+        .setEndDate(generationResult.value.endDate)
+        .setCountryId(courseDraftStore.draft.countryId)
+        .setCountry(generationResult.value.countryName)
+        .build();
+
+    const createdTrip = await tripStore.addTrip(trip);
+    if (!createdTrip) {
+      throw new Error('여행을 저장하지 못했습니다.');
+    }
+
+    let sortOrder = 0;
+    for (const day of generationResult.value.days || []) {
+      for (const item of day.plans || []) {
+        const plan = new Plan()
+            .setName(item.name || displayItemType(item.itemType))
+            .setDescription(item.description || '')
+            .setPlanDate(day.date)
+            .setStartTime(planStartTime(item.order))
+            .setEndTime(planEndTime(item.order))
+            .setTargetId(item.targetId)
+            .setTripId(createdTrip.id)
+            .setItemType(item.itemType)
+            .build();
+        plan.sort_order = sortOrder;
+        sortOrder += 1;
+
+        const createdPlan = await planStore.addPlan(plan);
+        if (!createdPlan) {
+          throw new Error('일정을 저장하지 못했습니다.');
+        }
+      }
+    }
+
+    await router.push({name: 'tripModify', params: {id: createdTrip.id}});
+  } catch (error) {
+    errorMessage.value = resolveApiErrorMessage(error, error.message || '생성된 코스를 저장하지 못했습니다.');
+  } finally {
+    isSavingCourse.value = false;
   }
 };
 
