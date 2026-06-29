@@ -180,6 +180,14 @@
           <p v-for="error in courseDraftStore.validationErrors" :key="error">{{ error }}</p>
         </div>
 
+        <div
+            v-if="creditGateMessage"
+            class="rounded-md border px-4 py-3 text-sm"
+            :class="hasInsufficientCredit ? 'border-red-200 bg-red-50 text-red-700' : 'border-amber-200 bg-amber-50 text-amber-800'"
+        >
+          {{ creditGateMessage }}
+        </div>
+
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button
               type="button"
@@ -191,7 +199,7 @@
           </button>
           <button
               type="submit"
-              :disabled="isGeneratingCourse"
+              :disabled="isGeneratingCourse || hasInsufficientCredit"
               class="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-amber-400 px-5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-amber-500 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500"
           >
             <wand-sparkles-icon class="h-4 w-4" />
@@ -227,6 +235,11 @@
           <div>
             <dt class="text-xs font-semibold uppercase text-zinc-500">Wishlist</dt>
             <dd class="mt-1 font-medium text-zinc-900">{{ selectedWishlistCount }}개 선택</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold uppercase text-zinc-500">Credits</dt>
+            <dd class="mt-1 font-medium text-zinc-900">{{ creditBalanceLabel }}</dd>
+            <dd v-if="creditLastChargedLabel" class="mt-1 text-xs text-zinc-500">{{ creditLastChargedLabel }}</dd>
           </div>
         </dl>
 
@@ -386,12 +399,18 @@ const tasteProfileStore = useTasteProfileStore();
 const tripStore = useTripStore();
 const wishStore = useWishStore();
 
+const REQUIRED_COURSE_CREDIT = 10;
+
 const categories = ref([]);
 const countries = ref([]);
 const isLoadingBaseData = ref(false);
 const isLoadingWishlist = ref(false);
+const isLoadingCredits = ref(false);
 const isGeneratingCourse = ref(false);
 const isSavingCourse = ref(false);
+const creditBalance = ref(null);
+const creditLastChargedAt = ref('');
+const creditErrorMessage = ref('');
 const errorMessage = ref('');
 const generationSuccessMessage = ref('');
 const generationResult = ref(null);
@@ -429,6 +448,51 @@ const generatedPlanCount = computed(() => Array.isArray(generationResult.value?.
     ? generationResult.value.days.reduce((count, day) => count + (Array.isArray(day.plans) ? day.plans.length : 0), 0)
     : 0);
 
+const isLoggedIn = computed(() => Boolean(authStore.isSignedIn || authStore.isAuthenticated()));
+
+const hasInsufficientCredit = computed(() => isLoggedIn.value
+    && creditBalance.value !== null
+    && creditBalance.value < REQUIRED_COURSE_CREDIT);
+
+const creditBalanceLabel = computed(() => {
+  if (!isLoggedIn.value) {
+    return '비로그인 체험 생성';
+  }
+  if (isLoadingCredits.value) {
+    return '잔액 확인 중';
+  }
+  if (creditBalance.value === null) {
+    return '잔액 미확인';
+  }
+  return `${creditBalance.value} 크레딧 · 생성 ${REQUIRED_COURSE_CREDIT} 차감`;
+});
+
+const creditLastChargedLabel = computed(() => {
+  if (!creditLastChargedAt.value) {
+    return '';
+  }
+  return `최근 충전 ${creditLastChargedAt.value}`;
+});
+
+const creditGateMessage = computed(() => {
+  if (creditErrorMessage.value) {
+    return creditErrorMessage.value;
+  }
+  if (!isLoggedIn.value) {
+    return '비로그인은 체험 정책에 따라 생성할 수 있고, 생성 결과 저장은 로그인 후 가능합니다.';
+  }
+  if (isLoadingCredits.value) {
+    return '크레딧 잔액을 확인하는 중입니다.';
+  }
+  if (hasInsufficientCredit.value) {
+    return `크레딧이 부족합니다. 현재 ${creditBalance.value} 크레딧이며 생성에는 ${REQUIRED_COURSE_CREDIT} 크레딧이 필요합니다.`;
+  }
+  if (creditBalance.value !== null) {
+    return `코스 생성 시 ${REQUIRED_COURSE_CREDIT} 크레딧이 차감됩니다.`;
+  }
+  return '';
+});
+
 const displayItemType = (itemType) => ({
   ALCOHOL: '술',
   DESTINATION: '여행지',
@@ -447,6 +511,23 @@ const displayCredit = (value, emptyText) => {
   }
   const credit = Number(value);
   return Number.isFinite(credit) ? `${credit} 크레딧` : emptyText;
+};
+
+const displayDateTime = (value) => {
+  if (!value) {
+    return '';
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+  return date.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 
 const normalizedPlanTime = (time) => {
@@ -517,6 +598,39 @@ const courseTripName = () => {
 const clearGenerationState = () => {
   generationResult.value = null;
   generationSuccessMessage.value = '';
+};
+
+const syncCreditBalance = (value) => {
+  const balance = Number(value);
+  creditBalance.value = Number.isFinite(balance) ? balance : null;
+};
+
+const syncCreditState = (response) => {
+  syncCreditBalance(response?.balance);
+  creditLastChargedAt.value = displayDateTime(response?.lastChargedAt);
+};
+
+const syncGenerationCreditState = (response) => {
+  if (response?.remainingCredit !== null && response?.remainingCredit !== undefined) {
+    syncCreditBalance(response.remainingCredit);
+  }
+};
+
+const isInsufficientCreditError = (error) => error?.status === 402
+    || error?.body?.error?.code === 'INSUFFICIENT_CREDIT'
+    || error?.body?.code === 'INSUFFICIENT_CREDIT';
+
+const resolveInsufficientCreditMessage = (error) => {
+  const detail = error?.body?.error?.detail || {};
+  const currentBalance = Number(detail.currentBalance);
+  const requiredCredit = Number(detail.requiredCredit);
+  if (Number.isFinite(currentBalance)) {
+    creditBalance.value = currentBalance;
+  }
+  if (Number.isFinite(currentBalance) && Number.isFinite(requiredCredit)) {
+    return `크레딧이 부족합니다. 현재 ${currentBalance} 크레딧이며 생성에는 ${requiredCredit} 크레딧이 필요합니다.`;
+  }
+  return resolveApiErrorMessage(error, '크레딧이 부족해 코스를 생성하지 못했습니다.');
 };
 
 const wishlistItemId = (item) => {
@@ -600,6 +714,28 @@ const loadWishlist = async () => {
   }
 };
 
+const loadCredits = async () => {
+  creditErrorMessage.value = '';
+  await authStore.initAuth();
+  if (!authStore.isAuthenticated()) {
+    creditBalance.value = null;
+    creditLastChargedAt.value = '';
+    return;
+  }
+
+  isLoadingCredits.value = true;
+  try {
+    const response = await apiService.getWithToken('credits');
+    syncCreditState(response);
+  } catch (error) {
+    creditBalance.value = null;
+    creditLastChargedAt.value = '';
+    creditErrorMessage.value = resolveApiErrorMessage(error, '크레딧 잔액을 불러오지 못했습니다.');
+  } finally {
+    isLoadingCredits.value = false;
+  }
+};
+
 const generateCourse = async () => {
   syncCountryFromSelection();
   errorMessage.value = '';
@@ -614,9 +750,12 @@ const generateCourse = async () => {
   isGeneratingCourse.value = true;
   try {
     generationResult.value = await apiService.postWithOptionalToken('courses/generate', result.payload);
+    syncGenerationCreditState(generationResult.value);
     generationSuccessMessage.value = '코스 생성이 완료되었습니다.';
   } catch (error) {
-    errorMessage.value = resolveApiErrorMessage(error, '코스를 생성하지 못했습니다.');
+    errorMessage.value = isInsufficientCreditError(error)
+        ? resolveInsufficientCreditMessage(error)
+        : resolveApiErrorMessage(error, '코스를 생성하지 못했습니다.');
   } finally {
     isGeneratingCourse.value = false;
   }
@@ -694,6 +833,7 @@ onMounted(async () => {
     loadBaseData(),
     loadTasteProfile(),
     loadWishlist(),
+    loadCredits(),
   ]);
 });
 </script>
