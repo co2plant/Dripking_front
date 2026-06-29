@@ -276,6 +276,20 @@
         생성된 코스를 여행과 일정으로 저장하는 중입니다.
       </div>
 
+      <dl class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+            v-for="item in generationMetaItems"
+            :key="item.label"
+            class="rounded-md border border-zinc-200 bg-zinc-50 px-4 py-3"
+        >
+          <dt class="flex items-center gap-2 text-xs font-semibold text-zinc-500">
+            <component :is="item.icon" class="h-4 w-4 text-amber-600" />
+            {{ item.label }}
+          </dt>
+          <dd class="mt-1 truncate text-sm font-semibold text-zinc-950">{{ item.value }}</dd>
+        </div>
+      </dl>
+
       <div v-if="generatedPlanCount === 0" class="mt-5 rounded-md bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500">
         생성된 일정 항목이 없습니다. 지역 또는 취향 조건을 바꿔 다시 생성해보세요.
       </div>
@@ -301,12 +315,24 @@
                 :key="`course-plan-${day.day}-${plan.order}-${plan.itemType}-${plan.targetId}`"
                 class="grid grid-cols-[40px_minmax(0,1fr)] gap-3 rounded-md bg-white p-3"
             >
-              <span class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-sm font-bold text-amber-700">
-                {{ plan.order }}
+              <span class="grid gap-1 justify-items-center">
+                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-sm font-bold text-amber-700">
+                  {{ plan.order }}
+                </span>
+                <span class="text-[11px] font-semibold text-zinc-500">{{ displayPlanTime(plan) }}</span>
               </span>
               <span class="min-w-0">
-                <span class="mb-1 inline-flex rounded bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-600">
-                  {{ displayItemType(plan.itemType) }}
+                <span class="mb-1 flex flex-wrap items-center gap-2">
+                  <span class="inline-flex rounded bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-600">
+                    {{ displayItemType(plan.itemType) }}
+                  </span>
+                  <span
+                      v-if="displayTravelMinutes(plan)"
+                      class="inline-flex items-center gap-1 rounded bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-700"
+                  >
+                    <route-icon class="h-3 w-3" />
+                    {{ displayTravelMinutes(plan) }}
+                  </span>
                 </span>
                 <span class="block truncate text-sm font-semibold text-zinc-950">{{ plan.name || '이름 없음' }}</span>
                 <span class="mt-1 line-clamp-2 block text-xs text-zinc-500">{{ plan.description || '설명 없음' }}</span>
@@ -330,11 +356,15 @@ import {useRouter} from 'vue-router';
 import {
   CalendarDays as CalendarDaysIcon,
   Check as CheckIcon,
+  Coins as CoinsIcon,
+  Hash as HashIcon,
   Heart as HeartIcon,
   MapPin as MapPinIcon,
   RotateCcw as RotateCcwIcon,
+  Route as RouteIcon,
   Save as SaveIcon,
   Sparkles as SparklesIcon,
+  Wallet as WalletIcon,
   WandSparkles as WandSparklesIcon,
 } from 'lucide-vue-next';
 import Plan from '@/composables/Entity/Plan';
@@ -411,16 +441,72 @@ const displayPlanSource = (source) => ({
   RECOMMENDATION: '추천',
 }[source] || source);
 
-const planStartTime = (order) => {
+const displayCredit = (value, emptyText) => {
+  if (value === null || value === undefined || value === '') {
+    return emptyText;
+  }
+  const credit = Number(value);
+  return Number.isFinite(credit) ? `${credit} 크레딧` : emptyText;
+};
+
+const normalizedPlanTime = (time) => {
+  if (typeof time !== 'string') {
+    return null;
+  }
+  const trimmedTime = time.trim();
+  return /^\d{2}:\d{2}$/.test(trimmedTime) ? trimmedTime : null;
+};
+
+const fallbackPlanTime = (order) => {
   const baseHour = 9;
   const hour = Math.min(21, baseHour + Math.max(0, Number(order || 1) - 1) * 2);
   return `${String(hour).padStart(2, '0')}:00`;
 };
 
-const planEndTime = (order) => {
-  const [hour] = planStartTime(order).split(':').map(Number);
-  return `${String(Math.min(22, hour + 1)).padStart(2, '0')}:00`;
+const planStartTime = (planOrOrder) => {
+  if (typeof planOrOrder === 'object' && planOrOrder !== null) {
+    return normalizedPlanTime(planOrOrder.time) || fallbackPlanTime(planOrOrder.order);
+  }
+  return fallbackPlanTime(planOrOrder);
 };
+
+const planEndTime = (planOrOrder) => {
+  const [hour, minute] = planStartTime(planOrOrder).split(':').map(Number);
+  return `${String(Math.min(22, hour + 1)).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+};
+
+const displayPlanTime = (plan) => planStartTime(plan);
+
+const displayTravelMinutes = (plan) => {
+  const minutes = Number(plan?.travelMinutesFromPrev);
+  if (!Number.isFinite(minutes)) {
+    return '';
+  }
+  return minutes === 0 ? '첫 장소' : `이동 ${minutes}분`;
+};
+
+const generationMetaItems = computed(() => [
+  {
+    label: '코스 ID',
+    value: generationResult.value?.courseId || '임시 ID 없음',
+    icon: HashIcon,
+  },
+  {
+    label: '차감 크레딧',
+    value: displayCredit(generationResult.value?.creditCharged, '차감 정보 없음'),
+    icon: CoinsIcon,
+  },
+  {
+    label: '남은 크레딧',
+    value: displayCredit(generationResult.value?.remainingCredit, '잔액 미연동'),
+    icon: WalletIcon,
+  },
+  {
+    label: '캐시 여부',
+    value: generationResult.value?.cacheHit ? '캐시 재사용' : '새로 생성',
+    icon: RotateCcwIcon,
+  },
+]);
 
 const courseTripName = () => {
   const regionHint = generationResult.value?.regionHint || courseDraftStore.draft.regionHint;
@@ -571,8 +657,8 @@ const saveGeneratedCourse = async () => {
             .setName(item.name || displayItemType(item.itemType))
             .setDescription(item.description || '')
             .setPlanDate(day.date)
-            .setStartTime(planStartTime(item.order))
-            .setEndTime(planEndTime(item.order))
+            .setStartTime(planStartTime(item))
+            .setEndTime(planEndTime(item))
             .setTargetId(item.targetId)
             .setTripId(createdTrip.id)
             .setItemType(item.itemType)
